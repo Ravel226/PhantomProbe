@@ -202,7 +202,7 @@ PhantomProbe is designed for:
 
 - Inspired by [web-check](https://github.com/Lissy93/web-check) — Comprehensive website analyzer
 - Architecture influenced by [PentAGI](https://github.com/vxcontrol/pentagi) — Autonomous AI pentesting
-- Built with ❤️ by Ravel226 and Nylah 🐚
+- Built by Ravel226
 
 ## 📜 License
 
