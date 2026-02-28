@@ -10,6 +10,13 @@ PhantomProbe is a lightweight vulnerability reconnaissance scanner designed for 
 
 > *"A ghost in the machine, hunting for truth in the shadows."*
 
+## 🆕 v0.2.0 - Phase A Complete
+
+New passive reconnaissance modules:
+- **DNS Analysis** - A/AAAA records, reverse DNS, wildcard detection
+- **SSL/TLS Analysis** - Certificate info, expiry checks, weak ciphers, deprecated TLS versions
+- **HTTP Headers** - Security headers, information disclosure detection
+
 ## ✨ Features
 
 - **🔍 Passive Reconnaissance** — Safe for production environments
