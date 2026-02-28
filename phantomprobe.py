@@ -812,7 +812,7 @@ def print_banner():
     ╚██████╗ ██║  ██║██║  ██║██║██║     ██║     ██████╔╝╚██████╔╝██║  ██║
      ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝     ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
     
-    Ghost in the Machine | v0.2.0
+    Ghost in the Machine | v0.3.0
     AI-Powered Reconnaissance for Bug Bounty Hunters
     """
     print(banner)
@@ -832,12 +832,19 @@ def main():
         sys.exit(1)
 
     target = sys.argv[1].replace("https://", "").replace("http://", "").split("/")[0]
+    phase2 = "--phase2" in sys.argv or "-a" in sys.argv
 
     print_banner()
 
-    # Phase 1: Reconnaissance
+    # Phase 1: Passive Reconnaissance
     recon = ReconEngine(target)
     findings = recon.run()
+
+    # Phase 2: Active Reconnaissance (optional)
+    if phase2:
+        active = ActiveReconEngine(target)
+        active_findings = active.run()
+        findings.extend(active_findings)
 
     # Print summary
     severity_order = [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFORMATIONAL]
