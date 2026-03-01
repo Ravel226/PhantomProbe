@@ -1,215 +1,119 @@
-# PhantomProbe 🔍
+# PhantomProbe
 
-**AI-Powered Reconnaissance for Bug Bounty Hunters**
+**Reconnaissance Scanner for Penetration Testing**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![HackerOne](https://img.shields.io/badge/Bug%20Bounty-Ready-green.svg)](https://hackerone.com)
 
-PhantomProbe is a lightweight vulnerability reconnaissance scanner designed for ethical hackers and bug bounty hunters. It performs passive analysis to identify security misconfigurations without exploitation.
+PhantomProbe is a lightweight vulnerability reconnaissance scanner for penetration testers and security researchers. It performs passive and active analysis to identify security misconfigurations and correlates findings with known CVEs.
 
-> *"A ghost in the machine, hunting for truth in the shadows."*
+## v0.4.0 - CVE Matching
 
-## 🆕 v0.2.0 - Phase A Complete
+New features:
+- CVE correlation via NVD API
+- Automatic technology-to-CVE matching
+- CVSS score filtering (high/critical only)
+- CPE-based vulnerability lookup
 
-New passive reconnaissance modules:
-- **DNS Analysis** - A/AAAA records, reverse DNS, wildcard detection
-- **SSL/TLS Analysis** - Certificate info, expiry checks, weak ciphers, deprecated TLS versions
-- **HTTP Headers** - Security headers, information disclosure detection
+## Features
 
-## ✨ Features
+### Phase 1 - Passive Reconnaissance
+- DNS Analysis - A/AAAA records, reverse DNS, wildcard detection
+- SSL/TLS Analysis - Certificate info, expiry checks, weak ciphers, deprecated TLS
+- HTTP Headers - Security headers, information disclosure
 
-- **🔍 Passive Reconnaissance** — Safe for production environments
-- **🛡️ Security Header Analysis** — Detects 10+ security misconfigurations  
-- **🕵️ Information Disclosure Detection** — Finds leaked technology fingerprints
-- **📊 HackerOne-Compatible Reports** — Markdown + JSON output formats
-- **⚡ Zero Dependencies** — Standard library only (Python 3.8+)
-- **🎨 Terminal Colors** — Easy-to-read scan results
+### Phase 2 - Active Reconnaissance
+- Port scanning - Common ports with service identification
+- Subdomain enumeration - Common subdomain discovery
+- Technology fingerprinting - Server and framework detection
 
-## 🚀 Quick Start
+### CVE Correlation
+- Automatic matching of discovered technologies to known CVEs
+- CVSS score-based filtering (>= 7.0)
+- CPE 2.3 compatible lookups via NVD API
+
+## Quick Start
 
 ```bash
-# Clone the repository
 git clone https://github.com/Ravel226/phantomprobe.git
 cd phantomprobe
-
-# Run a scan
 python3 phantomprobe.py target.com
 ```
 
-## 📋 Usage
+## Usage
 
 ```bash
-# Basic scan
+# Basic scan (Phase 1)
 python3 phantomprobe.py example.com
 
-# Scan with verbose output
-python3 phantomprobe.py example.com --verbose
+# Full scan with active reconnaissance
+python3 phantomprobe.py example.com --phase2
 
-# Output files generated:
-# - report-example.com.md    (HackerOne format)
-# - report-example.com.json  (Machine readable)
+# Full scan with CVE matching
+python3 phantomprobe.py example.com --phase2 --cve
 ```
 
-## 📊 Sample Output
+Output files:
+- `report-example.com.md` - Markdown report
+- `report-example.com.json` - JSON report with CVE data
 
-```
-╔══════════════════════════════════════════════════════════╗
-║  PhantomProbe v0.1.0                                     ║
-║  Ghost in the Machine                                    ║
-╚══════════════════════════════════════════════════════════╝
-
-Target: laurellewourougou.com
-Scan Date: 2026-02-23T23:21:18
-
-[Phase 1] Reconnaissance ──────────────────────────────────
-  ✓ HTTP Headers        ... 4 findings
-  ✓ Information Disclosure ... 2 findings
-  ✓ Security Analysis     ... 2 findings
-
-Scan Summary
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Total Findings:        8
-
-  [!] CRITICAL:          0
-  [!!] HIGH:             0
-  [!] MEDIUM:            0
-  [⚠] LOW:               1
-  [ℹ] INFORMATIONAL:     7
-
-Findings
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[LOW]     SESSION-Cache: PHP Session Configuration
-[INFO]    INFO-XPoweredBy: Technology Stack Disclosure
-[INFO]    INFO-Server: Server Banner Disclosure
-[INFO]    HEADER-Good: Security Headers Well Configured
-
-[✓] Reports saved:
-    • report-laurellewourougou.com.md
-    • report-laurellewourougou.com.json
-```
-
-## 🔧 What PhantomProbe Detects
+## What PhantomProbe Detects
 
 ### Security Headers
-- ✅ Strict-Transport-Security (HSTS)
-- ✅ Content-Security-Policy (CSP)
-- ✅ X-Frame-Options (Clickjacking)
-- ✅ X-Content-Type-Options
-- ✅ Referrer-Policy
-- ✅ Permissions-Policy
+- Strict-Transport-Security (HSTS)
+- Content-Security-Policy (CSP)
+- X-Frame-Options (Clickjacking)
+- X-Content-Type-Options
+- Referrer-Policy
+- Permissions-Policy
 
 ### Information Disclosure
-- 🤫 X-Powered-By header
-- 🤫 Server banner leaks
-- 🤫 Technology fingerprints
-- 🤫 Framework version hints
+- X-Powered-By header
+- Server banner leaks
+- Technology fingerprints
+- Framework version hints
 
-### Session Management
-- 🔒 Secure cookie flags
-- 🔒 HttpOnly attributes
-- 🔒 SameSite configuration
-- 🔒 Cache control headers
+### SSL/TLS Issues
+- Expired certificates
+- Weak ciphers
+- Deprecated TLS versions (1.0, 1.1)
 
-## 🐍 Installation
+### CVE Correlation
+- Matches discovered software versions to known vulnerabilities
+- Filters by CVSS score (>= 7.0)
+- Provides links to vulnerability details
 
-### From Source
-```bash
-git clone https://github.com/Ravel226/phantomprobe.git
-cd phantomprobe
-chmod +x phantomprobe.py
+## Requirements
 
-# Optional: create symlink
-ln -s $(pwd)/phantomprobe.py ~/.local/bin/phantomprobe
-```
-
-### Requirements
 - Python 3.8+
-- No external dependencies (standard library only!)
+- No external dependencies (standard library only)
 
-## 📖 HackerOne Integration
+## Roadmap
 
-PhantomProbe generates reports compatible with HackerOne submission format:
+### v0.5.0 (Next)
+- [ ] Screenshot capture
+- [ ] JavaScript/endpoint discovery
+- [ ] Secret detection (API keys in JS)
 
-```markdown
-## Summary
-[Brief vulnerability description]
-
-## Steps to Reproduce
-1. Visit target.com
-2. Observe response headers
-3. ...
-
-## Impact
-[Security impact assessment]
-
-## Evidence
-```
-[X-Powered-By: PHP/8.2.29]
-```
-
-## Remediation
-[Fix recommendation]
-
-## References
-- https://owasp.org/...
-```
-
-## 🗺️ Roadmap
-
-### v0.2.0 (Next)
-- [ ] Active reconnaissance (nmap-style port scanning)
-- [ ] Subdomain enumeration
-- [ ] SSL/TLS certificate analysis
-- [ ] Technology fingerprinting (Wappalyzer-style)
-
-### v0.3.0  
-- [ ] AI integration (Kimi/Qwen for analysis)
-- [ ] CVE matching and correlation
-- [ ] Screenshot capture (Puppeteer integration)
-- [ ] API endpoint discovery
+### v0.6.0
+- [ ] Web dashboard
+- [ ] Burp Suite integration
+- [ ] Custom wordlists for subdomain enumeration
 
 ### v1.0.0
-- [ ] Web dashboard
-- [ ] HackerOne API bridge (auto-import targets)
-- [ ] CI/CD integration (GitHub Actions)
-- [ ] Burp Suite extension
+- [ ] Plugin system
+- [ ] Multi-target scanning
+- [ ] CI/CD integration
 
-## 🤝 Contributing
+## Disclaimer
 
-Contributions welcome! Areas we need help:
+For authorized testing only. Only use on systems you own or have explicit permission to test.
 
-- [ ] Additional security checks
-- [ ] Report templates (other platforms)
-- [ ] Documentation translations
-- [ ] Test cases
+## Credits
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+- Inspired by [web-check](https://github.com/Lissy93/web-check)
+- Architecture influenced by [PentAGI](https://github.com/vxcontrol/pentagi)
 
-## ⚠️ Disclaimer
+## License
 
-**For authorized testing only.** 
-
-PhantomProbe is designed for:
-- ✅ Your own systems
-- ✅ Bug bounty programs (with explicit scope)
-- ✅ Vulnerability disclosure programs
-- ✅ Authorized penetration testing
-
-**Never use on systems you don't own or have permission to test.**
-
-## 🙏 Credits
-
-- Inspired by [web-check](https://github.com/Lissy93/web-check) — Comprehensive website analyzer
-- Architecture influenced by [PentAGI](https://github.com/vxcontrol/pentagi) — Autonomous AI pentesting
-- Built by Ravel226
-
-## 📜 License
-
-MIT License — See [LICENSE](LICENSE) for details.
-
----
-
-<div align="center">
-  <sub>Built for bug bounty hunters, by a bug bounty hunter.</sub>
-</div>
+MIT License

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-PhantomProbe v0.3.0
-Reconnaissance Scanner for Bug Bounty Hunters
+PhantomProbe v0.4.0
+Reconnaissance Scanner for Penetration Testing
 Ghost in the Machine 
 
 Standard library only - no dependencies required
-HackerOne-compatible reporting format
+CVE matching via NVD API
 
 Author: Ravel226
 License: MIT
@@ -16,13 +16,15 @@ import json
 import ssl
 import socket
 import time
+import re
 import concurrent.futures
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass, asdict, field
 from enum import Enum
 from urllib.request import urlopen, Request
 from urllib.error import URLError, HTTPError
+from urllib.parse import quote
 
 
 class Severity(Enum):
@@ -721,6 +723,256 @@ class ActiveReconEngine:
         return self.findings
 
 
+@dataclass
+class CVE:
+    """CVE vulnerability record"""
+    cve_id: str
+    severity: str
+    cvss_score: float
+    description: str
+    affected_versions: List[str]
+    fix_versions: List[str]
+    references: List[str]
+    published: str
+    modified: str
+
+
+class CVEMatcher:
+    """Match findings to known CVEs via NVD API"""
+
+    NVD_API_BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+    CVE_API_BASE = "https://cveawg.mitre.org/api/cve"
+
+    # Technology to CPE vendor/product mapping
+    CPE_MAPPING = {
+        'php': {'vendor': 'php', 'product': 'php'},
+        'nginx': {'vendor': 'nginx', 'product': 'nginx'},
+        'apache': {'vendor': 'apache', 'product': 'http_server'},
+        'openssl': {'vendor': 'openssl', 'product': 'openssl'},
+        'mysql': {'vendor': 'oracle', 'product': 'mysql'},
+        'postgresql': {'vendor': 'postgresql', 'product': 'postgresql'},
+        'redis': {'vendor': 'redis', 'product': 'redis'},
+        'mongodb': {'vendor': 'mongodb', 'product': 'mongodb'},
+        'node.js': {'vendor': 'nodejs', 'product': 'node.js'},
+        'express': {'vendor': 'expressjs', 'product': 'express'},
+        'django': {'vendor': 'djangoproject', 'product': 'django'},
+        'flask': {'vendor': 'palletsprojects', 'product': 'flask'},
+        'wordpress': {'vendor': 'wordpress', 'product': 'wordpress'},
+        'drupal': {'vendor': 'drupal', 'product': 'drupal'},
+        'joomla': {'vendor': 'joomla', 'product': 'joomla'},
+        'tomcat': {'vendor': 'apache', 'product': 'tomcat'},
+        'iis': {'vendor': 'microsoft', 'product': 'internet_information_server'},
+        'dotnet': {'vendor': 'microsoft', 'product': '.net_framework'},
+        'java': {'vendor': 'oracle', 'product': 'jdk'},
+        'python': {'vendor': 'python', 'product': 'python'},
+        'ruby': {'vendor': 'ruby-lang', 'product': 'ruby'},
+    }
+
+    def __init__(self):
+        self.cache: Dict[str, List[CVE]] = {}
+        self.session_timeout = 10
+
+    def extract_tech_version(self, evidence: str) -> List[Tuple[str, Optional[str]]]:
+        """Extract technology and version from evidence text"""
+        technologies = []
+
+        # Common patterns: "PHP/8.2.29", "nginx/1.24.0", "Apache/2.4.57"
+        patterns = [
+            r'(?i)(php|nginx|apache|openssl|mysql|postgresql|redis|mongodb|tomcat|iis|node|express|django|flask|wordpress|drupal|joomla|python|ruby|java)[/\s\-:]*(\d+(?:\.\d+)*)?',
+            r'(?i)(\d+(?:\.\d+)+)\s*(php|nginx|apache|openssl)',
+            r'X-Powered-By:\s*PHP/(\d+(?:\.\d+)*)',
+            r'Server:\s*(nginx|Apache)/?(\d+(?:\.\d+)*)?',
+        ]
+
+        for pattern in patterns:
+            matches = re.findall(pattern, evidence)
+            for match in matches:
+                if isinstance(match, tuple):
+                    tech = match[0].lower() if match[0] else None
+                    version = match[1] if len(match) > 1 and match[1] else None
+                    if tech and tech in self.CPE_MAPPING:
+                        technologies.append((tech, version))
+
+        return list(set(technologies))
+
+    def build_cpe(self, tech: str, version: Optional[str] = None) -> str:
+        """Build CPE 2.3 string"""
+        if tech not in self.CPE_MAPPING:
+            return None
+
+        mapping = self.CPE_MAPPING[tech]
+        cpe = f"cpe:2.3:a:{mapping['vendor']}:{mapping['product']}"
+
+        if version:
+            cpe += f":{version}"
+        else:
+            cpe += ":*"
+
+        cpe += ":*:*:*:*:*:*:*"
+        return cpe
+
+    def query_nvd(self, cpe: str, tech: str, version: Optional[str] = None) -> List[CVE]:
+        """Query NVD API for CVEs matching CPE"""
+        cves = []
+
+        try:
+            # Query by CPE
+            url = f"{self.NVD_API_BASE}?cpeName={quote(cpe)}&resultsPerPage=20"
+
+            headers = {'User-Agent': 'PhantomProbe/0.4.0'}
+            req = Request(url, headers=headers)
+
+            with urlopen(req, timeout=self.session_timeout) as response:
+                data = json.loads(response.read().decode())
+
+            for item in data.get('vulnerabilities', []):
+                cve_data = item.get('cve', {})
+
+                # Extract CVE ID
+                cve_id = cve_data.get('id', '')
+
+                # Extract CVSS score and severity
+                metrics = cve_data.get('metrics', {})
+                cvss_score = 0.0
+                severity = 'UNKNOWN'
+
+                if 'cvssMetricV31' in metrics:
+                    cvss_data = metrics['cvssMetricV31'][0]['cvssData']
+                    cvss_score = cvss_data.get('baseScore', 0.0)
+                    severity = cvss_data.get('baseSeverity', 'UNKNOWN')
+                elif 'cvssMetricV30' in metrics:
+                    cvss_data = metrics['cvssMetricV30'][0]['cvssData']
+                    cvss_score = cvss_data.get('baseScore', 0.0)
+                    severity = cvss_data.get('baseSeverity', 'UNKNOWN')
+                elif 'cvssMetricV2' in metrics:
+                    cvss_data = metrics['cvssMetricV2'][0]['cvssData']
+                    cvss_score = cvss_data.get('baseScore', 0.0)
+                    severity = 'HIGH' if cvss_score >= 7.0 else 'MEDIUM' if cvss_score >= 4.0 else 'LOW'
+
+                # Extract description
+                descriptions = cve_data.get('descriptions', [])
+                description = next((d['value'] for d in descriptions if d['lang'] == 'en'), '')
+
+                # Extract affected versions
+                affected = []
+                fix_versions = []
+
+                for config in cve_data.get('configurations', []):
+                    for node in config.get('nodes', []):
+                        for cpe_match in node.get('cpeMatch', []):
+                            if cpe_match.get('vulnerable'):
+                                affected.append(cpe_match.get('criteria', ''))
+                            elif 'versionEndIncluding' in cpe_match:
+                                fix_versions.append(cpe_match.get('versionEndIncluding', ''))
+
+                # Extract references
+                references = [r.get('url', '') for r in cve_data.get('references', [])[:5]]
+
+                # Extract dates
+                published = cve_data.get('published', '')
+                modified = cve_data.get('lastModified', '')
+
+                cve = CVE(
+                    cve_id=cve_id,
+                    severity=severity,
+                    cvss_score=cvss_score,
+                    description=description[:500] if description else '',
+                    affected_versions=affected[:5],
+                    fix_versions=fix_versions[:3],
+                    references=references,
+                    published=published,
+                    modified=modified
+                )
+                cves.append(cve)
+
+        except Exception as e:
+            # Silently fail - CVE lookup is optional
+            pass
+
+        return cves
+
+    def match_findings(self, findings: List[Finding]) -> List[Dict]:
+        """Match findings to CVEs and return enriched findings"""
+        matched = []
+        tech_versions = {}
+
+        print("[*] Matching findings to CVE database...")
+
+        # Extract all technologies from findings
+        for finding in findings:
+            if finding.category in ['Information Disclosure', 'Technology', 'SSL/TLS']:
+                techs = self.extract_tech_version(finding.evidence)
+                for tech, version in techs:
+                    if tech not in tech_versions or (version and not tech_versions.get(tech)):
+                        tech_versions[tech] = version
+
+        if not tech_versions:
+            print("[+] No technology versions found for CVE matching")
+            return []
+
+        print(f"[*] Found {len(tech_versions)} technologies to check for CVEs")
+
+        # Query CVEs for each technology
+        for tech, version in tech_versions.items():
+            cpe = self.build_cpe(tech, version)
+            if not cpe:
+                continue
+
+            # Check cache first
+            cache_key = f"{tech}:{version or 'any'}"
+            if cache_key in self.cache:
+                cves = self.cache[cache_key]
+            else:
+                print(f"    - Querying CVEs for {tech} {version or '(any version)'}...")
+                cves = self.query_nvd(cpe, tech, version)
+                self.cache[cache_key] = cves
+
+            for cve in cves:
+                # Filter by severity
+                if cve.cvss_score >= 7.0:  # Only high/critical CVEs
+                    matched.append({
+                        'technology': tech,
+                        'version': version,
+                        'cve': cve
+                    })
+
+        # Sort by CVSS score
+        matched.sort(key=lambda x: x['cve'].cvss_score, reverse=True)
+
+        print(f"[+] Found {len(matched)} relevant CVEs (CVSS >= 7.0)")
+        return matched
+
+    def generate_cve_report(self, matched: List[Dict]) -> str:
+        """Generate CVE report section"""
+        if not matched:
+            return ""
+
+        lines = []
+        lines.append("\n## CVE Correlation\n")
+
+        for item in matched[:20]:  # Limit to top 20
+            cve = item['cve']
+            tech = item['technology']
+            version = item['version'] or 'any'
+
+            lines.append(f"### {cve.cve_id}")
+            lines.append(f"")
+            lines.append(f"**Technology:** {tech} ({version})")
+            lines.append(f"**CVSS Score:** {cve.cvss_score} ({cve.severity})")
+            lines.append(f"")
+            lines.append(f"**Description:**")
+            lines.append(f"{cve.description}")
+            lines.append(f"")
+            if cve.references:
+                lines.append(f"**References:**")
+                for ref in cve.references[:3]:
+                    lines.append(f"- {ref}")
+            lines.append(f"---")
+            lines.append(f"")
+
+        return "\n".join(lines)
+
+
 class ReportGenerator:
     """Generate HackerOne-compatible reports"""
 
@@ -732,7 +984,7 @@ class ReportGenerator:
         report.append(f"")
         report.append(f"**Target:** {target}")
         report.append(f"**Scan Date:** {datetime.now().isoformat()}")
-        report.append(f"**Scanner:** PhantomProbe v0.3.0")
+        report.append(f"**Scanner:** PhantomProbe v0.4.0")
         report.append(f"")
 
         # Severity summary
@@ -812,7 +1064,7 @@ def print_banner():
     ╚██████╗ ██║  ██║██║  ██║██║██║     ██║     ██████╔╝╚██████╔╝██║  ██║
      ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝     ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
     
-    Ghost in the Machine | v0.3.0
+    Ghost in the Machine | v0.4.0
     AI-Powered Reconnaissance for Bug Bounty Hunters
     """
     print(banner)
@@ -826,13 +1078,15 @@ def main():
         print("Example: python3 phantomprobe.py example.com")
         print("")
         print("Options:")
+        print("  --phase2     Enable active reconnaissance (ports, subdomains)")
+        print("  --cve        Enable CVE matching (queries NVD API)")
         print("  --verbose    Show detailed output")
-        print("  --json       Output only JSON report")
         print("")
         sys.exit(1)
 
     target = sys.argv[1].replace("https://", "").replace("http://", "").split("/")[0]
     phase2 = "--phase2" in sys.argv or "-a" in sys.argv
+    cve_match = "--cve" in sys.argv or "-c" in sys.argv
 
     print_banner()
 
@@ -845,6 +1099,12 @@ def main():
         active = ActiveReconEngine(target)
         active_findings = active.run()
         findings.extend(active_findings)
+
+    # CVE Matching (optional)
+    cve_results = []
+    if cve_match:
+        matcher = CVEMatcher()
+        cve_results = matcher.match_findings(findings)
 
     # Print summary
     severity_order = [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFORMATIONAL]
@@ -859,6 +1119,16 @@ def main():
             for f in sev_findings:
                 print(f"  - {f.id}: {f.title}")
 
+    # Print CVE summary
+    if cve_results:
+        print()
+        print("=" * 60)
+        print("CVE CORRELATION (HIGH/CRITICAL)")
+        print("=" * 60)
+        for item in cve_results[:10]:
+            cve = item['cve']
+            print(f"  [{cve.severity}] {cve.cve_id} (CVSS {cve.cvss_score}) - {item['technology']}")
+
     print()
     print("=" * 60)
     print("GENERATING REPORTS")
@@ -867,6 +1137,28 @@ def main():
     # Generate Reports
     markdown_report = ReportGenerator.generate_markdown(findings, target)
     json_report = ReportGenerator.generate_json(findings, target)
+
+    # Add CVE section to markdown report
+    if cve_results:
+        matcher = CVEMatcher()
+        cve_section = matcher.generate_cve_report(cve_results)
+        markdown_report = markdown_report.replace("## License", cve_section + "## License") if "## License" in markdown_report else markdown_report + "\n" + cve_section
+
+        # Add CVEs to JSON report
+        json_data = json.loads(json_report)
+        json_data['cve_matches'] = [
+            {
+                'technology': item['technology'],
+                'version': item['version'],
+                'cve_id': item['cve'].cve_id,
+                'cvss_score': item['cve'].cvss_score,
+                'severity': item['cve'].severity,
+                'description': item['cve'].description,
+                'references': item['cve'].references
+            }
+            for item in cve_results
+        ]
+        json_report = json.dumps(json_data, indent=2)
 
     md_filename = f"report-{target}.md"
     json_filename = f"report-{target}.json"
@@ -884,6 +1176,8 @@ def main():
     print("SCAN COMPLETE")
     print("=" * 60)
     print(f"Total findings: {len(findings)}")
+    if cve_results:
+        print(f"CVE matches: {len(cve_results)}")
     print()
 
 
