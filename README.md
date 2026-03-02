@@ -5,15 +5,15 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-PhantomProbe is a lightweight vulnerability reconnaissance scanner for penetration testers and security researchers. It performs passive and active analysis to identify security misconfigurations and correlates findings with known CVEs.
+PhantomProbe is a lightweight vulnerability reconnaissance scanner for penetration testers and security researchers. It performs passive and active analysis, correlates findings with known CVEs, and captures visual documentation.
 
-## v0.4.0 - CVE Matching
+## v0.5.0 - Screenshot Capture
 
 New features:
-- CVE correlation via NVD API
-- Automatic technology-to-CVE matching
-- CVSS score filtering (high/critical only)
-- CPE-based vulnerability lookup
+- Website screenshot capture via Playwright
+- Full-page and viewport-only modes
+- HTTPS error bypass for self-signed certs
+- Multiple URL/variant capture support
 
 ## Features
 
@@ -31,6 +31,11 @@ New features:
 - Automatic matching of discovered technologies to known CVEs
 - CVSS score-based filtering (>= 7.0)
 - CPE 2.3 compatible lookups via NVD API
+
+### Screenshot Capture
+- Full-page or viewport screenshots
+- Headless Chromium via Playwright
+- HTTPS bypass for testing environments
 
 ## Quick Start
 
@@ -51,54 +56,32 @@ python3 phantomprobe.py example.com --phase2
 
 # Full scan with CVE matching
 python3 phantomprobe.py example.com --phase2 --cve
+
+# Full scan with screenshot
+python3 phantomprobe.py example.com --phase2 --cve --screenshot
 ```
 
 Output files:
 - `report-example.com.md` - Markdown report
 - `report-example.com.json` - JSON report with CVE data
-
-## What PhantomProbe Detects
-
-### Security Headers
-- Strict-Transport-Security (HSTS)
-- Content-Security-Policy (CSP)
-- X-Frame-Options (Clickjacking)
-- X-Content-Type-Options
-- Referrer-Policy
-- Permissions-Policy
-
-### Information Disclosure
-- X-Powered-By header
-- Server banner leaks
-- Technology fingerprints
-- Framework version hints
-
-### SSL/TLS Issues
-- Expired certificates
-- Weak ciphers
-- Deprecated TLS versions (1.0, 1.1)
-
-### CVE Correlation
-- Matches discovered software versions to known vulnerabilities
-- Filters by CVSS score (>= 7.0)
-- Provides links to vulnerability details
+- `screenshot-example.com.png` - Website screenshot (with --screenshot)
 
 ## Requirements
 
 - Python 3.8+
-- No external dependencies (standard library only)
+- Standard library (core functionality)
+- Optional: Playwright for screenshots
+  ```bash
+  pip install playwright
+  playwright install chromium
+  ```
 
 ## Roadmap
 
-### v0.5.0 (Next)
-- [ ] Screenshot capture
+### v0.6.0 (Next)
 - [ ] JavaScript/endpoint discovery
 - [ ] Secret detection (API keys in JS)
-
-### v0.6.0
 - [ ] Web dashboard
-- [ ] Burp Suite integration
-- [ ] Custom wordlists for subdomain enumeration
 
 ### v1.0.0
 - [ ] Plugin system

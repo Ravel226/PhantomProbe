@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-PhantomProbe v0.4.0
+PhantomProbe v0.5.0
 Reconnaissance Scanner for Penetration Testing
 Ghost in the Machine 
 
-Standard library only - no dependencies required
+Standard library core + optional Playwright for screenshots
 CVE matching via NVD API
 
 Author: Ravel226
@@ -17,6 +17,7 @@ import ssl
 import socket
 import time
 import re
+import base64
 import concurrent.futures
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
@@ -973,6 +974,122 @@ class CVEMatcher:
         return "\n".join(lines)
 
 
+class ScreenshotCapture:
+    """Capture website screenshots for documentation"""
+
+    def __init__(self, output_dir: str = "."):
+        self.output_dir = output_dir
+        self.playwright_available = self._check_playwright()
+
+    def _check_playwright(self) -> bool:
+        """Check if Playwright is available"""
+        try:
+            from playwright.sync_api import sync_playwright
+            return True
+        except ImportError:
+            return False
+
+    def capture(self, url: str, output_file: str = None, full_page: bool = True, 
+                viewport_width: int = 1920, viewport_height: int = 1080,
+                timeout: int = 30000) -> Optional[str]:
+        """
+        Capture screenshot of a URL
+        
+        Args:
+            url: Target URL to screenshot
+            output_file: Output filename (default: screenshot-{domain}.png)
+            full_page: Capture full page or viewport only
+            viewport_width: Browser viewport width
+            viewport_height: Browser viewport height
+            timeout: Page load timeout in ms
+            
+        Returns:
+            Path to screenshot file or None if failed
+        """
+        if not self.playwright_available:
+            print("[!] Playwright not installed. Install with: pip install playwright && playwright install chromium")
+            return None
+
+        try:
+            from playwright.sync_api import sync_playwright
+            
+            # Parse URL
+            if not url.startswith(('http://', 'https://')):
+                url = f"https://{url}"
+            
+            # Generate output filename
+            if not output_file:
+                from urllib.parse import urlparse
+                domain = urlparse(url).netloc or url.replace('https://', '').replace('http://', '').split('/')[0]
+                output_file = f"screenshot-{domain}.png"
+            
+            output_path = f"{self.output_dir}/{output_file}"
+            
+            print(f"[*] Capturing screenshot: {url}")
+            
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(
+                    viewport={'width': viewport_width, 'height': viewport_height},
+                    ignore_https_errors=True
+                )
+                page = context.new_page()
+                
+                # Set timeout
+                page.set_default_timeout(timeout)
+                
+                # Navigate and wait for load
+                try:
+                    page.goto(url, wait_until='networkidle', timeout=timeout)
+                except Exception as e:
+                    # Try with domcontentloaded if networkidle times out
+                    page.goto(url, wait_until='domcontentloaded', timeout=timeout)
+                
+                # Take screenshot
+                page.screenshot(path=output_path, full_page=full_page)
+                
+                browser.close()
+            
+            print(f"[+] Screenshot saved: {output_path}")
+            return output_path
+            
+        except Exception as e:
+            print(f"[!] Screenshot failed: {str(e)}")
+            return None
+
+    def capture_multiple(self, urls: List[str], output_dir: str = None) -> List[str]:
+        """Capture screenshots for multiple URLs"""
+        screenshots = []
+        
+        if output_dir:
+            self.output_dir = output_dir
+        
+        for url in urls:
+            screenshot = self.capture(url)
+            if screenshot:
+                screenshots.append(screenshot)
+        
+        return screenshots
+
+    def capture_with_variants(self, domain: str) -> Dict[str, str]:
+        """Capture screenshots of domain variants (http, https, www)"""
+        variants = {
+            'https': f"https://{domain}",
+            'https_www': f"https://www.{domain}",
+            'http': f"http://{domain}",
+        }
+        
+        screenshots = {}
+        
+        for name, url in variants.items():
+            output_file = f"screenshot-{domain}-{name}.png"
+            result = self.capture(url, output_file=output_file)
+            if result:
+                screenshots[name] = result
+        
+        return screenshots
+
+
 class ReportGenerator:
     """Generate HackerOne-compatible reports"""
 
@@ -984,7 +1101,7 @@ class ReportGenerator:
         report.append(f"")
         report.append(f"**Target:** {target}")
         report.append(f"**Scan Date:** {datetime.now().isoformat()}")
-        report.append(f"**Scanner:** PhantomProbe v0.4.0")
+        report.append(f"**Scanner:** PhantomProbe v0.5.0")
         report.append(f"")
 
         # Severity summary
@@ -1064,7 +1181,7 @@ def print_banner():
     ╚██████╗ ██║  ██║██║  ██║██║██║     ██║     ██████╔╝╚██████╔╝██║  ██║
      ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝     ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
     
-    Ghost in the Machine | v0.4.0
+    Ghost in the Machine | v0.5.0
     AI-Powered Reconnaissance for Bug Bounty Hunters
     """
     print(banner)
@@ -1078,15 +1195,17 @@ def main():
         print("Example: python3 phantomprobe.py example.com")
         print("")
         print("Options:")
-        print("  --phase2     Enable active reconnaissance (ports, subdomains)")
-        print("  --cve        Enable CVE matching (queries NVD API)")
-        print("  --verbose    Show detailed output")
+        print("  --phase2      Enable active reconnaissance (ports, subdomains)")
+        print("  --cve         Enable CVE matching (queries NVD API)")
+        print("  --screenshot  Capture website screenshot (requires Playwright)")
+        print("  --verbose     Show detailed output")
         print("")
         sys.exit(1)
 
     target = sys.argv[1].replace("https://", "").replace("http://", "").split("/")[0]
     phase2 = "--phase2" in sys.argv or "-a" in sys.argv
     cve_match = "--cve" in sys.argv or "-c" in sys.argv
+    screenshot = "--screenshot" in sys.argv or "-s" in sys.argv
 
     print_banner()
 
@@ -1105,6 +1224,26 @@ def main():
     if cve_match:
         matcher = CVEMatcher()
         cve_results = matcher.match_findings(findings)
+
+    # Screenshot Capture (optional)
+    screenshot_path = None
+    if screenshot:
+        capturer = ScreenshotCapture()
+        screenshot_path = capturer.capture(target)
+        if screenshot_path:
+            # Add finding for screenshot
+            findings.append(Finding(
+                id="SCREENSHOT-Captured",
+                title="Website Screenshot Captured",
+                description=f"Visual documentation of target website",
+                severity=Severity.INFORMATIONAL,
+                category="Documentation",
+                evidence=f"Screenshot saved: {screenshot_path}",
+                remediation="N/A - Documentation",
+                references=[],
+                discovered_at=datetime.now().isoformat(),
+                target=target
+            ))
 
     # Print summary
     severity_order = [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFORMATIONAL]
