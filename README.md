@@ -5,15 +5,15 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-PhantomProbe is a lightweight vulnerability reconnaissance scanner for penetration testers and security researchers. It performs passive and active analysis, correlates findings with known CVEs, and captures visual documentation.
+PhantomProbe is a lightweight vulnerability reconnaissance scanner for penetration testers and security researchers. It performs passive and active analysis, correlates findings with known CVEs, captures visual documentation, and discovers JavaScript secrets.
 
-## v0.5.0 - Screenshot Capture
+## v0.6.0 - JavaScript Discovery
 
 New features:
-- Website screenshot capture via Playwright
-- Full-page and viewport-only modes
-- HTTPS error bypass for self-signed certs
-- Multiple URL/variant capture support
+- JavaScript file analysis
+- API endpoint extraction
+- Secret/key detection in client-side code
+- Hidden path discovery
 
 ## Features
 
@@ -37,6 +37,12 @@ New features:
 - Headless Chromium via Playwright
 - HTTPS bypass for testing environments
 
+### JavaScript Analysis
+- Extract API endpoints from JS files
+- Detect exposed secrets (API keys, tokens, AWS keys)
+- Find hidden paths and admin routes
+- Identify potential vulnerabilities in client code
+
 ## Quick Start
 
 ```bash
@@ -59,6 +65,9 @@ python3 phantomprobe.py example.com --phase2 --cve
 
 # Full scan with screenshot
 python3 phantomprobe.py example.com --phase2 --cve --screenshot
+
+# Full scan with JavaScript analysis
+python3 phantomprobe.py example.com --phase2 --cve --screenshot --js
 ```
 
 Output files:
@@ -78,10 +87,10 @@ Output files:
 
 ## Roadmap
 
-### v0.6.0 (Next)
-- [ ] JavaScript/endpoint discovery
-- [ ] Secret detection (API keys in JS)
+### v0.7.0 (Next)
 - [ ] Web dashboard
+- [ ] Burp Suite integration
+- [ ] Custom wordlists for subdomain enumeration
 
 ### v1.0.0
 - [ ] Plugin system
