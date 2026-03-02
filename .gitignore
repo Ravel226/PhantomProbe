@@ -1,37 +1,62 @@
-# PhantomProbe
+# PhantomProbe Git Ignore
+
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+*.py[cod]
+*$py.class
 *.so
-*.egg
-*.egg-info/
-dist/
+.Python
 build/
 develop-eggs/
+dist/
+downloads/
+eggs/
 .eggs/
-.tox/
-.nox/
-.coverage
-.cache/
-.pytest_cache/
-.mypy_cache/
-.dmypy.json
-*.log
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
-.DS_Store
-Thumbs.db
-.env
-.env.local
-.venv/
-venv/
-ENV/
+
+# Reports (generated)
 report-*.md
 report-*.json
-.scanner-work/
-.vscode/
-.idea/
-*.iml
+screenshot-*.png
+*.html
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Ruflo/Claude Flow (local development)
+.claude-flow/
+.claude/
+.swarm/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Local config
+.env
+config.local.json
+*.local.toml

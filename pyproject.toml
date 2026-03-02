@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "phantomprobe"
+version = "0.7.0"
+description = "Reconnaissance Scanner for Penetration Testing"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Ravel226", email = "ravel@example.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+keywords = ["security", "reconnaissance", "penetration-testing", "cve", "scanner"]
+
+dependencies = []
+
+[project.optional-dependencies]
+screenshot = ["playwright>=1.40.0"]
+dashboard = ["fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0"]
+all = ["playwright>=1.40.0", "fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0"]
+
+[project.scripts]
+phantomprobe = "phantomprobe:main"
+
+[project.urls]
+Homepage = "https://github.com/Ravel226/PhantomProbe"
+Repository = "https://github.com/Ravel226/PhantomProbe"
+Issues = "https://github.com/Ravel226/PhantomProbe/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/phantomprobe"]
