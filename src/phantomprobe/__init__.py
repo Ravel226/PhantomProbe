@@ -7,10 +7,13 @@ Reconnaissance Scanner for Penetration Testing
 import sys
 import os
 
-# Add packages to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'packages'))
+# Add project root to path for imports
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.join(project_root, 'packages'))
 
-from core.scanner import main
+from core.scanner import main, DashboardServer
+
+__all__ = ['main', 'DashboardServer']
 
 if __name__ == "__main__":
     main()
