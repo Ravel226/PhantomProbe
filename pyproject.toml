@@ -43,3 +43,11 @@ Issues = "https://github.com/Ravel226/PhantomProbe/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/phantomprobe"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/packages",
+    "/README.md",
+    "/LICENSE",
+]
