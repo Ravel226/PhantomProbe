@@ -8,7 +8,21 @@
 
 PhantomProbe is a lightweight vulnerability reconnaissance scanner for penetration testers and security researchers. It performs passive and active analysis, correlates findings with known CVEs, captures visual documentation, discovers JavaScript secrets, and provides an interactive web dashboard.
 
-## v0.7.0 - Interactive Web Dashboard
+## v0.8.0 - Burp Suite Integration & Docker Support
+
+New features:
+- **Burp Suite Integration** - Professional/Enterprise REST API support
+  - Send requests through Burp Proxy
+  - Import Burp scan results automatically
+  - Export PhantomProbe findings to Burp
+  - Generate Burp Extension template
+- **Full Docker Support** - Multi-stage builds with compose profiles
+  - Core edition (lightweight)
+  - Dashboard edition (interactive)
+  - Full edition (all features)
+  - Development mode with hot-reload
+
+### v0.7.0 - Interactive Web Dashboard
 
 New features:
 - **Interactive Web Dashboard** - FastAPI-based real-time visualization
@@ -117,6 +131,101 @@ Output files:
 - `report-example.com.json` - JSON report with CVE data
 - `screenshot-example.com.png` - Website screenshot (with --screenshot)
 - Dashboard at `http://127.0.0.1:8080` (with --dashboard)
+
+## Docker Usage
+
+### Quick Start
+
+```bash
+# Clone repository
+git clone https://github.com/Ravel226/PhantomProbe.git
+cd PhantomProbe
+
+# Run with Docker Compose
+docker-compose --profile dashboard up
+
+# Or use Docker directly
+docker build -t phantomprobe .
+docker run -p 8080:8080 -v $(pwd)/reports:/app/reports phantomprobe target.com --dashboard
+```
+
+### Docker Compose Profiles
+
+```bash
+# Core edition (lightweight, CLI only)
+docker-compose --profile core up phantomprobe-core
+
+# Dashboard edition
+# Runs at http://localhost:8080
+docker-compose --profile dashboard up phantomprobe-dashboard
+
+# Full edition (all features, larger image)
+docker-compose --profile full up phantomprobe-full
+
+# Development mode (auto-reload)
+docker-compose --profile dev up phantomprobe-dev
+
+# With Burp Suite integration
+docker-compose --profile burp up phantomprobe-burp
+```
+
+### Environment Configuration
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your settings
+vim .env
+
+# Run with environment file
+docker-compose --profile dashboard --env-file .env up
+```
+
+## Burp Suite Integration
+
+### Prerequisites
+
+1. Burp Suite Professional or Enterprise
+2. Enable REST API in Burp (User options → Misc → REST API)
+3. Generate API key
+
+### Configuration
+
+```bash
+# Set environment variables
+export BURP_API_URL=http://127.0.0.1:1337
+export BURP_API_KEY=your-api-key
+
+# Or use .env file
+echo "BURP_API_KEY=your-key-here" > .env
+```
+
+### Usage
+
+```bash
+# Scan target and send to Burp
+python3 phantomprobe.py target.com --burp
+
+# The scanner will:
+# 1. Run reconnaissance
+# 2. Send target to Burp Proxy
+# 3. Import Burp scan issues
+# 4. Export findings back to Burp
+```
+
+### Burp Extension
+
+Generate a custom Burp extension:
+
+```python
+from phantomprobe import BurpSuiteEngine
+
+# Generate extension template
+BurpSuiteEngine.generate_extension_template("burp_extension.py")
+
+# Install in Burp Extensions → Installed → Add
+```
 
 ## CLI Options
 

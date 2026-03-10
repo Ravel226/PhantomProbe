@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "phantomprobe"
-version = "0.7.0"
+version = "0.8.0"
 description = "Reconnaissance Scanner for Penetration Testing"
 readme = "README.md"
 license = {text = "MIT"}
@@ -31,7 +31,8 @@ dependencies = []
 [project.optional-dependencies]
 screenshot = ["playwright>=1.40.0"]
 dashboard = ["fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0"]
-all = ["playwright>=1.40.0", "fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0"]
+burp = ["requests>=2.25.0", "websockets>=11.0"]
+all = ["playwright>=1.40.0", "fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0", "requests>=2.25.0"]
 
 [project.scripts]
 phantomprobe = "phantomprobe:main"

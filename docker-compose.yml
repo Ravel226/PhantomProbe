@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # Core PhantomProbe - lightweight scanner
+  phantomprobe-core:
+    build:
+      context: .
+      target: phantomprobe-core
+      dockerfile: Dockerfile
+    image: phantomprobe:core
+    container_name: phantomprobe-core
+    volumes:
+      - ./reports:/app/reports
+    profiles:
+      - core
+
+  # Dashboard edition
+  phantomprobe-dashboard:
+    build:
+      context: .
+      target: phantomprobe-dashboard
+      dockerfile: Dockerfile
+    image: phantomprobe:dashboard
+    container_name: phantomprobe-dashboard
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./reports:/app/reports
+    profiles:
+      - dashboard
+    environment:
+      - PHANTOMPROBE_DASHBOARD_HOST=0.0.0.0
+      - PHANTOMPROBE_DASHBOARD_PORT=8080
+
+  # Full edition with all features
+  phantomprobe-full:
+    build:
+      context: .
+      target: phantomprobe-full
+      dockerfile: Dockerfile
+    image: phantomprobe:full
+    container_name: phantomprobe-full
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./reports:/app/reports
+      - ./screenshots:/app/screenshots
+    profiles:
+      - full
+    environment:
+      - PHANTOMPROBE_DASHBOARD_HOST=0.0.0.0
+      - PHANTOMPROBE_DASHBOARD_PORT=8080
+      - PLAYWRIGHT_BROWSERS_PATH=/home/phantomprobe/.cache/ms-playwright
+
+  # Development with auto-reload
+  phantomprobe-dev:
+    build:
+      context: .
+      target: phantomprobe-dashboard
+      dockerfile: Dockerfile
+    image: phantomprobe:dev
+    container_name: phantomprobe-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src:/app/src:ro
+      - ./packages:/app/packages:ro
+      - ./reports:/app/reports
+    profiles:
+      - dev
+    environment:
+      - PHANTOMPROBE_DASHBOARD_HOST=0.0.0.0
+      - PHANTOMPROBE_DASHBOARD_PORT=8080
+      - PYTHONPATH=/app/src:/app/packages
+
+  # API server only
+  phantomprobe-api:
+    build:
+      context: .
+      target: phantomprobe-dashboard
+      dockerfile: Dockerfile
+    image: phantomprobe:api
+    container_name: phantomprobe-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./reports:/app/reports
+    profiles:
+      - api
+    environment:
+      - PHANTOMPROBE_DASHBOARD_HOST=0.0.0.0
+      - PHANTOMPROBE_DASHBOARD_PORT=8080
+    command: ["python3", "-m", "uvicorn", "src.phantomprobe:app", "--host", "0.0.0.0", "--port", "8080"]
+
+  # Burp Suite integration (requires external Burp API)
+  phantomprobe-burp:
+    build:
+      context: .
+      target: phantomprobe-full
+      dockerfile: Dockerfile
+    image: phantomprobe:burp
+    container_name: phantomprobe-burp
+    environment:
+      - BURP_API_URL=http://burp:1337
+      - BURP_API_KEY=${BURP_API_KEY}
+    env_file:
+      - .env
+    profiles:
+      - burp
+    depends_on:
+      - burp
+    networks:
+      - burp-network
+
+  # Burp Suite Professional (external - run your own Burp container)
+  burp:
+    image: portswigger/burp-suite-pro:latest
+    container_name: burp-suite
+    ports:
+      - "1337:1337"
+      - "8080:8080"
+    profiles:
+      - burp
+    networks:
+      - burp-network
+    restart: unless-stopped
+
+networks:
+  burp-network:
+    driver: bridge
