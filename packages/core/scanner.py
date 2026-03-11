@@ -2040,7 +2040,21 @@ class DashboardServer:
                 except:
                     disconnected.append(client)
             for client in disconnected:
-                self.connected_clients.remove(client)
+                if client in self.connected_clients:
+                    self.connected_clients.remove(client)
+
+    def broadcast_progress_sync(self, message_type: str, data: Dict):
+        """Synchronous wrapper to broadcast progress updates"""
+        import asyncio
+        if self.connected_clients:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    asyncio.create_task(self.broadcast_update({"type": message_type, "data": data}))
+                else:
+                    loop.run_until_complete(self.broadcast_update({"type": message_type, "data": data}))
+            except Exception:
+                pass
 
     def run(self, open_browser: bool = True):
         """Start the dashboard server"""
@@ -2079,14 +2093,36 @@ def main():
     burp_scan = "--burp" in sys.argv or "-b" in sys.argv
     dashboard = "--dashboard" in sys.argv or "-d" in sys.argv
 
+    # Initialize dashboard server if requested
+    dashboard_server = None
+    if dashboard:
+        if FASTAPI_AVAILABLE:
+            print("[*] Starting dashboard server...")
+            dashboard_server = DashboardServer()
+            print("[*] Dashboard will update with scan progress")
+        else:
+            print("[!] Dashboard requires: pip install fastapi uvicorn")
+            dashboard = False
+
+    def broadcast_progress(phase: str, message: str = ""):
+        """Broadcast scan progress to dashboard"""
+        if dashboard_server:
+            dashboard_server.broadcast_progress_sync("PROGRESS", {
+                "phase": phase,
+                "message": message,
+                "target": target
+            })
+
     print_banner()
 
     # Phase 1: Passive Reconnaissance
+    broadcast_progress("Phase 1: DNS Analysis")
     recon = ReconEngine(target)
     findings = recon.run()
 
     # Phase 2: Active Reconnaissance (optional)
     if phase2:
+        broadcast_progress("Phase 2: Active Reconnaissance")
         active = ActiveReconEngine(target)
         active_findings = active.run()
         findings.extend(active_findings)
@@ -2094,12 +2130,14 @@ def main():
     # CVE Matching (optional)
     cve_results = []
     if cve_match:
+        broadcast_progress("CVE Matching")
         matcher = CVEMatcher()
         cve_results = matcher.match_findings(findings)
 
     # Screenshot Capture (optional)
     screenshot_path = None
     if screenshot:
+        broadcast_progress("Screenshot Capture")
         capturer = ScreenshotCapture()
         screenshot_path = capturer.capture(target)
         if screenshot_path:
@@ -2119,12 +2157,14 @@ def main():
 
     # JavaScript Analysis (optional)
     if js_analysis:
+        broadcast_progress("JavaScript Analysis")
         js_engine = JSEngine(target)
         js_findings = js_engine.run()
         findings.extend(js_findings)
 
     # Burp Suite Integration (optional)
     if burp_scan:
+        broadcast_progress("Burp Suite Integration")
         burp_engine = BurpSuiteEngine(target)
         if BURP_AVAILABLE:
             burp_findings = burp_engine.run()
@@ -2209,17 +2249,21 @@ def main():
     print()
 
     # Launch Dashboard (optional)
-    if dashboard:
-        if FASTAPI_AVAILABLE:
-            print("[*] Launching interactive dashboard...")
-            dashboard_server = DashboardServer()
-            dashboard_server.update_data(findings, cve_results, target)
-            dashboard_server.run(open_browser=True)
-        else:
-            print("[!] Dashboard requires FastAPI. Install: pip install fastapi uvicorn")
-            print("[*] Reports generated:")
-            print(f"    - {md_filename}")
-            print(f"    - {json_filename}")
+    if dashboard and dashboard_server:
+        print("[*] Launching interactive dashboard...")
+        # Broadcast completion
+        dashboard_server.broadcast_progress_sync("SCAN_COMPLETE", {
+            "total_findings": len(findings),
+            "cve_matches": len(cve_results),
+            "reports": [md_filename, json_filename]
+        })
+        dashboard_server.update_data(findings, cve_results, target)
+        dashboard_server.run(open_browser=True)
+    elif dashboard and not dashboard_server:
+        print("[!] Dashboard server not started")
+        print("[*] Reports generated:")
+        print(f"    - {md_filename}")
+        print(f"    - {json_filename}")
 
 
 if __name__ == "__main__":
