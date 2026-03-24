@@ -338,5 +338,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ---
 
 <p align="center">
-  <sub>Built with 🐚 by Ravel226</sub>
+  <sub>Built by Ravel226</sub>
 </p>
