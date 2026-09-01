@@ -19,7 +19,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy source code
-COPY packages/ ./packages/
 COPY src/ ./src/
 COPY pyproject.toml ./
 COPY README.md ./
@@ -28,8 +27,10 @@ COPY LICENSE* ./
 # Install PhantomProbe with core dependencies only
 RUN pip install --no-cache-dir -e "."
 
-# Create non-root user
-RUN useradd -m -u 1000 phantomprobe
+# Create non-root user and give it ownership of the reports volume
+RUN useradd -m -u 1000 phantomprobe \
+    && mkdir -p /app/reports \
+    && chown -R phantomprobe:phantomprobe /app
 USER phantomprobe
 
 # Expose volume for reports

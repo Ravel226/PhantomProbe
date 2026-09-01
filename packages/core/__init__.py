@@ -1,3 +1,0 @@
-# PhantomProbe Core Package
-def get_version():
-    return "0.7.0"

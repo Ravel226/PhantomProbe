@@ -64,14 +64,13 @@ services:
       - "8080:8080"
     volumes:
       - ./src:/app/src:ro
-      - ./packages:/app/packages:ro
       - ./reports:/app/reports
     profiles:
       - dev
     environment:
       - PHANTOMPROBE_DASHBOARD_HOST=0.0.0.0
       - PHANTOMPROBE_DASHBOARD_PORT=8080
-      - PYTHONPATH=/app/src:/app/packages
+      - PYTHONPATH=/app/src
 
   # API server only
   phantomprobe-api:
@@ -90,7 +89,8 @@ services:
     environment:
       - PHANTOMPROBE_DASHBOARD_HOST=0.0.0.0
       - PHANTOMPROBE_DASHBOARD_PORT=8080
-    command: ["python3", "-m", "uvicorn", "src.phantomprobe:app", "--host", "0.0.0.0", "--port", "8080"]
+    entrypoint: ["python3", "-m", "uvicorn"]
+    command: ["phantomprobe.asgi:app", "--host", "0.0.0.0", "--port", "8080"]
 
   # Burp Suite integration (requires external Burp API)
   phantomprobe-burp:

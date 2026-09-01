@@ -10,79 +10,106 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e ".[all]"
-        pip install pytest pytest-cov
-    
+        pip install -e ".[all,dev]"
+
     - name: Test with pytest
       run: |
-        pytest tests/ -v --cov=phantomprobe --cov-report=xml
-    
+        pytest tests/ -v --cov=phantomprobe --cov-report=xml --cov-report=term
+
     - name: Upload coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
-        file: ./coverage.xml
+        files: ./coverage.xml
         fail_ci_if_error: false
 
   lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    
+
     - name: Install linting tools
       run: |
         pip install flake8 black isort
-    
-    - name: Lint with flake8
+
+    # Syntax errors and undefined names are always fatal.
+    - name: Lint with flake8 (errors)
       run: |
-        flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
+        flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Lint with flake8 (style)
+      run: |
+        flake8 src/ tests/ --count --exit-zero --max-complexity=15 --max-line-length=127 --statistics
+
     - name: Check formatting with black
-      run: |
-        black --check src/ || true
-    
+      run: black --check src/ tests/ || true
+
     - name: Check imports with isort
-      run: |
-        isort --check-only src/ || true
+      run: isort --check-only src/ tests/ || true
 
   security:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    
+
     - name: Install security tools
       run: |
-        pip install bandit safety
-    
+        pip install bandit pip-audit
+
+    # Fail on medium+ confidence issues in the shipped package; the scanner
+    # itself is a security tool, so its findings must not be ignored wholesale.
     - name: Run bandit security check
       run: |
-        bandit -r src/ -f json -o bandit-report.json || true
-        bandit -r src/ || true
-    
-    - name: Check dependencies for known vulnerabilities
+        bandit -r src/ -ll -f screen
+
+    - name: Audit dependencies for known vulnerabilities
       run: |
-        safety check || true
+        pip install -e ".[all]"
+        pip-audit || true
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Build package
+      run: |
+        pip install build
+        python -m build
+
+    # A wheel that cannot be imported from a clean env is the bug this catches.
+    - name: Verify the built wheel imports and exposes the CLI
+      run: |
+        python -m venv /tmp/verify
+        /tmp/verify/bin/pip install dist/*.whl
+        /tmp/verify/bin/python -c "import phantomprobe; print(phantomprobe.__version__); print(phantomprobe.Finding)"
+        /tmp/verify/bin/phantomprobe --version

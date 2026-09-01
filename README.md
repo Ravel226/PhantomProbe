@@ -73,64 +73,89 @@ New features:
 ```bash
 git clone https://github.com/Ravel226/PhantomProbe.git
 cd PhantomProbe
-python3 phantomprobe.py target.com --dashboard
+pip install -e .
+phantomprobe example.com
 ```
 
 ## Installation
 
-### Basic (Core Features)
+### Basic (core features, dependency-free)
+
+The core scanner runs on the Python standard library alone.
+
 ```bash
-git clone https://github.com/Ravel226/PhantomProbe.git
-cd PhantomProbe
-python3 phantomprobe.py target.com
+pip install -e .
+phantomprobe example.com
 ```
 
-### With Dashboard
+You can also run it without installing:
+
 ```bash
-pip install fastapi uvicorn
-python3 phantomprobe.py target.com --dashboard
+PYTHONPATH=src python -m phantomprobe example.com
 ```
 
-### With Screenshots
+### With the dashboard
+
 ```bash
-pip install playwright
+pip install -e ".[dashboard]"
+phantomprobe example.com --dashboard
+```
+
+### With screenshots
+
+```bash
+pip install -e ".[screenshot]"
 playwright install chromium
-python3 phantomprobe.py target.com --screenshot
+phantomprobe example.com --screenshot
+```
+
+### Everything
+
+```bash
+pip install -e ".[all]"
 ```
 
 ## Usage
 
 ```bash
-# Basic scan (Phase 1)
-python3 phantomprobe.py example.com
+# Basic scan (Phase 1 - passive only)
+phantomprobe example.com
 
-# Full scan with active reconnaissance
-python3 phantomprobe.py example.com --phase2
+# Add active reconnaissance (ports, subdomains, fingerprinting)
+phantomprobe example.com --phase2
 
-# Full scan with CVE matching
-python3 phantomprobe.py example.com --phase2 --cve
+# Add CVE matching
+phantomprobe example.com --phase2 --cve
 
-# Full scan with screenshot
-python3 phantomprobe.py example.com --phase2 --cve --screenshot
+# Add a screenshot
+phantomprobe example.com --phase2 --cve --screenshot
 
-# Full scan with JavaScript analysis
-python3 phantomprobe.py example.com --phase2 --cve --screenshot --js
+# Add JavaScript analysis
+phantomprobe example.com --phase2 --cve --screenshot --js
 
-# Full scan with interactive dashboard
-python3 phantomprobe.py example.com --phase2 --cve --js --dashboard
+# Serve the interactive dashboard when the scan finishes
+phantomprobe example.com --phase2 --cve --js --dashboard
 ```
 
-### Dashboard Only
+Equivalent module form, if you prefer not to install the console script:
+
 ```bash
-# Start dashboard after scan completes
-python3 phantomprobe.py target.com --dashboard
+python -m phantomprobe example.com --phase2
 ```
 
-Output files:
+### Dashboard on its own
+
+To serve an empty dashboard (and the `/api/*` endpoints) without running a scan:
+
+```bash
+uvicorn phantomprobe.asgi:app --host 127.0.0.1 --port 8080
+```
+
+Output files (written to `--output-dir`, default `.`):
 - `report-example.com.md` - Markdown report
 - `report-example.com.json` - JSON report with CVE data
-- `screenshot-example.com.png` - Website screenshot (with --screenshot)
-- Dashboard at `http://127.0.0.1:8080` (with --dashboard)
+- `screenshot-example.com.png` - Website screenshot (with `--screenshot`)
+- Dashboard at `http://127.0.0.1:8080` (with `--dashboard`)
 
 ## Docker Usage
 
@@ -205,7 +230,7 @@ echo "BURP_API_KEY=your-key-here" > .env
 
 ```bash
 # Scan target and send to Burp
-python3 phantomprobe.py target.com --burp
+phantomprobe target.com --burp
 
 # The scanner will:
 # 1. Run reconnaissance
@@ -231,26 +256,44 @@ BurpSuiteEngine.generate_extension_template("burp_extension.py")
 
 | Flag | Description |
 |------|-------------|
-| `--phase2` | Enable active reconnaissance |
-| `--cve` | Enable CVE matching via NVD API |
-| `--screenshot` | Capture website screenshot |
-| `--js` | JavaScript analysis for secrets/endpoints |
-| `--dashboard` | Launch interactive web dashboard |
-| `--verbose` | Show detailed output |
+| `-a`, `--phase2` | Enable active reconnaissance (ports, subdomains, fingerprinting) |
+| `-c`, `--cve` | Enable CVE matching via the NVD API |
+| `-s`, `--screenshot` | Capture website screenshot (requires Playwright) |
+| `-j`, `--js` | JavaScript analysis for secrets/endpoints |
+| `-b`, `--burp` | Burp Suite Professional integration (requires requests) |
+| `-d`, `--dashboard` | Launch the interactive web dashboard |
+| `-v`, `--verbose` | Show detailed output |
+| `--output-dir DIR` | Where to write reports and screenshots (default: `.`) |
+| `--dashboard-host HOST` | Dashboard bind address (default: `$PHANTOMPROBE_DASHBOARD_HOST` or `127.0.0.1`) |
+| `--dashboard-port PORT` | Dashboard port (default: `$PHANTOMPROBE_DASHBOARD_PORT` or `8080`) |
+| `--no-browser` | Do not open a browser when starting the dashboard |
+| `--version` | Print the version and exit |
+
+Run `phantomprobe --help` for the authoritative list.
 
 ## Requirements
 
 - **Python 3.8+** (required)
-- **Standard library** - Core functionality (dependency-free)
-- **FastAPI + Uvicorn** - For web dashboard
-  ```bash
-  pip install fastapi uvicorn
-  ```
-- **Playwright** - For screenshots
-  ```bash
-  pip install playwright
-  playwright install chromium
-  ```
+- **Standard library only** for core reconnaissance - no third-party packages needed
+
+Optional features are installed as extras:
+
+| Extra | Enables | Install |
+|-------|---------|---------|
+| `dashboard` | FastAPI web dashboard | `pip install -e ".[dashboard]"` |
+| `screenshot` | Playwright screenshots | `pip install -e ".[screenshot]"` then `playwright install chromium` |
+| `burp` | Burp Suite REST integration | `pip install -e ".[burp]"` |
+| `all` | Everything above | `pip install -e ".[all]"` |
+| `dev` | Test and lint tooling | `pip install -e ".[dev]"` |
+
+### Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `NVD_API_KEY` | Raises the NVD rate limit from 5 to 50 requests / 30s. Without it, `--cve` throttles to ~1 query every 6.5s. [Request one here](https://nvd.nist.gov/developers/request-an-api-key). |
+| `BURP_API_KEY` | Burp Suite REST API key, used by `--burp`. |
+| `PHANTOMPROBE_DASHBOARD_HOST` | Dashboard bind address (set to `0.0.0.0` in Docker). |
+| `PHANTOMPROBE_DASHBOARD_PORT` | Dashboard port. |
 
 ## Dashboard Preview
 
@@ -279,20 +322,50 @@ BurpSuiteEngine.generate_extension_template("burp_extension.py")
 
 ```
 PhantomProbe/
-├── phantomprobe.py       # Main scanner
-├── README.md             # Documentation
-├── requirements.txt      # Python dependencies
-├── .claude/              # Ruflo agent configs
-├── .claude-flow/         # Claude Flow settings
-└── reports/              # Generated reports
+├── src/phantomprobe/
+│   ├── __init__.py       # Public API
+│   ├── __main__.py       # python -m phantomprobe
+│   ├── cli.py            # Argument parsing and scan orchestration
+│   ├── constants.py      # Version and User-Agent (single source of truth)
+│   ├── models.py         # Finding, Severity
+│   ├── passive.py        # Phase 1: DNS, SSL/TLS, HTTP headers
+│   ├── active.py         # Phase 2: ports, subdomains, fingerprinting
+│   ├── cve.py            # NVD correlation
+│   ├── js.py             # JavaScript endpoint/secret discovery
+│   ├── screenshot.py     # Playwright capture
+│   ├── burp.py           # Burp Suite REST integration
+│   ├── report.py         # Markdown and JSON reports
+│   ├── dashboard.py      # FastAPI dashboard
+│   └── asgi.py           # Standalone ASGI entry point
+├── tests/                # pytest suite
+├── Dockerfile            # Multi-stage build
+├── docker-compose.yml    # Compose profiles
+└── pyproject.toml        # Packaging and tool config
+```
+
+## Development
+
+```bash
+pip install -e ".[all,dev]"
+
+pytest tests/ -v              # run the test suite
+pytest tests/ --cov=phantomprobe   # with coverage
+black src/ tests/             # format
+flake8 src/ tests/            # lint
+bandit -r src/ -ll            # security scan
 ```
 
 ## Roadmap
 
-### v0.8.0 (Next)
-- [ ] Burp Suite integration
+### v0.8.0 (current)
+- [x] Burp Suite integration
+- [x] Docker support with compose profiles
+- [x] Modular package layout
+
+### Next
 - [ ] Custom wordlists for subdomain enumeration
 - [ ] CSV/Excel export
+- [ ] Async I/O for the scanning engines
 
 ### v1.0.0
 - [ ] Plugin system

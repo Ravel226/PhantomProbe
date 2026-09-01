@@ -33,9 +33,10 @@ screenshot = ["playwright>=1.40.0"]
 dashboard = ["fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0"]
 burp = ["requests>=2.25.0", "websockets>=11.0"]
 all = ["playwright>=1.40.0", "fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0", "requests>=2.25.0"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "black>=23.0", "flake8>=6.0", "isort>=5.12", "bandit>=1.7"]
 
 [project.scripts]
-phantomprobe = "phantomprobe:main"
+phantomprobe = "phantomprobe.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/Ravel226/PhantomProbe"
@@ -48,7 +49,19 @@ packages = ["src/phantomprobe"]
 [tool.hatch.build.targets.sdist]
 include = [
     "/src",
-    "/packages",
+    "/tests",
     "/README.md",
     "/LICENSE",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+line_length = 100

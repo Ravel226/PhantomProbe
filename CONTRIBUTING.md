@@ -13,11 +13,8 @@ cd PhantomProbe
 python3 -m venv venv
 source venv/bin/activate
 
-# Install in development mode
-pip install -e ".[all]"
-
-# Install development dependencies
-pip install pytest pytest-cov black flake8 isort
+# Install in development mode with all features and dev tooling
+pip install -e ".[all,dev]"
 ```
 
 ## Running Tests
@@ -49,6 +46,9 @@ isort src/ tests/
 
 # Check linting
 flake8 src/ tests/
+
+# Security scan (the CI fails on medium+ findings)
+bandit -r src/ -ll
 ```
 
 ## Pull Request Process
