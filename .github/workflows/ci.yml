@@ -113,3 +113,84 @@ jobs:
         /tmp/verify/bin/pip install dist/*.whl
         /tmp/verify/bin/python -c "import phantomprobe; print(phantomprobe.__version__); print(phantomprobe.Finding)"
         /tmp/verify/bin/phantomprobe --version
+
+  # None of the Docker stages were covered before, which is how a full image
+  # that could not take a single screenshot shipped unnoticed.
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build core stage
+      run: docker build --target phantomprobe-core -t phantomprobe:core .
+
+    - name: Core image runs as the non-root user
+      run: |
+        uid=$(docker run --rm --entrypoint id phantomprobe:core -u)
+        test "$uid" = "1000" || { echo "expected uid 1000, got $uid"; exit 1; }
+        docker run --rm phantomprobe:core --version
+
+    # Exercises the CLI, the mounted volume and report writing as uid 1000.
+    # .invalid is reserved by RFC 2606 and never resolves, so this reaches no
+    # third-party host.
+    - name: Core image writes reports to a mounted volume
+      run: |
+        # The image runs as uid 1000 while the runner owns the directory, so a
+        # bind mount is unwritable until it is opened up. Linux users hitting
+        # "Permission denied" on -v need the same, or --user "$(id -u):$(id -g)".
+        mkdir -p ci-reports && chmod 777 ci-reports
+        docker run --rm -v "$PWD/ci-reports:/app/reports" \
+          phantomprobe:core nonexistent.invalid --output-dir /app/reports
+        test -s ci-reports/report-nonexistent.invalid.md
+        test -s ci-reports/report-nonexistent.invalid.json
+
+    - name: Build dashboard stage
+      run: docker build --target phantomprobe-dashboard -t phantomprobe:dashboard .
+
+    # Binding to 127.0.0.1 inside a container makes the published port useless,
+    # so prove the dashboard answers from outside it.
+    - name: Dashboard is reachable through the published port
+      run: |
+        docker run -d --name pp-dash -p 8080:8080 --entrypoint python3 \
+          phantomprobe:dashboard -m uvicorn phantomprobe.asgi:app \
+          --host 0.0.0.0 --port 8080
+        # Quiet during the retries: connection refused while the server is
+        # still starting is expected and would otherwise look like a failure.
+        for i in $(seq 1 30); do
+          curl -fs -m 3 http://127.0.0.1:8080/api/stats >/dev/null 2>&1 && break
+          sleep 1
+        done
+        curl -fsS -m 5 http://127.0.0.1:8080/api/stats
+        curl -fsS -m 5 http://127.0.0.1:8080/ | grep -q "PhantomProbe Dashboard"
+        docker rm -f pp-dash
+
+    - name: Build full stage
+      run: docker build --target phantomprobe-full -t phantomprobe:full .
+
+    # The regression guard: Playwright's browsers were installed as root and so
+    # were unreadable by uid 1000, which broke every capture. set_content keeps
+    # this off the network.
+    - name: Full image can launch Chromium and capture a screenshot
+      run: |
+        docker run --rm --entrypoint python3 phantomprobe:full -c "
+        import os
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.set_content('<h1>ci</h1>')
+            page.screenshot(path='/tmp/shot.png')
+            browser.close()
+        size = os.path.getsize('/tmp/shot.png')
+        assert size > 0, 'screenshot is empty'
+        print('screenshot bytes:', size)
+        "
+
+    # Every profile parsed cleanly only after .env was made optional; keep it
+    # that way for someone who has just cloned the repo.
+    - name: Compose profiles resolve without a .env file
+      run: |
+        test ! -f .env
+        for profile in core dashboard full dev api burp; do
+          docker compose --profile "$profile" config >/dev/null
+        done

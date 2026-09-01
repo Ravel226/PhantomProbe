@@ -171,7 +171,17 @@ docker-compose --profile dashboard up
 
 # Or use Docker directly
 docker build -t phantomprobe .
+mkdir -p reports
 docker run -p 8080:8080 -v $(pwd)/reports:/app/reports phantomprobe target.com --dashboard
+```
+
+The container runs as uid 1000. If your host directory is owned by a different
+uid, the scan fails with `Permission denied` when writing its reports; run it as
+yourself instead:
+
+```bash
+docker run --user "$(id -u):$(id -g)" -v $(pwd)/reports:/app/reports \
+  phantomprobe target.com
 ```
 
 ### Docker Compose Profiles
