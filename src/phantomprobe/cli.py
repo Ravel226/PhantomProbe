@@ -48,15 +48,46 @@ SEVERITY_ORDER = [
 ]
 
 
+def configure_console_encoding() -> None:
+    """
+    Stop console encoding from aborting a scan.
+
+    What we print includes text we do not control: banners from a dependency's
+    error message, and evidence taken from the scanned host's own responses. On
+    a console using a legacy code page (Windows cp1252) a single unencodable
+    character makes print() raise UnicodeEncodeError, which aborted the run
+    before any report was written - so a failed screenshot, or a target serving
+    a header outside the code page, silently discarded every finding.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(errors="replace")
+        except (ValueError, OSError):
+            pass
+
+
+def console_supports(text: str) -> bool:
+    """Whether stdout's encoding can represent text without substitutions."""
+    encoding = getattr(sys.stdout, "encoding", None) or "ascii"
+    try:
+        text.encode(encoding)
+    except (UnicodeEncodeError, LookupError):
+        return False
+    return True
+
+
 def print_banner():
     """
     Print the banner, falling back to plain ASCII on consoles that cannot
-    encode box-drawing characters (e.g. Windows cp1252).
+    encode box-drawing characters (e.g. Windows cp1252). Checked up front
+    rather than caught, because configure_console_encoding makes the
+    box-drawing version print as replacement characters instead of raising.
     """
-    try:
-        print(BANNER.format(version=__version__))
-    except UnicodeEncodeError:
-        print(ASCII_BANNER.format(version=__version__))
+    banner = BANNER if console_supports(BANNER) else ASCII_BANNER
+    print(banner.format(version=__version__))
 
 
 def normalize_target(raw: str) -> str:
@@ -187,6 +218,8 @@ def write_reports(findings: List[Finding], cve_results: List[dict],
 
 def main(argv: Optional[List[str]] = None) -> int:
     """Main scanner entry point."""
+    configure_console_encoding()
+
     parser = build_parser()
     args = parser.parse_args(argv)
 

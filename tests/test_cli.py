@@ -1,8 +1,12 @@
 """
 Unit tests for the PhantomProbe command-line interface.
 """
+import io
+from unittest import mock
+
 import pytest
 
+from phantomprobe import cli
 from phantomprobe.cli import build_parser, normalize_target
 
 
@@ -79,3 +83,70 @@ def test_parser_rejects_non_numeric_port():
     parser = build_parser()
     with pytest.raises(SystemExit):
         parser.parse_args(["example.com", "--dashboard-port", "abc"])
+
+
+class TestConsoleEncoding:
+    """
+    A scan must survive output it cannot encode. Printing a dependency's error
+    message or a hostile server's header used to raise UnicodeEncodeError on a
+    cp1252 console, aborting the run before any report was written.
+    """
+
+    def test_configure_console_encoding_sets_replacement(self):
+        import io
+
+        stream = io.TextIOWrapper(io.BytesIO(), encoding="cp1252", errors="strict")
+        with mock.patch.object(cli.sys, "stdout", stream), \
+                mock.patch.object(cli.sys, "stderr", stream):
+            cli.configure_console_encoding()
+            # The box-drawing characters Playwright uses in its error banner.
+            stream.write("boom \u2554\u2550\u2557 \u4f60\u597d")
+        assert stream.errors == "replace"
+
+    def test_configure_console_encoding_tolerates_plain_streams(self):
+        # A stream without reconfigure (a plain StringIO, or a redirect) must
+        # not blow up the entry point.
+        with mock.patch.object(cli.sys, "stdout", io.StringIO()), \
+                mock.patch.object(cli.sys, "stderr", io.StringIO()):
+            cli.configure_console_encoding()
+
+    def test_console_supports_detects_legacy_code_page(self):
+        cp1252 = mock.Mock(encoding="cp1252")
+        utf8 = mock.Mock(encoding="utf-8")
+        with mock.patch.object(cli.sys, "stdout", cp1252):
+            assert cli.console_supports("plain ascii") is True
+            assert cli.console_supports("\u2554\u2550\u2557") is False
+        with mock.patch.object(cli.sys, "stdout", utf8):
+            assert cli.console_supports("\u2554\u2550\u2557") is True
+
+    def test_banner_falls_back_to_ascii_on_legacy_console(self, capsys):
+        with mock.patch.object(cli, "console_supports", return_value=False):
+            cli.print_banner()
+        assert "PhantomProbe" in capsys.readouterr().out
+
+    def test_screenshot_failure_is_swallowed_on_a_legacy_console(self):
+        """
+        The regression itself. Playwright's failure message contains box-drawing
+        characters; printing it on a cp1252 console used to raise out of
+        capture() and kill the scan before any report was written.
+        """
+        message = "Executable doesn't exist ╔═╗"
+        stream = io.TextIOWrapper(io.BytesIO(), encoding="cp1252", errors="strict")
+
+        fake_playwright = mock.MagicMock()
+        fake_playwright.return_value.__enter__.return_value.chromium.launch.side_effect = (
+            RuntimeError(message)
+        )
+
+        with mock.patch.object(cli.sys, "stdout", stream),                 mock.patch.object(cli.sys, "stderr", stream):
+            cli.configure_console_encoding()
+            with mock.patch.dict(
+                "sys.modules",
+                {"playwright": mock.MagicMock(),
+                 "playwright.sync_api": mock.MagicMock(
+                     sync_playwright=fake_playwright)},
+            ), mock.patch("sys.stdout", stream):
+                capturer = cli.ScreenshotCapture(output_dir=".")
+                capturer.playwright_available = True
+                # Must return None rather than propagating the encode error.
+                assert capturer.capture("example.com") is None
