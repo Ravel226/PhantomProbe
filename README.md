@@ -187,12 +187,19 @@ docker-compose --profile dashboard up phantomprobe-dashboard
 # Full edition (all features, larger image)
 docker-compose --profile full up phantomprobe-full
 
-# Development mode (auto-reload)
+# Development mode: serves the dashboard and reloads on source changes
+# (mounts ./src, so edits apply without rebuilding the image)
 docker-compose --profile dev up phantomprobe-dev
+
+# Dashboard API only, no scan (serves phantomprobe.asgi:app)
+docker-compose --profile api up phantomprobe-api
 
 # With Burp Suite integration
 docker-compose --profile burp up phantomprobe-burp
 ```
+
+The compose services bind the dashboard to `0.0.0.0` via
+`PHANTOMPROBE_DASHBOARD_HOST` so it is reachable through the published port.
 
 ### Environment Configuration
 

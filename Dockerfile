@@ -1,6 +1,6 @@
 # PhantomProbe v0.8.0 - Multi-stage Docker Build
 # Stage 1: Base with core functionality (lightweight)
-FROM python:3.11-slim-bookworm as phantomprobe-core
+FROM python:3.11-slim-bookworm AS phantomprobe-core
 
 LABEL maintainer="Ravel226"
 LABEL description="PhantomProbe - Reconnaissance Scanner for Penetration Testing"
@@ -42,7 +42,7 @@ CMD ["--help"]
 
 
 # Stage 2: With dashboard (medium weight)
-FROM phantomprobe-core as phantomprobe-dashboard
+FROM phantomprobe-core AS phantomprobe-dashboard
 
 USER root
 
@@ -59,14 +59,18 @@ ENV PHANTOMPROBE_DASHBOARD_HOST=0.0.0.0
 
 
 # Stage 3: Full edition with all features (largest)
-FROM phantomprobe-core as phantomprobe-full
+FROM phantomprobe-core AS phantomprobe-full
 
 USER root
 
-# Install Playwright dependencies
+# Shared browser location. Playwright's default is the installing user's
+# ~/.cache, so installing as root leaves the browsers unreadable by the
+# non-root runtime user and every screenshot fails. Install them somewhere
+# both users can reach, and make it world-readable.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+# Shared libraries Playwright's bundled Chromium links against.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    chromium \
-    chromium-driver \
     libglib2.0-0 \
     libnss3 \
     libnspr4 \
@@ -84,15 +88,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install all optional dependencies
-RUN pip install --no-cache-dir -e ".[all]"
-
-# Install Playwright browsers
-RUN pip install --no-cache-dir playwright && \
-    playwright install chromium
-
-# Install Burp integration
-RUN pip install --no-cache-dir requests
+# The "all" extra already pulls in playwright and requests.
+RUN pip install --no-cache-dir -e ".[all]" \
+    && playwright install chromium \
+    && chmod -R a+rX "$PLAYWRIGHT_BROWSERS_PATH"
 
 USER phantomprobe
 
