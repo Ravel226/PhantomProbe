@@ -14,6 +14,7 @@ import html
 import json
 import os
 import webbrowser
+from string import Template
 from dataclasses import asdict
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -33,13 +34,46 @@ except ImportError:
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
 
-SEVERITY_COLORS = {
-    "critical": "#e74c3c",
-    "high": "#e67e22",
-    "medium": "#f39c12",
-    "low": "#3498db",
-    "informational": "#95a5a6",
+# Severity is the only chromatic language in this interface. Steps are separated
+# by lightness as well as hue so the ramp survives desaturation and colour-vision
+# deficiency, and every chip ships its text label: colour is never the only code.
+SEVERITY_SLUGS = {
+    "critical": "crit",
+    "high": "high",
+    "medium": "med",
+    "low": "low",
+    "informational": "info",
 }
+
+# Authored icons on one grid and one stroke weight, so the set reads as a system.
+# Drawn rather than borrowed from a font: glyphs and emoji are not an icon system.
+_ICON_BODIES = {
+    "mark": (
+        '<circle cx="12" cy="12" r="2.25"/>'
+        '<path d="M12 3.75a8.25 8.25 0 0 1 8.25 8.25"/>'
+        '<path d="M12 7.5a4.5 4.5 0 0 1 4.5 4.5"/>'
+        '<path d="M4.4 16.5a8.25 8.25 0 0 1 2.2-10.3"/>'
+    ),
+    "findings": (
+        '<path d="M4.5 6.75h9"/><path d="M4.5 12h6"/><path d="M4.5 17.25h9"/>'
+        '<circle cx="17" cy="13.5" r="3.25"/><path d="M19.4 15.9 21.5 18"/>'
+    ),
+    "cve": (
+        '<path d="M12 4.75 20.5 19.25H3.5z"/>'
+        '<path d="M12 10v3.6"/><path d="M12 16.4h.01"/>'
+    ),
+    "chevron": '<path d="m9.5 5.75 6 6.25-6 6.25"/>',
+}
+
+
+def icon(name: str, size: int = 18) -> str:
+    """Inline an authored icon, sized in px and coloured by currentColor."""
+    return (
+        f'<svg class="icon" width="{size}" height="{size}" viewBox="0 0 24 24" '
+        'fill="none" stroke="currentColor" stroke-width="1.5" '
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        f'{_ICON_BODIES.get(name, "")}</svg>'
+    )
 
 SEVERITY_ORDER = [
     Severity.CRITICAL,
@@ -87,6 +121,413 @@ def resolve_host_port(host: Optional[str] = None, port: Optional[int] = None):
             resolved_port = DEFAULT_PORT
 
     return resolved_host, resolved_port
+
+
+PAGE = Template("""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$target findings - PhantomProbe</title>
+<style>
+    :root {
+      color-scheme: dark;
+
+      /* Ground: cool graphite. Not black, not navy. Elevation is carried by two
+         neutral steps and a hairline, never by a shadow and a border at once. */
+      --canvas:      #14161a;
+      --panel:       #1b1e23;
+      --panel-hi:    #22262c;
+      --line:        #2c3138;
+      --line-strong: #3b414a;
+
+      --text:        #e7e9ec;
+      --text-dim:    #a3abb6;
+      --text-faint:  #868f9b;
+
+      /* Interaction accent. Warm bone against the cool ground, and it appears
+         only on focus, selection and the active filter: rarity gives it force. */
+      --bone:        #e9dcc4;
+      --bone-dim:    #bdb198;
+
+      --crit:  #f2685c;
+      --high:  #e2924a;
+      --med:   #d3b551;
+      --low:   #8ba5d6;
+      --info:  #9aa4b0;
+
+      --step-1: 4px;  --step-2: 8px;  --step-3: 12px;
+      --step-4: 16px; --step-5: 24px; --step-6: 40px;
+
+      --radius: 12px;
+      --radius-sm: 7px;
+
+      --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+      --fast: 140ms;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      background: var(--canvas);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      letter-spacing: -0.006em;
+      -webkit-font-smoothing: antialiased;
+      caret-color: var(--bone);
+    }
+
+    /* Surfaces the browser draws that the design still owns. */
+    ::selection { background: var(--bone); color: #14161a; }
+    ::-webkit-scrollbar { width: 11px; height: 11px; }
+    ::-webkit-scrollbar-track { background: var(--canvas); }
+    ::-webkit-scrollbar-thumb {
+      background: var(--line-strong);
+      border-radius: 99px;
+      border: 3px solid var(--canvas);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: #4a515c; }
+    * { scrollbar-color: var(--line-strong) var(--canvas); scrollbar-width: thin; }
+
+    :focus-visible {
+      outline: 2px solid var(--bone);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
+    .shell { max-width: 1280px; margin: 0 auto; padding: 0 var(--step-5); }
+
+    .icon { flex: none; }
+
+    /* masthead */
+
+    .masthead { background: var(--panel); border-bottom: 1px solid var(--line); }
+    .masthead-inner {
+      display: flex; align-items: center; gap: var(--step-4);
+      padding: var(--step-4) 0; flex-wrap: wrap;
+    }
+    .wordmark {
+      display: flex; align-items: center; gap: var(--step-2);
+      font-size: 15px; font-weight: 600; letter-spacing: -0.015em;
+    }
+    .wordmark .icon { color: var(--bone-dim); }
+    .wordmark .name { font-weight: 600; }
+    .wordmark .ver { color: var(--text-faint); font-weight: 400; font-size: 12px; }
+
+    /* The scanned host is the page subject and carries the display step; every
+       other size sits in the dense product range below it. */
+    .subject { padding: var(--step-5) 0 var(--step-2); }
+    .subject h1 {
+      font-size: 26px; font-weight: 600; letter-spacing: -0.022em;
+      line-height: 1.2;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .subject-meta {
+      margin-top: 5px;
+      color: var(--text-dim); font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .subject-meta .sep { color: var(--line-strong); margin: 0 var(--step-2); }
+
+    .link-status {
+      margin-left: auto;
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 12px; color: var(--text-dim);
+      padding: 3px 10px 3px 8px;
+      border: 1px solid var(--line); border-radius: 99px;
+    }
+    .link-status .pip {
+      width: 6px; height: 6px; border-radius: 99px;
+      background: var(--text-faint);
+      transition: background var(--fast) var(--ease);
+    }
+    .link-status[data-state="live"] { color: var(--text); }
+    .link-status[data-state="live"] .pip { background: #74c091; }
+
+    /* filter rail */
+
+    .rail {
+      display: flex; align-items: center; gap: var(--step-2);
+      padding: var(--step-4) 0 var(--step-3); flex-wrap: wrap;
+    }
+    .rail-label { font-size: 12px; color: var(--text-faint); margin-right: var(--step-1); }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 11px;
+      font: inherit; font-size: 12px; font-weight: 550; letter-spacing: 0.02em;
+      color: var(--text-dim);
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      cursor: pointer;
+      transition: border-color var(--fast) var(--ease),
+                  color var(--fast) var(--ease),
+                  background-color var(--fast) var(--ease);
+    }
+    .chip:hover { border-color: var(--line-strong); color: var(--text); }
+    .chip .n { font-variant-numeric: tabular-nums; color: var(--text-faint); }
+    .chip[aria-pressed="true"] {
+      border-color: var(--bone-dim); color: var(--text);
+      background: rgba(233, 220, 196, 0.09);
+    }
+    .chip[aria-pressed="true"] .n { color: var(--bone); }
+    .chip[disabled] { opacity: 0.45; cursor: default; }
+    .chip[disabled]:hover { border-color: var(--line); color: var(--text-dim); }
+    .chip .dot { width: 7px; height: 7px; border-radius: 2px; }
+
+    .sev-crit .dot { background: var(--crit); }
+    .sev-high .dot { background: var(--high); }
+    .sev-med  .dot { background: var(--med); }
+    .sev-low  .dot { background: var(--low); }
+    .sev-info .dot { background: var(--info); }
+
+    /* panels */
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin-bottom: var(--step-5);
+      overflow: hidden;
+    }
+    .panel-head {
+      display: flex; align-items: center; gap: var(--step-2);
+      padding: var(--step-3) var(--step-4);
+      border-bottom: 1px solid var(--line);
+    }
+    .panel-head h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.01em; }
+    .panel-head .icon { color: var(--text-faint); }
+    .panel-head .count { margin-left: auto; color: var(--text-faint); font-size: 12px;
+                         font-variant-numeric: tabular-nums; }
+
+    /* table */
+
+    .scroll-x { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      text-align: left;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-faint);
+      padding: var(--step-2) var(--step-4);
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+      background: var(--panel);
+    }
+    td {
+      padding: var(--step-3) var(--step-4);
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr { transition: background-color var(--fast) var(--ease); }
+    tbody tr:hover { background: var(--panel-hi); }
+    tbody tr[hidden] { display: none; }
+
+    .col-id {
+      font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums; letter-spacing: 0;
+      font-size: 12px; color: var(--text-dim); white-space: nowrap;
+    }
+    .col-title { font-weight: 500; min-width: 22ch; }
+    .col-cat { color: var(--text-dim); white-space: nowrap; }
+    .col-score {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap;
+    }
+    .col-desc { color: var(--text-dim); max-width: 60ch; }
+
+    /* Severity reads as a word first; the swatch only reinforces it. */
+    .sev {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.05em; white-space: nowrap;
+    }
+    .sev .dot { width: 7px; height: 7px; border-radius: 2px; }
+    .sev-crit { color: var(--crit); }
+    .sev-high { color: var(--high); }
+    .sev-med  { color: var(--med); }
+    .sev-low  { color: var(--low); }
+    .sev-info { color: var(--info); }
+
+    /* evidence disclosure */
+
+    details summary {
+      display: inline-flex; align-items: center; gap: 5px;
+      cursor: pointer; list-style: none;
+      color: var(--text-dim); font-size: 12px;
+      border-radius: 4px;
+      transition: color var(--fast) var(--ease);
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary:hover { color: var(--text); }
+    details summary .icon { color: var(--text-faint);
+                            transition: transform var(--fast) var(--ease); }
+    details[open] summary .icon { transform: rotate(90deg); }
+    details pre {
+      margin-top: var(--step-2);
+      padding: var(--step-3);
+      background: var(--canvas);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 12px; line-height: 1.55;
+      color: var(--text-dim);
+      white-space: pre-wrap; word-break: break-word;
+      max-width: 90ch;
+    }
+
+    /* empty states teach the next step rather than announcing nothing */
+
+    .empty {
+      padding: var(--step-6) var(--step-4);
+      text-align: center; color: var(--text-dim);
+      max-width: 54ch; margin: 0 auto;
+    }
+    .empty strong {
+      display: block; color: var(--text); font-weight: 550;
+      margin-bottom: var(--step-1);
+    }
+    .empty code {
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 12px; color: var(--bone-dim);
+      background: var(--canvas); border: 1px solid var(--line);
+      border-radius: 4px; padding: 1px 5px;
+    }
+    .empty[hidden] { display: none; }
+
+    footer { padding: var(--step-5) 0 var(--step-6); color: var(--text-faint); font-size: 12px; }
+
+    @media (max-width: 720px) {
+      .shell { padding: 0 var(--step-4); }
+      td, th { padding-left: var(--step-3); padding-right: var(--step-3); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+</style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="shell masthead-inner">
+      <div class="wordmark">$icon_mark<span class="name">PhantomProbe</span><span class="ver">$version</span></div>
+      <span class="link-status" id="link" data-state="off">
+        <span class="pip"></span><span id="link-text">Offline</span>
+      </span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <!-- The page is about the scanned host, so the host is the heading. The
+         tool name stays chrome in the masthead. -->
+    <div class="subject">
+      <h1 title="$target">$target</h1>
+      <p class="subject-meta">Scanned $scan_time<span class="sep">/</span>$findings_count</p>
+    </div>
+
+    <div class="rail" role="group" aria-label="Filter findings by severity">
+      <span class="rail-label">Severity</span>
+      $filters
+    </div>
+
+    <section class="panel">
+      <div class="panel-head">
+        $icon_findings<h2>Findings</h2>
+        <span class="count" id="findings-count">$findings_count</span>
+      </div>
+      $findings_body
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        $icon_cve<h2>CVE correlation</h2>
+        <span class="count">$cve_count</span>
+      </div>
+      $cve_body
+    </section>
+
+    <footer>Reports are written next to the scan output. Re-run the scan to refresh this view.</footer>
+  </main>
+
+  <script>
+    (function () {
+      var link = document.getElementById('link');
+      var linkText = document.getElementById('link-text');
+      var ws;
+
+      function setLink(state, label) {
+        link.setAttribute('data-state', state);
+        linkText.textContent = label;
+      }
+
+      function connect() {
+        var scheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(scheme + '//' + window.location.host + '/ws');
+        ws.onopen = function () { setLink('live', 'Live'); };
+        ws.onclose = function () {
+          setLink('off', 'Reconnecting');
+          setTimeout(connect, 3000);
+        };
+        ws.onmessage = function (event) {
+          var data = JSON.parse(event.data);
+          if (data.type === 'NEW_FINDING' || data.type === 'SCAN_COMPLETE') {
+            location.reload();
+          }
+        };
+      }
+      connect();
+
+      // Severity filtering. Chips are toggles, so triage can narrow to the rows
+      // that matter without losing the counts.
+      var chips = Array.prototype.slice.call(document.querySelectorAll('.chip[data-sev]'));
+      var rows = Array.prototype.slice.call(document.querySelectorAll('tr[data-sev]'));
+      var countEl = document.getElementById('findings-count');
+      var emptyFiltered = document.getElementById('no-match');
+
+      function apply() {
+        var on = chips.filter(function (c) {
+          return c.getAttribute('aria-pressed') === 'true';
+        }).map(function (c) { return c.getAttribute('data-sev'); });
+
+        var shown = 0;
+        rows.forEach(function (row) {
+          var visible = on.length === 0 || on.indexOf(row.getAttribute('data-sev')) !== -1;
+          row.hidden = !visible;
+          if (visible) { shown += 1; }
+        });
+
+        if (countEl) {
+          countEl.textContent = shown === rows.length
+            ? rows.length + ' total'
+            : shown + ' of ' + rows.length;
+        }
+        if (emptyFiltered) { emptyFiltered.hidden = shown !== 0 || rows.length === 0; }
+      }
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          chip.setAttribute(
+            'aria-pressed',
+            chip.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'
+          );
+          apply();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
+""")
 
 
 class DashboardServer:
@@ -170,267 +611,120 @@ class DashboardServer:
         self.target = target
 
     def _build_findings_rows(self) -> str:
-        """Build the findings table body. All target-controlled data is escaped."""
+        """Findings table body. Every target-controlled value is escaped."""
         rows = ""
+        chevron = icon("chevron", 13)
         for severity in SEVERITY_ORDER:
-            color = SEVERITY_COLORS.get(severity.value, "#95a5a6")
+            slug = SEVERITY_SLUGS.get(severity.value, "info")
             for finding in [f for f in self.findings if f.severity == severity]:
                 evidence = finding.evidence or ""
-                truncated = evidence[:500] + ("..." if len(evidence) > 500 else "")
-                rows += f"""
-                <tr style="border-left: 4px solid {color}">
-                    <td><span class="badge" style="background: {color}">{html.escape(severity.value.upper())}</span></td>
-                    <td>{html.escape(finding.id)}</td>
-                    <td>{html.escape(finding.title)}</td>
-                    <td>{html.escape(finding.category)}</td>
-                    <td><details><summary>View</summary><pre>{html.escape(truncated)}</pre></details></td>
-                </tr>
-                """
+                shown = evidence[:500] + ("..." if len(evidence) > 500 else "")
+                rows += (
+                    f'<tr data-sev="{slug}">'
+                    f'<td><span class="sev sev-{slug}"><span class="dot"></span>'
+                    f'{html.escape(severity.value.upper())}</span></td>'
+                    f'<td class="col-id">{html.escape(finding.id)}</td>'
+                    f'<td class="col-title">{html.escape(finding.title)}</td>'
+                    f'<td class="col-cat">{html.escape(finding.category)}</td>'
+                    f'<td><details><summary>{chevron}Evidence</summary>'
+                    f'<pre>{html.escape(shown)}</pre></details></td>'
+                    "</tr>"
+                )
         return rows
 
     def _build_cve_rows(self) -> str:
-        """Build the CVE table body. All NVD-sourced data is escaped."""
+        """CVE table body. Every NVD-sourced value is escaped."""
         rows = ""
         for item in self.cve_results[:20]:
-            cve = item['cve']
-            color = SEVERITY_COLORS.get(str(cve.severity).lower(), "#95a5a6")
+            cve = item["cve"]
+            slug = SEVERITY_SLUGS.get(str(cve.severity).lower(), "info")
             description = cve.description or ""
-            truncated = description[:150] + ("..." if len(description) > 150 else "")
-            rows += f"""
-            <tr style="border-left: 4px solid {color}">
-                <td><span class="badge" style="background: {color}">{html.escape(str(cve.severity).upper())}</span></td>
-                <td>{html.escape(str(cve.cve_id))}</td>
-                <td>{html.escape(str(cve.cvss_score))}</td>
-                <td>{html.escape(str(item['technology']))}</td>
-                <td>{html.escape(truncated)}</td>
-            </tr>
-            """
+            shown = description[:180] + ("..." if len(description) > 180 else "")
+            rows += (
+                "<tr>"
+                f'<td><span class="sev sev-{slug}"><span class="dot"></span>'
+                f'{html.escape(str(cve.severity).upper())}</span></td>'
+                f'<td class="col-id">{html.escape(str(cve.cve_id))}</td>'
+                f'<td class="col-score">{html.escape(str(cve.cvss_score))}</td>'
+                f'<td class="col-cat">{html.escape(str(item["technology"]))}</td>'
+                f'<td class="col-desc">{html.escape(shown)}</td>'
+                "</tr>"
+            )
         return rows
 
-    def _build_stat_cards(self, stats: Dict) -> str:
-        """Build the severity stat cards."""
-        cards = ""
-        for sev, count in stats["severity_counts"].items():
-            if count > 0:
-                color = SEVERITY_COLORS.get(sev, "#95a5a6")
-                cards += f"""
-                <div class="stat-card" style="border-top: 4px solid {color}">
-                    <h3>{count}</h3>
-                    <p>{html.escape(sev.upper())}</p>
-                </div>
-                """
-        return cards
+    def _build_filters(self, stats: Dict) -> str:
+        """
+        Severity counts double as filter toggles. A count that also narrows the
+        table earns its place; a count that only sits there is decoration.
+        """
+        chips = ""
+        for severity in SEVERITY_ORDER:
+            value = severity.value
+            count = stats["severity_counts"].get(value, 0)
+            slug = SEVERITY_SLUGS.get(value, "info")
+            disabled = " disabled" if count == 0 else ""
+            chips += (
+                f'<button type="button" class="chip sev-{slug}" data-sev="{slug}" '
+                f'aria-pressed="false"{disabled}>'
+                '<span class="dot"></span>'
+                f'{html.escape(value.upper())}'
+                f'<span class="n">{count}</span>'
+                "</button>"
+            )
+        return chips
 
     def _generate_html(self) -> str:
-        """Generate interactive HTML dashboard"""
+        """Render the dashboard page."""
         stats = self._calculate_stats()
+        findings_rows = self._build_findings_rows()
+        cve_rows = self._build_cve_rows()
+        total = stats["total_findings"]
 
-        findings_html = self._build_findings_rows()
-        cve_html = self._build_cve_rows()
-        cards_html = self._build_stat_cards(stats)
+        if findings_rows:
+            findings_body = (
+                '<div class="scroll-x"><table><thead><tr>'
+                "<th>Severity</th><th>ID</th><th>Title</th>"
+                "<th>Category</th><th>Evidence</th>"
+                f"</tr></thead><tbody>{findings_rows}</tbody></table></div>"
+                '<div class="empty" id="no-match" hidden>'
+                "<strong>No findings match this filter</strong>"
+                "Clear a severity chip above to widen the view.</div>"
+            )
+        else:
+            findings_body = (
+                '<div class="empty"><strong>No findings yet</strong>'
+                "This view fills in when a scan completes. Run "
+                "<code>phantomprobe example.com --dashboard</code> to populate it."
+                "</div>"
+            )
 
-        # Target and timestamp are rendered into the page: escape them too.
-        safe_target = html.escape(self.target)
-        safe_scan_time = html.escape(stats['scan_time'])
+        if cve_rows:
+            cve_body = (
+                '<div class="scroll-x"><table><thead><tr>'
+                "<th>Severity</th><th>CVE</th><th>CVSS</th>"
+                "<th>Technology</th><th>Summary</th>"
+                f"</tr></thead><tbody>{cve_rows}</tbody></table></div>"
+            )
+        else:
+            cve_body = (
+                '<div class="empty"><strong>No CVE correlation</strong>'
+                "Correlation runs only with <code>--cve</code>, and needs a version "
+                "string in a banner to match against NVD.</div>"
+            )
 
-        # The browser connects back to the address it loaded the page from, so
-        # the WebSocket URL is derived client-side. Hardcoding the bind address
-        # breaks whenever the server listens on 0.0.0.0 (e.g. in Docker).
-        findings_table = (
-            '<div class="empty-state">No findings yet. Run a scan to populate.</div>'
-            if not findings_html
-            else '<table><thead><tr><th>Severity</th><th>ID</th><th>Title</th>'
-                 '<th>Category</th><th>Evidence</th></tr></thead>'
-                 f'<tbody>{findings_html}</tbody></table>'
+        return PAGE.substitute(
+            target=html.escape(self.target or "No target"),
+            scan_time=html.escape(stats["scan_time"]),
+            version=html.escape(__version__),
+            icon_mark=icon("mark", 20),
+            icon_findings=icon("findings", 16),
+            icon_cve=icon("cve", 16),
+            filters=self._build_filters(stats),
+            findings_body=findings_body,
+            cve_body=cve_body,
+            findings_count=f"{total} total",
+            cve_count=f"{len(self.cve_results)} matched",
         )
-        cve_table = (
-            '<div class="empty-state">No CVE matches found.</div>'
-            if not cve_html
-            else '<table><thead><tr><th>Severity</th><th>CVE ID</th><th>CVSS</th>'
-                 '<th>Technology</th><th>Description</th></tr></thead>'
-                 f'<tbody>{cve_html}</tbody></table>'
-        )
-
-        html_page = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhantomProbe Dashboard - {safe_target}</title>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
-            line-height: 1.6;
-        }}
-        .header {{
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }}
-        .header h1 {{
-            font-size: 2rem;
-            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }}
-        .header p {{ color: #888; }}
-        .container {{
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }}
-        .stats-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }}
-        .stat-card {{
-            background: #1a1a2e;
-            padding: 1.5rem;
-            border-radius: 8px;
-            text-align: center;
-            transition: transform 0.2s;
-        }}
-        .stat-card:hover {{ transform: translateY(-5px); }}
-        .stat-card h3 {{
-            font-size: 2.5rem;
-            color: #00d4ff;
-        }}
-        .stat-card p {{
-            color: #888;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-        }}
-        .section {{
-            background: #1a1a2e;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }}
-        .section h2 {{
-            color: #00d4ff;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }}
-        th, td {{
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }}
-        th {{
-            color: #00d4ff;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-        }}
-        tr:hover {{ background: rgba(0, 212, 255, 0.05); }}
-        .badge {{
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: white;
-        }}
-        details {{
-            cursor: pointer;
-        }}
-        details summary {{
-            color: #00d4ff;
-        }}
-        details pre {{
-            background: #0a0a0a;
-            padding: 1rem;
-            border-radius: 4px;
-            margin-top: 0.5rem;
-            overflow-x: auto;
-            font-size: 0.8rem;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }}
-        .empty-state {{
-            text-align: center;
-            padding: 3rem;
-            color: #666;
-        }}
-        #connection-status {{
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }}
-        .connected {{ background: #27ae60; }}
-        .disconnected {{ background: #e74c3c; }}
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>&#128026; PhantomProbe Dashboard</h1>
-        <p>Target: <strong>{safe_target}</strong> | Scan Time: {safe_scan_time}</p>
-    </div>
-
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-card" style="border-top: 4px solid #00d4ff">
-                <h3>{stats['total_findings']}</h3>
-                <p>TOTAL FINDINGS</p>
-            </div>
-            {cards_html}
-        </div>
-
-        <div class="section">
-            <h2>&#128269; Findings</h2>
-            {findings_table}
-        </div>
-
-        <div class="section">
-            <h2>&#128027; CVE Matches</h2>
-            {cve_table}
-        </div>
-    </div>
-
-    <div id="connection-status" class="disconnected">&#9679; WebSocket Disconnected</div>
-
-    <script>
-        let ws;
-        function connect() {{
-            const scheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(scheme + '//' + window.location.host + '/ws');
-            ws.onopen = () => {{
-                document.getElementById('connection-status').className = 'connected';
-                document.getElementById('connection-status').textContent = '\\u25CF Live Updates';
-            }};
-            ws.onclose = () => {{
-                document.getElementById('connection-status').className = 'disconnected';
-                document.getElementById('connection-status').textContent = '\\u25CF Reconnecting...';
-                setTimeout(connect, 3000);
-            }};
-            ws.onmessage = (event) => {{
-                const data = JSON.parse(event.data);
-                console.log('Update received:', data);
-                if (data.type === 'NEW_FINDING' || data.type === 'SCAN_COMPLETE') {{
-                    location.reload();
-                }}
-            }};
-        }}
-        connect();
-    </script>
-</body>
-</html>"""
-        return html_page
 
     async def broadcast_update(self, message: Dict):
         """Broadcast update to all connected clients"""

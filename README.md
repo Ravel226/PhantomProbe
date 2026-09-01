@@ -316,7 +316,7 @@ Optional features are installed as extras:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  🐚 PhantomProbe Dashboard                                  │
+│  PhantomProbe Dashboard                                     │
 │  Target: example.com | Scan Time: 2026-03-02T12:00:00      │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                  │
@@ -324,12 +324,12 @@ Optional features are installed as extras:
 │  │TOTAL│ │CRIT │ │ HIGH│ │ MED │ │ INFO│                  │
 │  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                  │
 ├─────────────────────────────────────────────────────────────┤
-│  🔍 Findings                                                │
+│  Findings                                                  │
 │  ├─ [CRITICAL] CVE-2024-3566 - PHP vulnerability            │
 │  ├─ [HIGH]     DNS-AAAA - IPv6 DNS record                   │
 │  └─ ...                                                     │
 ├─────────────────────────────────────────────────────────────┤
-│  🐛 CVE Matches                                             │
+│  CVE Matches                                               │
 │  ├─ CVE-2024-3566 (CVSS 9.8) - PHP/8.2.29                 │
 │  └─ ...                                                     │
 └─────────────────────────────────────────────────────────────┘
@@ -392,7 +392,7 @@ bandit -r src/ -ll            # security scan
 
 ## Security Notice
 
-⚠️ **Use only on systems you own or have explicit permission to test.**
+**Use only on systems you own or have explicit permission to test.**
 
 This tool is designed for authorized penetration testing and security research only. Unauthorized scanning of systems you do not own is illegal and unethical.
 

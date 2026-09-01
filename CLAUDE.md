@@ -7,13 +7,13 @@
 - ALWAYS prefer editing an existing file to creating a new one
 - NEVER proactively create documentation files (*.md) or README files unless explicitly requested
 - NEVER save working files, text/mds, or tests to the root folder
-- Never continuously check status after spawning a swarm — wait for results
+- Never continuously check status after spawning a swarm - wait for results
 - ALWAYS read a file before editing it
 - NEVER commit secrets, credentials, or .env files
 
 ## File Organization
 
-- NEVER save to root folder — use the directories below
+- NEVER save to root folder - use the directories below
 - Use `/src` for source code files
 - Use `/tests` for test files
 - Use `/docs` for documentation and markdown files
@@ -75,14 +75,14 @@ npm run lint
 
 - MUST initialize the swarm using CLI tools when starting complex tasks
 - MUST spawn concurrent agents using Claude Code's Task tool
-- Never use CLI tools alone for execution — Task tool agents do the actual work
+- Never use CLI tools alone for execution - Task tool agents do the actual work
 - MUST call CLI tools AND Task tool in ONE message for complex work
 
 ### 3-Tier Model Routing (ADR-026)
 
 | Tier | Handler | Latency | Cost | Use Cases |
 |------|---------|---------|------|-----------|
-| **1** | Agent Booster (WASM) | <1ms | $0 | Simple transforms (var→const, add types) — Skip LLM |
+| **1** | Agent Booster (WASM) | <1ms | $0 | Simple transforms (var→const, add types) - Skip LLM |
 | **2** | Haiku | ~500ms | $0.0002 | Simple tasks, low complexity (<30%) |
 | **3** | Sonnet/Opus | 2-5s | $0.003-0.015 | Complex reasoning, architecture, security (>30%) |
 
@@ -106,8 +106,8 @@ npx @claude-flow/cli@latest swarm init --topology hierarchical --max-agents 8 --
 
 - ALWAYS use `run_in_background: true` for all agent Task calls
 - ALWAYS put ALL agent Task calls in ONE message for parallel execution
-- After spawning, STOP — do NOT add more tool calls or check status
-- Never poll TaskOutput or check swarm status — trust agents to return
+- After spawning, STOP - do NOT add more tool calls or check status
+- Never poll TaskOutput or check swarm status - trust agents to return
 - When agent results arrive, review ALL results before proceeding
 
 ## V3 CLI Commands

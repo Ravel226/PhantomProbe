@@ -87,10 +87,10 @@ def test_dashboard_html_generation(dashboard_server):
 
     html = dashboard_server._generate_html()
 
-    assert "PhantomProbe Dashboard" in html
+    assert "PhantomProbe" in html
     assert "test.com" in html
     assert "No findings yet" in html
-    assert "No CVE matches found." in html
+    assert "No CVE correlation" in html
 
 
 def test_dashboard_without_fastapi(monkeypatch):
@@ -142,7 +142,7 @@ def test_html_escapes_hostile_finding_fields(dashboard_server):
 
 def test_websocket_url_is_derived_client_side(dashboard_server):
     """
-    The WS URL must be built from window.location, not from the bind address —
+    The WS URL must be built from window.location, not from the bind address -
     otherwise it breaks when the server listens on 0.0.0.0 (Docker).
     """
     html = dashboard_server._generate_html()
