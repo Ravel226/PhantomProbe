@@ -46,7 +46,9 @@ class CVEMatcher:
     # Technology to CPE vendor/product mapping
     CPE_MAPPING = {
         'php': {'vendor': 'php', 'product': 'php'},
-        'nginx': {'vendor': 'nginx', 'product': 'nginx'},
+        # NVD files modern nginx CVEs under f5, which acquired it:
+        # nginx:nginx returns 2 results where f5:nginx returns 41.
+        'nginx': {'vendor': 'f5', 'product': 'nginx'},
         'apache': {'vendor': 'apache', 'product': 'http_server'},
         'openssl': {'vendor': 'openssl', 'product': 'openssl'},
         'mysql': {'vendor': 'oracle', 'product': 'mysql'},
@@ -54,7 +56,8 @@ class CVEMatcher:
         'redis': {'vendor': 'redis', 'product': 'redis'},
         'mongodb': {'vendor': 'mongodb', 'product': 'mongodb'},
         'node.js': {'vendor': 'nodejs', 'product': 'node.js'},
-        'express': {'vendor': 'expressjs', 'product': 'express'},
+        # expressjs:express returns nothing; the CPE is under openjsf.
+        'express': {'vendor': 'openjsf', 'product': 'express'},
         'django': {'vendor': 'djangoproject', 'product': 'django'},
         'flask': {'vendor': 'palletsprojects', 'product': 'flask'},
         'wordpress': {'vendor': 'wordpress', 'product': 'wordpress'},
@@ -93,43 +96,97 @@ class CVEMatcher:
                 time.sleep(wait)
             self._last_request_at = time.monotonic()
 
-    def extract_tech_version(self, evidence: str) -> List[Tuple[str, Optional[str]]]:
-        """Extract technology and version from evidence text"""
-        technologies = []
+    # Spellings a banner may use, mapped onto the CPE_MAPPING keys. Without
+    # this, "node" was captured but thrown away, because the mapping key is
+    # "node.js": Node was never once correlated.
+    TECH_ALIASES = {
+        "php": "php",
+        "nginx": "nginx",
+        "apache": "apache",
+        "httpd": "apache",
+        "openssl": "openssl",
+        "mysql": "mysql",
+        "postgresql": "postgresql",
+        "postgres": "postgresql",
+        "redis": "redis",
+        "mongodb": "mongodb",
+        "tomcat": "tomcat",
+        "iis": "iis",
+        "node.js": "node.js",
+        "nodejs": "node.js",
+        "node": "node.js",
+        "express": "express",
+        "django": "django",
+        "flask": "flask",
+        "wordpress": "wordpress",
+        "drupal": "drupal",
+        "joomla": "joomla",
+        "python": "python",
+        "ruby": "ruby",
+        "java": "java",
+    }
 
-        # Common patterns: "PHP/8.2.29", "nginx/1.24.0", "Apache/2.4.57"
-        patterns = [
-            r'(?i)(php|nginx|apache|openssl|mysql|postgresql|redis|mongodb|tomcat|iis|node|express|django|flask|wordpress|drupal|joomla|python|ruby|java)[/\s\-:]*(\d+(?:\.\d+)*)?',
-            r'(?i)(\d+(?:\.\d+)+)\s*(php|nginx|apache|openssl)',
-            r'X-Powered-By:\s*PHP/(\d+(?:\.\d+)*)',
-            r'Server:\s*(nginx|Apache)/?(\d+(?:\.\d+)*)?',
-        ]
+    # A product name followed by a version, the way a banner writes it:
+    # "nginx/1.24.0", "PHP/8.2.29", "Apache 2.4.57", "Python-3.11".
+    #
+    # The name must not sit inside a longer word or a hostname. Unanchored,
+    # "java" matched the "java" in "/api/javascript/bundle.js" and "python"
+    # matched the host "python.example.com", so a site that merely served
+    # JavaScript was credited with Oracle JDK vulnerabilities.
+    _VERSION_RE = re.compile(
+        r"(?<![\w.-])(" + "|".join(
+            sorted((re.escape(a) for a in TECH_ALIASES), key=len, reverse=True)
+        ) + r")[/ _-]v?(\d+(?:\.\d+)+)(?![\w.-])",
+        re.IGNORECASE,
+    )
 
-        for pattern in patterns:
-            matches = re.findall(pattern, evidence)
-            for match in matches:
-                if isinstance(match, tuple):
-                    tech = match[0].lower() if match[0] else None
-                    version = match[1] if len(match) > 1 and match[1] else None
-                    if tech and tech in self.CPE_MAPPING:
-                        technologies.append((tech, version))
+    def extract_tech_version(self, evidence: str) -> List[Tuple[str, str]]:
+        """
+        Pull (technology, version) pairs out of banner text.
 
-        return list(set(technologies))
+        Only versioned hits are returned. Correlating a bare product name asks
+        NVD for every CVE ever filed against it, most of them fixed long before
+        the version in front of us, which is noise in a report rather than a
+        finding.
+        """
+        found = {}
+        for match in self._VERSION_RE.finditer(evidence or ""):
+            alias, version = match.group(1).lower(), match.group(2)
+            tech = self.TECH_ALIASES.get(alias)
+            if tech in self.CPE_MAPPING:
+                found.setdefault(tech, version)
+        return sorted(found.items())
 
-    def build_cpe(self, tech: str, version: Optional[str] = None) -> str:
-        """Build CPE 2.3 string"""
+    def extract_unversioned(self, evidence: str) -> List[str]:
+        """Products named without a version, so the report can say what it skipped."""
+        names = "|".join(
+            sorted((re.escape(a) for a in self.TECH_ALIASES), key=len, reverse=True)
+        )
+        seen = set()
+        for match in re.finditer(
+            r"(?<![\w.-])(" + names + r")(?![\w.-])", evidence or "", re.IGNORECASE
+        ):
+            tech = self.TECH_ALIASES.get(match.group(1).lower())
+            if tech in self.CPE_MAPPING:
+                seen.add(tech)
+        return sorted(seen - {t for t, _ in self.extract_tech_version(evidence)})
+
+    def build_cpe(self, tech: str, version: Optional[str] = None) -> Optional[str]:
+        """
+        Build the CPE match string NVD's virtualMatchString actually accepts.
+
+        Padding the string out to all thirteen components makes NVD return
+        nothing: cpe:2.3:a:f5:nginx:1.24.0:*:*:*:*:*:*:* scores 0 results where
+        cpe:2.3:a:f5:nginx:1.24.0 scores 2, and the unpadded vendor:product
+        form scores 41. So stop at the last component we actually know.
+        """
         if tech not in self.CPE_MAPPING:
             return None
 
         mapping = self.CPE_MAPPING[tech]
         cpe = f"cpe:2.3:a:{mapping['vendor']}:{mapping['product']}"
-
         if version:
             cpe += f":{version}"
-        else:
-            cpe += ":*"
-
-        cpe += ":*:*:*:*:*:*:*"
         return cpe
 
     def query_nvd(self, cpe: str, tech: str, version: Optional[str] = None) -> List[CVE]:
@@ -166,18 +223,23 @@ class CVEMatcher:
                 cvss_score = 0.0
                 severity = 'UNKNOWN'
 
-                if 'cvssMetricV31' in metrics:
-                    cvss_data = metrics['cvssMetricV31'][0]['cvssData']
-                    cvss_score = cvss_data.get('baseScore', 0.0)
-                    severity = cvss_data.get('baseSeverity', 'UNKNOWN')
-                elif 'cvssMetricV30' in metrics:
-                    cvss_data = metrics['cvssMetricV30'][0]['cvssData']
-                    cvss_score = cvss_data.get('baseScore', 0.0)
-                    severity = cvss_data.get('baseSeverity', 'UNKNOWN')
-                elif 'cvssMetricV2' in metrics:
-                    cvss_data = metrics['cvssMetricV2'][0]['cvssData']
-                    cvss_score = cvss_data.get('baseScore', 0.0)
-                    severity = 'HIGH' if cvss_score >= 7.0 else 'MEDIUM' if cvss_score >= 4.0 else 'LOW'
+                # Newest scoring first. v4.0 exists on recent CVEs and was not
+                # handled, so those scored 0.0 and were filtered out as if clean.
+                for key in ('cvssMetricV40', 'cvssMetricV31', 'cvssMetricV30'):
+                    if metrics.get(key):
+                        cvss_data = metrics[key][0].get('cvssData', {})
+                        cvss_score = cvss_data.get('baseScore', 0.0)
+                        severity = cvss_data.get('baseSeverity', 'UNKNOWN')
+                        break
+                else:
+                    if metrics.get('cvssMetricV2'):
+                        entry = metrics['cvssMetricV2'][0]
+                        cvss_score = entry.get('cvssData', {}).get('baseScore', 0.0)
+                        # v2 carries baseSeverity on the entry, not in cvssData.
+                        severity = entry.get('baseSeverity') or (
+                            'HIGH' if cvss_score >= 7.0
+                            else 'MEDIUM' if cvss_score >= 4.0 else 'LOW'
+                        )
 
                 # Extract description
                 descriptions = cve_data.get('descriptions', [])
@@ -187,13 +249,24 @@ class CVEMatcher:
                 affected = []
                 fix_versions = []
 
+                # A single CVE often lists many products. Keep only the entries
+                # for the product we asked about, or nginx inherits the fixed
+                # versions of everything else caught by the same advisory.
+                product_prefix = ":".join(cpe.split(":")[:5]) + ":"
                 for config in cve_data.get('configurations', []):
                     for node in config.get('nodes', []):
                         for cpe_match in node.get('cpeMatch', []):
-                            if cpe_match.get('vulnerable'):
-                                affected.append(cpe_match.get('criteria', ''))
-                            elif 'versionEndIncluding' in cpe_match:
-                                fix_versions.append(cpe_match.get('versionEndIncluding', ''))
+                            criteria = cpe_match.get('criteria', '')
+                            if not cpe_match.get('vulnerable'):
+                                continue
+                            if not criteria.startswith(product_prefix):
+                                continue
+                            affected.append(criteria)
+                            # versionEndExcluding is the first fixed release;
+                            # versionEndIncluding is the last vulnerable one.
+                            fixed = cpe_match.get('versionEndExcluding')
+                            if fixed and fixed not in fix_versions:
+                                fix_versions.append(fixed)
 
                 # Extract references
                 references = [r.get('url', '') for r in cve_data.get('references', [])[:5]]
@@ -238,18 +311,23 @@ class CVEMatcher:
         print("[*] Matching findings to CVE database...")
 
         # Extract all technologies from findings
+        unversioned = set()
         for finding in findings:
             if finding.category in ['Information Disclosure', 'Technology', 'SSL/TLS']:
-                techs = self.extract_tech_version(finding.evidence)
-                for tech, version in techs:
-                    if tech not in tech_versions or (version and not tech_versions.get(tech)):
-                        tech_versions[tech] = version
+                for tech, version in self.extract_tech_version(finding.evidence):
+                    tech_versions.setdefault(tech, version)
+                unversioned.update(self.extract_unversioned(finding.evidence))
+
+        # Say what was seen but not usable, rather than quietly dropping it.
+        skipped = sorted(unversioned - set(tech_versions))
+        if skipped:
+            print(f"[*] Seen without a version, so not correlated: {', '.join(skipped)}")
 
         if not tech_versions:
-            print("[+] No technology versions found for CVE matching")
+            print("[+] No versioned technologies found for CVE matching")
             return []
 
-        print(f"[*] Found {len(tech_versions)} technologies to check for CVEs")
+        print(f"[*] Found {len(tech_versions)} versioned technologies to check for CVEs")
         if not self.api_key:
             print("[*] No NVD_API_KEY set - throttling to the anonymous rate limit "
                   f"(~{self.ANON_REQUEST_INTERVAL:.0f}s between queries)")

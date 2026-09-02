@@ -44,9 +44,12 @@ New features:
 - Technology fingerprinting - Server and framework detection
 
 ### CVE Correlation
-- Automatic matching of discovered technologies to known CVEs
-- CVSS score-based filtering (>= 7.0)
-- CPE 2.3 compatible lookups via NVD API
+- Matches technologies to known CVEs through the NVD API
+- Correlates only where a banner gave a version, since asking NVD for a bare
+  product name returns every CVE ever filed against it, most long since fixed.
+  Products seen without a version are listed as skipped rather than guessed at
+- CVSS score-based filtering (>= 7.0), reading v4.0, v3.1, v3.0 or v2 scores
+- Reports the first fixed release for each match where NVD records one
 
 ### Screenshot Capture
 - Full-page or viewport screenshots

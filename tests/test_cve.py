@@ -68,16 +68,29 @@ def test_api_key_is_sent_as_header(monkeypatch):
 
 # --- CPE construction --------------------------------------------------------
 
-def test_build_cpe_with_version():
+def test_build_cpe_with_version_is_not_padded():
+    """
+    Checked against live NVD: the padded thirteen-component form returns 0
+    results, the unpadded one returns 2, and vendor:product alone returns 41.
+    """
     cpe = CVEMatcher().build_cpe("nginx", "1.24.0")
 
-    assert cpe.startswith("cpe:2.3:a:nginx:nginx:1.24.0")
+    assert cpe == "cpe:2.3:a:f5:nginx:1.24.0"
+    assert not cpe.endswith(":*")
 
 
-def test_build_cpe_without_version_uses_wildcard():
-    cpe = CVEMatcher().build_cpe("nginx")
+def test_build_cpe_without_version_stops_at_the_product():
+    assert CVEMatcher().build_cpe("nginx") == "cpe:2.3:a:f5:nginx"
 
-    assert "cpe:2.3:a:nginx:nginx:*" in cpe
+
+def test_vendor_mappings_corrected_against_nvd():
+    """
+    Both of these returned almost nothing before: nginx CVEs are filed under
+    f5, and expressjs:express does not exist as a CPE at all.
+    """
+    mapping = CVEMatcher.CPE_MAPPING
+    assert mapping["nginx"] == {"vendor": "f5", "product": "nginx"}
+    assert mapping["express"] == {"vendor": "openjsf", "product": "express"}
 
 
 def test_build_cpe_unknown_technology_returns_none():
@@ -200,3 +213,124 @@ def test_malformed_response_is_reported(matcher, monkeypatch, capsys):
 
     assert matcher.query_nvd("cpe:x", "nginx", "1.0") == []
     assert "Malformed NVD response" in capsys.readouterr().out
+
+
+# --- Regressions found by checking the client against the live NVD API -------
+
+class TestExtractionPrecision:
+    """
+    The old patterns were unanchored, so a product name matched inside longer
+    words and inside hostnames.
+    """
+
+    def test_javascript_is_not_java(self):
+        # This credited any site serving JavaScript with Oracle JDK CVEs.
+        found = CVEMatcher().extract_tech_version("Endpoint: /api/javascript/bundle.js")
+        assert found == []
+
+    def test_hostname_is_not_a_product(self):
+        found = CVEMatcher().extract_tech_version("Subject CN: python.example.com")
+        assert found == []
+
+    def test_node_aliases_map_onto_the_cpe_key(self):
+        """
+        "node" was captured and then discarded, because the mapping key is
+        "node.js": Node was never correlated once.
+        """
+        matcher = CVEMatcher()
+        for banner in ("node.js/18.16.0", "nodejs/18.16.0", "node/18.16.0"):
+            assert matcher.extract_tech_version(banner) == [("node.js", "18.16.0")]
+
+    def test_versionless_products_are_reported_separately(self):
+        matcher = CVEMatcher()
+        assert matcher.extract_tech_version("Server: Apache") == []
+        assert matcher.extract_unversioned("Server: Apache") == ["apache"]
+
+    def test_cipher_strings_are_not_versions(self):
+        assert CVEMatcher().extract_tech_version("Cipher: TLS_AES_256_GCM_SHA384") == []
+
+
+def _payload_with_metrics(metrics, configurations=None):
+    return {
+        "vulnerabilities": [{
+            "cve": {
+                "id": "CVE-2024-9999",
+                "descriptions": [{"lang": "en", "value": "Test issue"}],
+                "metrics": metrics,
+                "configurations": configurations or [],
+                "references": [],
+                "published": "2024-01-01T00:00:00.000",
+                "lastModified": "2024-01-02T00:00:00.000",
+            }
+        }]
+    }
+
+
+def _run_query(matcher, monkeypatch, payload, cpe="cpe:2.3:a:f5:nginx:1.24.0"):
+    monkeypatch.setattr("phantomprobe.cve.safe_urlopen",
+                        lambda req, timeout=None: _FakeResponse(payload))
+    monkeypatch.setattr(matcher, "_throttle", lambda: None)
+    return matcher.query_nvd(cpe, "nginx", "1.24.0")
+
+
+class TestScoring:
+    def test_cvss_v40_is_understood(self, matcher, monkeypatch):
+        """
+        v4.0 was not handled, so recent CVEs scored 0.0 and were filtered out
+        as though the target were clean.
+        """
+        payload = _payload_with_metrics({
+            "cvssMetricV40": [{"cvssData": {"baseScore": 9.3, "baseSeverity": "CRITICAL"}}]
+        })
+        found = _run_query(matcher, monkeypatch, payload)
+        assert (found[0].cvss_score, found[0].severity) == (9.3, "CRITICAL")
+
+    def test_newer_scoring_wins_over_older(self, matcher, monkeypatch):
+        payload = _payload_with_metrics({
+            "cvssMetricV31": [{"cvssData": {"baseScore": 7.5, "baseSeverity": "HIGH"}}],
+            "cvssMetricV2": [{"cvssData": {"baseScore": 5.0}, "baseSeverity": "MEDIUM"}],
+        })
+        assert _run_query(matcher, monkeypatch, payload)[0].cvss_score == 7.5
+
+    def test_v2_severity_read_from_outside_cvss_data(self, matcher, monkeypatch):
+        """NVD puts baseSeverity on the entry for v2, not inside cvssData."""
+        payload = _payload_with_metrics({
+            "cvssMetricV2": [{"cvssData": {"baseScore": 7.5}, "baseSeverity": "HIGH"}]
+        })
+        found = _run_query(matcher, monkeypatch, payload)
+        assert (found[0].cvss_score, found[0].severity) == (7.5, "HIGH")
+
+    def test_missing_metrics_do_not_raise(self, matcher, monkeypatch):
+        found = _run_query(matcher, monkeypatch, _payload_with_metrics({}))
+        assert (found[0].cvss_score, found[0].severity) == (0.0, "UNKNOWN")
+
+
+class TestFixedVersions:
+    CONFIG = [{"nodes": [{"cpeMatch": [
+        {"vulnerable": True, "criteria": "cpe:2.3:a:f5:nginx:*:*:*:*:*:*:*:*",
+         "versionEndExcluding": "1.25.3"},
+        # Same advisory, different product: its fixed version is not nginx's.
+        {"vulnerable": True, "criteria": "cpe:2.3:a:apache:http_server:*:*:*:*:*:*:*:*",
+         "versionEndExcluding": "2.4.58"},
+        {"vulnerable": False, "criteria": "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*"},
+    ]}]}]
+
+    def test_fixed_version_comes_from_the_vulnerable_entry(self, matcher, monkeypatch):
+        """
+        The old code only looked at non-vulnerable entries, so this list was
+        always empty.
+        """
+        payload = _payload_with_metrics(
+            {"cvssMetricV31": [{"cvssData": {"baseScore": 7.5, "baseSeverity": "HIGH"}}]},
+            self.CONFIG,
+        )
+        assert _run_query(matcher, monkeypatch, payload)[0].fix_versions == ["1.25.3"]
+
+    def test_other_products_in_the_same_cve_are_excluded(self, matcher, monkeypatch):
+        payload = _payload_with_metrics(
+            {"cvssMetricV31": [{"cvssData": {"baseScore": 7.5, "baseSeverity": "HIGH"}}]},
+            self.CONFIG,
+        )
+        found = _run_query(matcher, monkeypatch, payload)
+        assert "2.4.58" not in found[0].fix_versions
+        assert all("f5:nginx" in a for a in found[0].affected_versions)
