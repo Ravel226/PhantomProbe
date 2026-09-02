@@ -69,6 +69,64 @@ class CVEMatcher:
         'java': {'vendor': 'oracle', 'product': 'jdk'},
         'python': {'vendor': 'python', 'product': 'python'},
         'ruby': {'vendor': 'ruby-lang', 'product': 'ruby'},
+
+        # Everything below was confirmed against the live NVD API before
+        # being added: a vendor guessed wrong returns nothing at all, which
+        # is how expressjs:express sat here matching zero CVEs. Vue.js is
+        # deliberately absent; NVD has no CPE for it under any spelling.
+        'litespeed': {'vendor': 'litespeedtech', 'product': 'litespeed_web_server'},
+        'openresty': {'vendor': 'openresty', 'product': 'openresty'},
+        'lighttpd': {'vendor': 'lighttpd', 'product': 'lighttpd'},
+        'caddy': {'vendor': 'caddyserver', 'product': 'caddy'},
+        'haproxy': {'vendor': 'haproxy', 'product': 'haproxy'},
+        'traefik': {'vendor': 'traefik', 'product': 'traefik'},
+        'envoy': {'vendor': 'envoyproxy', 'product': 'envoy'},
+        'varnish': {'vendor': 'varnish_cache_project', 'product': 'varnish_cache'},
+        'jetty': {'vendor': 'eclipse', 'product': 'jetty'},
+        'gunicorn': {'vendor': 'gunicorn', 'product': 'gunicorn'},
+        'werkzeug': {'vendor': 'palletsprojects', 'product': 'werkzeug'},
+        'tornado': {'vendor': 'tornadoweb', 'product': 'tornado'},
+        'asp.net core': {'vendor': 'microsoft', 'product': 'asp.net_core'},
+        'laravel': {'vendor': 'laravel', 'product': 'laravel'},
+        'rails': {'vendor': 'rubyonrails', 'product': 'rails'},
+        'spring': {'vendor': 'vmware', 'product': 'spring_framework'},
+        'struts': {'vendor': 'apache', 'product': 'struts'},
+        'symfony': {'vendor': 'sensiolabs', 'product': 'symfony'},
+        'fastapi': {'vendor': 'tiangolo', 'product': 'fastapi'},
+        'next.js': {'vendor': 'vercel', 'product': 'next.js'},
+        'nuxt': {'vendor': 'nuxt', 'product': 'nuxt'},
+        'angular': {'vendor': 'angular', 'product': 'angular'},
+        'react': {'vendor': 'facebook', 'product': 'react'},
+        'jquery': {'vendor': 'jquery', 'product': 'jquery'},
+        'bootstrap': {'vendor': 'getbootstrap', 'product': 'bootstrap'},
+        'magento': {'vendor': 'magento', 'product': 'magento'},
+        'typo3': {'vendor': 'typo3', 'product': 'typo3'},
+        'ghost': {'vendor': 'ghost', 'product': 'ghost'},
+        'mediawiki': {'vendor': 'mediawiki', 'product': 'mediawiki'},
+        'moodle': {'vendor': 'moodle', 'product': 'moodle'},
+        'phpmyadmin': {'vendor': 'phpmyadmin', 'product': 'phpmyadmin'},
+        'confluence': {'vendor': 'atlassian', 'product': 'confluence'},
+        'jira': {'vendor': 'atlassian', 'product': 'jira'},
+        'jenkins': {'vendor': 'jenkins', 'product': 'jenkins'},
+        'gitlab': {'vendor': 'gitlab', 'product': 'gitlab'},
+        'grafana': {'vendor': 'grafana', 'product': 'grafana'},
+        'elasticsearch': {'vendor': 'elastic', 'product': 'elasticsearch'},
+        'kibana': {'vendor': 'elastic', 'product': 'kibana'},
+        'mariadb': {'vendor': 'mariadb', 'product': 'mariadb'},
+        'memcached': {'vendor': 'memcached', 'product': 'memcached'},
+        'rabbitmq': {'vendor': 'pivotal_software', 'product': 'rabbitmq'},
+        'openssh': {'vendor': 'openbsd', 'product': 'openssh'},
+        'proftpd': {'vendor': 'proftpd', 'product': 'proftpd'},
+        'vsftpd': {'vendor': 'vsftpd_project', 'product': 'vsftpd'},
+        'postfix': {'vendor': 'postfix', 'product': 'postfix'},
+        'exim': {'vendor': 'exim', 'product': 'exim'},
+        'dovecot': {'vendor': 'dovecot', 'product': 'dovecot'},
+        'samba': {'vendor': 'samba', 'product': 'samba'},
+        'bind': {'vendor': 'isc', 'product': 'bind'},
+        'docker': {'vendor': 'docker', 'product': 'docker'},
+        'kubernetes': {'vendor': 'kubernetes', 'product': 'kubernetes'},
+        'golang': {'vendor': 'golang', 'product': 'go'},
+        'perl': {'vendor': 'perl', 'product': 'perl'},
     }
 
     # NVD allows 5 requests / 30s anonymously, 50 / 30s with an API key.
@@ -124,19 +182,80 @@ class CVEMatcher:
         "python": "python",
         "ruby": "ruby",
         "java": "java",
+        "asp.net": "dotnet",
+        "dotnet": "dotnet",
+        "litespeed": "litespeed",
+        "openresty": "openresty",
+        "lighttpd": "lighttpd",
+        "caddy": "caddy",
+        "haproxy": "haproxy",
+        "traefik": "traefik",
+        "envoy": "envoy",
+        "varnish": "varnish",
+        "jetty": "jetty",
+        "gunicorn": "gunicorn",
+        "werkzeug": "werkzeug",
+        "tornado": "tornado",
+        "asp.net core": "asp.net core",
+        "kestrel": "asp.net core",
+        "laravel": "laravel",
+        "rails": "rails",
+        "spring": "spring",
+        "struts": "struts",
+        "symfony": "symfony",
+        "fastapi": "fastapi",
+        "next.js": "next.js",
+        "nextjs": "next.js",
+        "nuxt": "nuxt",
+        "nuxt.js": "nuxt",
+        "angular": "angular",
+        "react": "react",
+        "jquery": "jquery",
+        "bootstrap": "bootstrap",
+        "magento": "magento",
+        "typo3": "typo3",
+        "ghost": "ghost",
+        "mediawiki": "mediawiki",
+        "moodle": "moodle",
+        "phpmyadmin": "phpmyadmin",
+        "confluence": "confluence",
+        "jira": "jira",
+        "jenkins": "jenkins",
+        "gitlab": "gitlab",
+        "grafana": "grafana",
+        "elasticsearch": "elasticsearch",
+        "kibana": "kibana",
+        "mariadb": "mariadb",
+        "memcached": "memcached",
+        "rabbitmq": "rabbitmq",
+        "openssh": "openssh",
+        "proftpd": "proftpd",
+        "vsftpd": "vsftpd",
+        "postfix": "postfix",
+        "exim": "exim",
+        "dovecot": "dovecot",
+        "samba": "samba",
+        "bind": "bind",
+        "docker": "docker",
+        "kubernetes": "kubernetes",
+        "k8s": "kubernetes",
+        "golang": "golang",
+        "perl": "perl",
     }
 
-    # A product name followed by a version, the way a banner writes it:
-    # "nginx/1.24.0", "PHP/8.2.29", "Apache 2.4.57", "Python-3.11".
+    # A product name followed by a version, the way a banner or an asset path
+    # writes it: "nginx/1.24.0", "PHP/8.2.29", "jquery-3.6.0.min.js",
+    # "react@18.2.0". Guarding only against a trailing digit keeps the
+    # ".min.js" suffix from hiding the version, which it previously did.
     #
     # The name must not sit inside a longer word or a hostname. Unanchored,
     # "java" matched the "java" in "/api/javascript/bundle.js" and "python"
     # matched the host "python.example.com", so a site that merely served
     # JavaScript was credited with Oracle JDK vulnerabilities.
     _VERSION_RE = re.compile(
-        r"(?<![\w.-])(" + "|".join(
+        r"(?<![\w.])(" + "|".join(
             sorted((re.escape(a) for a in TECH_ALIASES), key=len, reverse=True)
-        ) + r")[/ _-]v?(\d+(?:\.\d+)+)(?![\w.-])",
+        ) + r")[/@ _(-]v?(\d+(?:\.\d+)+)(?!\d)",
         re.IGNORECASE,
     )
 
@@ -313,7 +432,8 @@ class CVEMatcher:
         # Extract all technologies from findings
         unversioned = set()
         for finding in findings:
-            if finding.category in ['Information Disclosure', 'Technology', 'SSL/TLS']:
+            if finding.category in ('Information Disclosure', 'Technology',
+                                    'SSL/TLS', 'JavaScript Analysis'):
                 for tech, version in self.extract_tech_version(finding.evidence):
                     tech_versions.setdefault(tech, version)
                 unversioned.update(self.extract_unversioned(finding.evidence))

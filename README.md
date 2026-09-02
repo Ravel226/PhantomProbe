@@ -44,7 +44,11 @@ New features:
 - Technology fingerprinting - Server and framework detection
 
 ### CVE Correlation
-- Matches technologies to known CVEs through the NVD API
+- Matches technologies to known CVEs through the NVD API, covering 74 products:
+  web servers and proxies, application frameworks, client-side libraries, CMSes
+  and the services a port scan turns up. Every vendor/product pair was checked
+  against NVD before being added, since a wrong one returns a clean 200 with no
+  results rather than an error
 - Correlates only where a banner gave a version, since asking NVD for a bare
   product name returns every CVE ever filed against it, most long since fixed.
   Products seen without a version are listed as skipped rather than guessed at

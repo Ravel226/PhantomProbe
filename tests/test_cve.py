@@ -334,3 +334,92 @@ class TestFixedVersions:
         found = _run_query(matcher, monkeypatch, payload)
         assert "2.4.58" not in found[0].fix_versions
         assert all("f5:nginx" in a for a in found[0].affected_versions)
+
+
+class TestExpandedTable:
+    """
+    Every vendor/product pair in the table was confirmed against the live NVD
+    API before being added. A wrong vendor is silent: it returns a clean 200
+    with zero results, which is how expressjs:express matched nothing for as
+    long as it sat here.
+    """
+
+    def test_table_covers_the_common_stack(self):
+        mapping = CVEMatcher.CPE_MAPPING
+        for tech in ("nginx", "apache", "php", "openssh", "mariadb", "jenkins",
+                     "gitlab", "laravel", "rails", "spring", "jquery", "react",
+                     "elasticsearch", "haproxy", "traefik", "kubernetes"):
+            assert tech in mapping, f"{tech} missing from CPE_MAPPING"
+
+    def test_verified_vendors_are_not_the_obvious_guess(self):
+        """The pairs a reasonable guess would get wrong."""
+        mapping = CVEMatcher.CPE_MAPPING
+        assert mapping["nginx"]["vendor"] == "f5"
+        assert mapping["express"]["vendor"] == "openjsf"
+        assert mapping["varnish"]["vendor"] == "varnish_cache_project"
+        assert mapping["rabbitmq"]["vendor"] == "pivotal_software"
+        assert mapping["vsftpd"]["vendor"] == "vsftpd_project"
+        assert mapping["jetty"]["vendor"] == "eclipse"
+
+    def test_vue_is_absent_because_nvd_has_no_cpe_for_it(self):
+        """Checked under vuejs:vue.js, vuejs:vue, vuejs:vuejs and vue:vue."""
+        assert "vue.js" not in CVEMatcher.CPE_MAPPING
+
+    def test_every_alias_resolves_to_a_real_mapping(self):
+        mapping = CVEMatcher.CPE_MAPPING
+        unknown = [a for a, t in CVEMatcher.TECH_ALIASES.items() if t not in mapping]
+        assert unknown == []
+
+    def test_every_mapping_is_reachable_from_some_alias(self):
+        """An entry no banner spelling reaches can never fire."""
+        reachable = set(CVEMatcher.TECH_ALIASES.values())
+        assert [t for t in CVEMatcher.CPE_MAPPING if t not in reachable] == []
+
+
+class TestBannerShapes:
+    """Real banner and asset-path spellings, one per shape."""
+
+    @pytest.mark.parametrize("text,expected", [
+        ("Server: nginx/1.24.0", ("nginx", "1.24.0")),
+        ("Server: LiteSpeed/1.7.16", ("litespeed", "1.7.16")),
+        ("Server: Jetty(9.4.44)", ("jetty", "9.4.44")),          # parenthesised
+        ("SSH-2.0-OpenSSH_8.9", ("openssh", "8.9")),             # underscore, hyphen before
+        ("220 ProFTPD 1.3.7 Server", ("proftpd", "1.3.7")),      # space separated
+        ("X-Powered-By: ASP.NET/4.8", ("dotnet", "4.8")),
+        ("/assets/jquery-3.6.0.min.js", ("jquery", "3.6.0")),    # .min.js suffix
+        ("/static/react@18.2.0/umd/react.js", ("react", "18.2.0")),  # npm style
+        ("Server: gunicorn/20.1.0", ("gunicorn", "20.1.0")),
+    ])
+    def test_versioned_banner_is_extracted(self, text, expected):
+        assert expected in CVEMatcher().extract_tech_version(text)
+
+    @pytest.mark.parametrize("text", [
+        "/api/javascript/bundle.js",     # java inside javascript
+        "Subject CN: python.example.com",  # product name inside a hostname
+        "myapache/2.4.1",                # product name inside a longer word
+        "Cipher: TLS_AES_256_GCM_SHA384",
+        "Endpoint: /api/v2/users",
+        "Server: Apache-Coyote/1.1",     # Tomcat's connector, not httpd
+    ])
+    def test_no_false_positive(self, text):
+        assert CVEMatcher().extract_tech_version(text) == []
+
+    def test_javascript_findings_are_searched(self):
+        """
+        Client-side library versions only appear in asset paths, which are
+        JavaScript Analysis findings. Leaving that category out made the
+        jquery and react entries unreachable.
+        """
+        from phantomprobe.models import Finding, Severity
+
+        finding = Finding(
+            id="JS-1", title="Endpoint", description="",
+            severity=Severity.INFORMATIONAL, category="JavaScript Analysis",
+            evidence="Endpoint: /assets/jquery-3.6.0.min.js",
+            remediation="", references=[], discovered_at="", target="example.com",
+        )
+        matcher = CVEMatcher()
+        queried = []
+        matcher.query_nvd = lambda cpe, tech, version=None: queried.append(tech) or []
+        matcher.match_findings([finding])
+        assert "jquery" in queried
