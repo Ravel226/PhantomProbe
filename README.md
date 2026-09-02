@@ -11,11 +11,10 @@ PhantomProbe is a lightweight vulnerability reconnaissance scanner for penetrati
 ## v0.8.0 - Burp Suite Integration & Docker Support
 
 New features:
-- **Burp Suite Integration** - Professional/Enterprise REST API support
-  - Send requests through Burp Proxy
-  - Import Burp scan results automatically
-  - Export PhantomProbe findings to Burp
-  - Generate Burp Extension template
+- **Burp Suite Integration** - Burp Professional REST API support
+  - Run a Burp crawl and audit from the command line
+  - Import the resulting issues into the PhantomProbe report
+  - Generate a starter Burp extension
 - **Full Docker Support** - Multi-stage builds with compose profiles
   - Core edition (lightweight)
   - Dashboard edition (interactive)
@@ -226,48 +225,57 @@ docker-compose --profile dashboard --env-file .env up
 
 ## Burp Suite Integration
 
+PhantomProbe can run a scan in Burp Professional and pull its issues into the
+same report as the rest of the scan. Burp's REST API only scans, so results flow
+one way: there is no endpoint for pushing findings back into Burp or for driving
+the proxy, and PhantomProbe does not claim to do either.
+
 ### Prerequisites
 
-1. Burp Suite Professional or Enterprise
-2. Enable REST API in Burp (User options → Misc → REST API)
-3. Generate API key
+1. Burp Suite Professional (this is the local REST API, not the Enterprise
+   GraphQL API)
+2. Settings > Suite > REST API: enable the service
+3. Create an API key on that same screen and copy it, since Burp shows the value
+   only once
+4. `pip install "phantomprobe[burp]"`
 
 ### Configuration
 
 ```bash
-# Set environment variables
-export BURP_API_URL=http://127.0.0.1:1337
 export BURP_API_KEY=your-api-key
-
-# Or use .env file
-echo "BURP_API_KEY=your-key-here" > .env
+export BURP_API_URL=http://127.0.0.1:1337   # only if you moved the service
 ```
+
+The key is a path prefix rather than a header: Burp serves the whole API under
+`http://127.0.0.1:1337/<your-key>/v0.1/`. Opening that URL in a browser gives
+you the API documentation for your exact Burp version.
 
 ### Usage
 
 ```bash
-# Scan target and send to Burp
 phantomprobe target.com --burp
 
-# The scanner will:
-# 1. Run reconnaissance
-# 2. Send target to Burp Proxy
-# 3. Import Burp scan issues
-# 4. Export findings back to Burp
+# An audit usually needs much longer than the 300s default
+phantomprobe target.com --burp --burp-timeout 1800
 ```
+
+PhantomProbe queues a crawl and audit on `https://<target>`, polls until Burp
+reports the scan finished, and converts each issue into a finding that lands in
+the Markdown and JSON reports alongside its own. If the scan is still running
+when the timeout expires, whatever Burp has found so far is still imported.
 
 ### Burp Extension
 
-Generate a custom Burp extension:
+The starter extension is unrelated to the REST API: it runs inside Burp itself.
 
 ```python
 from phantomprobe import BurpSuiteEngine
 
-# Generate extension template
 BurpSuiteEngine.generate_extension_template("burp_extension.py")
-
-# Install in Burp Extensions → Installed → Add
 ```
+
+Burp runs Python extensions on Jython 2.7, so the generated file is Python 2.
+Install it under Extensions > Installed > Add, with extension type Python.
 
 ## CLI Options
 
@@ -277,7 +285,8 @@ BurpSuiteEngine.generate_extension_template("burp_extension.py")
 | `-c`, `--cve` | Enable CVE matching via the NVD API |
 | `-s`, `--screenshot` | Capture website screenshot (requires Playwright) |
 | `-j`, `--js` | JavaScript analysis for secrets/endpoints |
-| `-b`, `--burp` | Burp Suite Professional integration (requires requests) |
+| `-b`, `--burp` | Run a Burp Professional scan and import its issues |
+| `--burp-timeout SECONDS` | How long to wait for the Burp scan (default: 300) |
 | `-d`, `--dashboard` | Launch the interactive web dashboard |
 | `-v`, `--verbose` | Show detailed output |
 | `--output-dir DIR` | Where to write reports and screenshots (default: `.`) |
@@ -308,7 +317,8 @@ Optional features are installed as extras:
 | Variable | Purpose |
 |----------|---------|
 | `NVD_API_KEY` | Raises the NVD rate limit from 5 to 50 requests / 30s. Without it, `--cve` throttles to ~1 query every 6.5s. [Request one here](https://nvd.nist.gov/developers/request-an-api-key). |
-| `BURP_API_KEY` | Burp Suite REST API key, used by `--burp`. |
+| `BURP_API_KEY` | Burp REST API key, used by `--burp`. Sent as a URL path prefix. |
+| `BURP_API_URL` | Burp REST service URL (default: `http://127.0.0.1:1337`). |
 | `PHANTOMPROBE_DASHBOARD_HOST` | Dashboard bind address (set to `0.0.0.0` in Docker). |
 | `PHANTOMPROBE_DASHBOARD_PORT` | Dashboard port. |
 

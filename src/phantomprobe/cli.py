@@ -130,7 +130,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-j", "--js", action="store_true",
                         help="JavaScript analysis (endpoints, secrets, hidden paths)")
     parser.add_argument("-b", "--burp", action="store_true",
-                        help="Burp Suite Professional integration (requires requests)")
+                        help="Run a Burp Professional scan and import its issues "
+                             "(requires the REST API and BURP_API_KEY)")
+    parser.add_argument("--burp-timeout", type=int, default=300, metavar="SECONDS",
+                        help="How long to wait for the Burp scan (default: 300). "
+                             "A real audit often needs considerably longer.")
     parser.add_argument("-d", "--dashboard", action="store_true",
                         help="Start the interactive web dashboard (requires FastAPI)")
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -298,9 +302,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         broadcast_progress("Burp Suite Integration")
         from .burp import BURP_AVAILABLE, BurpSuiteEngine
         if BURP_AVAILABLE:
-            burp_engine = BurpSuiteEngine(target)
-            findings.extend(burp_engine.run())
-            burp_engine.export_to_burp(findings)
+            # Burp's REST API only scans; it cannot take findings back, so the
+            # results flow one way, into this report.
+            findings.extend(BurpSuiteEngine(target).run(timeout=args.burp_timeout))
         else:
             print("[!] Burp integration requires: pip install \"phantomprobe[burp]\"")
 

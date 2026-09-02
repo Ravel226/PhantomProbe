@@ -1,14 +1,28 @@
 #!/usr/bin/env python3
 """
-Burp Suite Professional/Enterprise integration via the Burp REST API.
+Burp Suite Professional integration via its REST API.
 
 Requires the optional 'requests' dependency: pip install "phantomprobe[burp]"
+
+The API is the one Burp Professional exposes locally (Settings > Suite >
+REST API), not the Enterprise GraphQL API. Two details of it shape this module:
+
+* The API key is a path prefix, not a header. Burp mounts the whole service
+  under it, so a request goes to ``<service>/<key>/v0.1/...``. Sending the key
+  as ``Authorization: Bearer`` leaves the request unauthenticated.
+* Starting a scan answers 201 with the task id in the ``Location`` header. The
+  body is empty.
+
+Its surface is scanning only: start a scan, poll it, read its issues. There is
+no endpoint for driving the proxy or for writing notes back into Burp, so this
+module does not pretend to offer either.
 """
 
 import os
 import time
 from datetime import datetime
 from typing import Dict, List, Optional
+from urllib.parse import quote
 
 from .constants import __version__
 from .models import Finding, Severity
@@ -20,224 +34,278 @@ except ImportError:
     BURP_AVAILABLE = False
 
 
+DEFAULT_API_URL = "http://127.0.0.1:1337"
+
+# Burp grades issues high/medium/low/info. It has no critical band.
+BURP_SEVERITY = {
+    "high": Severity.HIGH,
+    "medium": Severity.MEDIUM,
+    "low": Severity.LOW,
+    "info": Severity.INFORMATIONAL,
+    "information": Severity.INFORMATIONAL,
+}
+
+# A scan stops changing once it reaches one of these.
+TERMINAL_STATUSES = {"succeeded", "failed", "cancelled"}
+
+
 class BurpSuiteEngine:
-    """Burp Suite Professional/Enterprise integration for advanced scanning"""
+    """Drive a Burp Professional scan and convert its issues to Findings."""
 
-    def __init__(self, target: str, api_url: str = "http://127.0.0.1:1337", api_key: str = None):
+    def __init__(
+        self,
+        target: str,
+        api_url: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
         self.target = target
-        self.api_url = api_url.rstrip('/')
-        self.api_key = api_key or os.environ.get('BURP_API_KEY', '')
+        self.api_url = (
+            api_url or os.environ.get("BURP_API_URL") or DEFAULT_API_URL
+        ).rstrip("/")
+        self.api_key = api_key or os.environ.get("BURP_API_KEY", "")
         self.findings: List[Finding] = []
-        self.scan_id: Optional[str] = None
+        self.task_id: Optional[str] = None
 
-    def _api_request(self, endpoint: str, method: str = 'GET', data: dict = None) -> Optional[dict]:
-        """Make authenticated request to Burp REST API"""
+    @property
+    def base_url(self) -> str:
+        """
+        Service root for API calls.
+
+        Burp serves the API under the key when one is configured, and directly
+        under the service URL when "allow access without API key" is on.
+        """
+        if not self.api_key:
+            return self.api_url
+        return f"{self.api_url}/{quote(self.api_key, safe='')}"
+
+    def _request(
+        self,
+        path: str,
+        method: str = "GET",
+        data: Optional[dict] = None,
+        params: Optional[dict] = None,
+    ):
+        """Call the API and return the response, or None if it could not be made."""
         if not BURP_AVAILABLE:
-            print("[!] requests library required for Burp integration")
+            print('[!] Burp integration requires: pip install "phantomprobe[burp]"')
             return None
 
-        headers = {'Accept': 'application/json'}
-        if self.api_key:
-            headers['Authorization'] = f"Bearer {self.api_key}"
-
-        url = f"{self.api_url}/{endpoint}"
+        url = f"{self.base_url}/{path.lstrip('/')}"
+        headers = {
+            "Accept": "application/json",
+            "User-Agent": f"PhantomProbe/{__version__}",
+        }
         try:
-            if method == 'GET':
-                resp = requests.get(url, headers=headers, timeout=30)
-            elif method == 'POST':
-                resp = requests.post(url, json=data, headers=headers, timeout=30)
-            else:
-                return None
+            response = requests.request(
+                method, url, json=data, params=params, headers=headers, timeout=30
+            )
+            response.raise_for_status()
+            return response
+        except requests.exceptions.RequestException as exc:
+            print(f"[!] Burp API error on {method} {path}: {exc}")
+            return None
 
-            resp.raise_for_status()
-            return resp.json() if resp.text else {}
-        except requests.exceptions.RequestException as e:
-            print(f"[!] Burp API error: {e}")
+    def _json(self, path: str, params: Optional[dict] = None) -> Optional[dict]:
+        response = self._request(path, params=params)
+        if response is None:
+            return None
+        if not response.content:
+            return {}
+        try:
+            return response.json()
+        except ValueError:
+            print(f"[!] Burp returned a non-JSON body for {path}")
             return None
 
     def is_burp_running(self) -> bool:
-        """Check if Burp Suite API is accessible"""
-        result = self._api_request('v0.1/burp/')
-        return result is not None
+        """Whether the API answers. A wrong key shows up here as a 401."""
+        return self._request("v0.1/") is not None
 
-    def send_to_proxy(self, url: str, method: str = 'GET', data: str = None, headers: dict = None) -> bool:
-        """Send HTTP request through Burp Proxy for manual inspection"""
-        proxy_url = f"{self.api_url}/v0.1/proxy/burp-proxy/http-history"
+    def start_scan(
+        self,
+        target_url: Optional[str] = None,
+        configuration: Optional[str] = None,
+    ) -> Optional[str]:
+        """
+        Queue a crawl and audit, returning Burp's task id.
 
-        payload = {
-            'url': url,
-            'method': method,
-            'body': data or '',
-            'headers': headers or {}
-        }
+        Sending only the URL lets Burp apply its own defaults, which is what we
+        want unless the caller names a saved configuration.
+        """
+        url = target_url or f"https://{self.target}"
+        body: Dict[str, object] = {"urls": [url]}
+        if configuration:
+            # Named configurations are objects, not bare strings.
+            body["scan_configurations"] = [
+                {"name": configuration, "type": "NamedConfiguration"}
+            ]
 
-        result = self._api_request('v0.1/proxy/', method='POST', data=payload)
-        if result:
-            print(f"[+] Sent to Burp Proxy: {url}")
-            return True
-        return False
-
-    def start_crawl_and_audit(self, target_url: str = None) -> Optional[str]:
-        """Start Burp Spider + Scanner on target"""
-        if not self.is_burp_running():
-            print("[!] Burp Suite not running or API key invalid")
+        response = self._request("v0.1/scan", method="POST", data=body)
+        if response is None:
             return None
 
-        url = target_url or f"https://{self.target}"
+        # The id is in Location; fall back to a body field in case a future
+        # version starts returning one.
+        location = response.headers.get("Location", "")
+        task_id = location.rstrip("/").rsplit("/", 1)[-1] if location else ""
+        if not task_id and response.content:
+            try:
+                task_id = str(response.json().get("task_id", ""))
+            except ValueError:
+                task_id = ""
 
-        # Start spider/crawl
-        crawl_config = {
-            'urls': [url],
-            'scan_configurations': ['Crawl strategy - fastest']
-        }
+        if not task_id:
+            print("[!] Burp accepted the scan but returned no task id")
+            return None
 
-        result = self._api_request('v0.1/scan/', method='POST', data=crawl_config)
-        if result and 'scan_id' in result:
-            self.scan_id = result['scan_id']
-            print(f"[+] Burp scan started: {self.scan_id}")
-            return self.scan_id
-        return None
+        self.task_id = task_id
+        print(f"[+] Burp scan queued: task {task_id}")
+        return task_id
 
-    def get_scan_issues(self) -> List[Finding]:
-        """Retrieve vulnerability findings from Burp scan"""
-        if not self.scan_id:
-            print("[!] No active scan")
+    def get_scan(self) -> Optional[dict]:
+        """Fetch the scan record, which carries both status and issues."""
+        if not self.task_id:
+            return None
+        return self._json(f"v0.1/scan/{quote(str(self.task_id), safe='')}")
+
+    def wait_for_scan(self, timeout: int = 300, interval: int = 5) -> Optional[dict]:
+        """
+        Poll until the scan reaches a terminal status.
+
+        Returns the final scan record, or the last one seen on timeout so a
+        partial result is still usable.
+        """
+        if not self.task_id:
+            return None
+
+        print(f"[*] Waiting for Burp scan (up to {timeout}s)...")
+        deadline = time.time() + timeout
+        last: Optional[dict] = None
+        status = ""
+
+        while time.time() < deadline:
+            last = self.get_scan()
+            if last is None:
+                return None
+            status = str(last.get("scan_status", ""))
+            if status in TERMINAL_STATUSES:
+                print(f"[+] Burp scan {status}")
+                return last
+            time.sleep(interval)
+
+        print(f"[!] Burp scan still {status or 'running'} after {timeout}s")
+        return last
+
+    def issues_to_findings(self, scan: Optional[dict]) -> List[Finding]:
+        """Convert Burp's issue_events into Findings."""
+        if not scan:
             return []
 
-        issues = self._api_request(f'v0.1/scan/{self.scan_id}/issues')
-        if not issues:
-            return []
+        findings: List[Finding] = []
+        for event in scan.get("issue_events", []):
+            if event.get("type") not in (None, "issue_found"):
+                continue
+            issue = event.get("issue") or {}
 
-        for issue in issues.get('issues', []):
-            severity_map = {
-                'high': Severity.HIGH,
-                'medium': Severity.MEDIUM,
-                'low': Severity.LOW,
-                'info': Severity.INFORMATIONAL
-            }
+            origin = issue.get("origin", "")
+            path = issue.get("path", "")
+            evidence = [f"URL: {origin}{path}"]
+            if issue.get("confidence"):
+                evidence.append(f"Confidence: {issue['confidence']}")
+            if issue.get("caption"):
+                evidence.append(f"Detail: {issue['caption']}")
 
-            finding = Finding(
-                id=f"BURP-{issue.get('serial_number', '0')}",
-                title=issue.get('name', 'Burp Finding'),
-                description=issue.get('issue_background', issue.get('description', '')),
-                severity=severity_map.get(issue.get('severity', 'info').lower(), Severity.INFORMATIONAL),
-                category=issue.get('vulnerability_classifications', 'Burp Scanner'),
-                evidence=f"URL: {issue.get('origin', '')}\nPath: {issue.get('path', '')}",
-                remediation=issue.get('remediation', 'Review Burp findings'),
-                references=issue.get('references', []),
+            findings.append(Finding(
+                id=f"BURP-{issue.get('serial_number', 'unknown')}",
+                title=issue.get("name", "Burp issue"),
+                # Burp splits prose across these; description is the specific
+                # instance and issue_background the generic explanation.
+                description=(
+                    issue.get("description")
+                    or issue.get("issue_background")
+                    or ""
+                ),
+                severity=BURP_SEVERITY.get(
+                    str(issue.get("severity", "")).lower(), Severity.INFORMATIONAL
+                ),
+                category="Burp Scanner",
+                evidence="\n".join(evidence),
+                # The field is remediation_background; there is no "remediation".
+                remediation=issue.get(
+                    "remediation_background", "Review the issue in Burp"
+                ),
+                references=[],
                 discovered_at=datetime.now().isoformat(),
-                target=self.target
-            )
-            self.findings.append(finding)
+                target=self.target,
+            ))
 
-        print(f"[+] Burp scan: {len(self.findings)} issues found")
-        return self.findings
+        self.findings = findings
+        return findings
 
-    def wait_for_scan_complete(self, timeout: int = 300) -> bool:
-        """Wait for Burp scan to complete"""
-        if not self.scan_id:
-            return False
-
-        print(f"[*] Waiting for Burp scan (max {timeout}s)...")
-        start = time.time()
-
-        while time.time() - start < timeout:
-            status = self._api_request(f'v0.1/scan/{self.scan_id}/status')
-            if status and status.get('scan_status') == 'succeeded':
-                print("[+] Burp scan completed")
-                return True
-            time.sleep(5)
-
-        print("[!] Burp scan timeout")
-        return False
-
-    def run(self, use_proxy_only: bool = False) -> List[Finding]:
-        """Run Burp Suite integration"""
+    def run(self, timeout: int = 300, configuration: Optional[str] = None) -> List[Finding]:
+        """Start a scan, wait for it, and return its issues as Findings."""
         if not BURP_AVAILABLE:
-            print("[!] Burp integration requires: pip install requests")
+            print('[!] Burp integration requires: pip install "phantomprobe[burp]"')
             return []
 
-        print(f"[*] Connecting to Burp Suite at {self.api_url}...")
-
+        print(f"[*] Connecting to Burp at {self.api_url}...")
         if not self.is_burp_running():
-            print("[!] Burp Suite not accessible. Check:")
-            print("    - Burp is running with REST API enabled")
-            print("    - API key is set via BURP_API_KEY env var")
+            print("[!] Burp did not answer. Check that:")
+            print("    - Burp Professional is running")
+            print("    - Settings > Suite > REST API has the service enabled")
+            print("    - BURP_API_KEY matches a key created there")
+            print(f"    - the service is at {self.api_url} (override: BURP_API_URL)")
             return []
 
-        print("[+] Burp Suite connected")
-
-        if use_proxy_only:
-            # Just send target to proxy
-            self.send_to_proxy(f"https://{self.target}")
+        print("[+] Burp connected")
+        if not self.start_scan(configuration=configuration):
             return []
 
-        # Run full crawl + audit
-        scan_id = self.start_crawl_and_audit()
-        if scan_id and self.wait_for_scan_complete(timeout=180):
-            return self.get_scan_issues()
-
-        return self.findings
-
-    def export_to_burp(self, findings: List[Finding]) -> bool:
-        """Export PhantomProbe findings to Burp as manual notes"""
-        if not self.is_burp_running():
-            return False
-
-        print(f"[*] Exporting {len(findings)} findings to Burp...")
-
-        for finding in findings:
-            note = {
-                'comment': f"{finding.id}: {finding.title}\n\n{finding.description}\n\nRemediation: {finding.remediation}",
-                'url': f"https://{self.target}",
-                'highlight': finding.severity.value
-            }
-            self._api_request('v0.1/target/notes/', method='POST', data=note)
-
-        print("[+] Findings exported to Burp")
-        return True
+        scan = self.wait_for_scan(timeout=timeout)
+        findings = self.issues_to_findings(scan)
+        print(f"[+] Burp reported {len(findings)} issues")
+        return findings
 
     @staticmethod
     def generate_extension_template(output_path: str = "burp_extension.py") -> str:
-        """Generate Burp Suite extension template for custom integration"""
-        template = '''#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-PhantomProbe Burp Suite Extension
-Integrates PhantomProbe reconnaissance with Burp Suite Professional
+        """
+        Write a starter Burp extension.
 
-Install in Burp: Extensions -> Installed -> Add -> Select file
+        Burp runs Python extensions on Jython 2.7, so the template stays inside
+        that dialect: no f-strings, and urllib2 rather than urllib.request.
+        """
+        template = '''# -*- coding: utf-8 -*-
+"""
+PhantomProbe Burp extension (starter).
+
+Burp runs Python extensions on Jython 2.7, so this file is Python 2 syntax.
+Install: Extensions > Installed > Add > Extension type: Python > this file.
 """
 
 from burp import IBurpExtender, IScannerCheck, IScanIssue
-import json
-import urllib2
+
 
 class BurpExtender(IBurpExtender, IScannerCheck):
     NAME = "PhantomProbe Integration"
-    VERSION = "__PP_VERSION__"
+    VERSION = "%s"
 
     def registerExtenderCallbacks(self, callbacks):
         self._callbacks = callbacks
         self._helpers = callbacks.getHelpers()
         callbacks.setExtensionName(self.NAME)
-        print(f"[+] {self.NAME} v{self.VERSION} loaded")
-
-        # Register scanner check
         callbacks.registerScannerCheck(self)
+        print("[+] %%s v%%s loaded" %% (self.NAME, self.VERSION))
 
     def doPassiveScan(self, baseRequestResponse):
-        """Analyze passive scan results"""
-        issues = []
-        # Integration logic here
-        return issues
+        return []
 
     def doActiveScan(self, baseRequestResponse, insertionPoint):
-        """Perform active scanning"""
         return []
 
     def consolidateDuplicateIssues(self, existingIssue, newIssue):
-        return existingIssue.getIssueName() == newIssue.getIssueName()
+        if existingIssue.getIssueName() == newIssue.getIssueName():
+            return -1
+        return 0
 
 
 class PhantomProbeIssue(IScanIssue):
@@ -249,21 +317,42 @@ class PhantomProbeIssue(IScanIssue):
         self._detail = detail
         self._remediation = remediation
 
-    def getUrl(self): return self._url
-    def getIssueName(self): return self._name
-    def getIssueType(self): return 0x08000000
-    def getSeverity(self): return self._severity
-    def getConfidence(self): return self._confidence
-    def getIssueDetail(self): return self._detail
-    def getRemediationDetail(self): return self._remediation
-    def getHttpMessages(self): return None
-    def getHttpService(self): return None
-'''
-        template = template.replace("__PP_VERSION__", __version__)
+    def getUrl(self):
+        return self._url
 
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(template)
+    def getIssueName(self):
+        return self._name
 
-        print(f"[+] Burp extension template saved: {output_path}")
+    def getIssueType(self):
+        return 0x08000000
+
+    def getSeverity(self):
+        return self._severity
+
+    def getConfidence(self):
+        return self._confidence
+
+    def getIssueDetail(self):
+        return self._detail
+
+    def getRemediationDetail(self):
+        return self._remediation
+
+    def getIssueBackground(self):
+        return None
+
+    def getRemediationBackground(self):
+        return None
+
+    def getHttpMessages(self):
+        return []
+
+    def getHttpService(self):
+        return None
+''' % __version__
+
+        with open(output_path, "w", encoding="utf-8") as handle:
+            handle.write(template)
+
+        print(f"[+] Burp extension template written: {output_path}")
         return output_path
-
