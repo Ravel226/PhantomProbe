@@ -336,7 +336,9 @@ PAGE = Template("""<!DOCTYPE html>
       font-variant-numeric: tabular-nums; letter-spacing: 0;
       font-size: 12px; color: var(--text-dim); white-space: nowrap;
     }
-    .col-title { font-weight: 500; min-width: 22ch; }
+    /* width:1% collapses a column to its content; the title takes the slack. */
+    .col-shrink { width: 1%; white-space: nowrap; }
+    .col-title { font-weight: 500; }
     .col-cat { color: var(--text-dim); white-space: nowrap; }
     .col-score {
       font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -386,7 +388,7 @@ PAGE = Template("""<!DOCTYPE html>
     /* empty states teach the next step rather than announcing nothing */
 
     .empty {
-      padding: var(--step-6) var(--step-4);
+      padding: var(--step-5) var(--step-4);
       text-align: center; color: var(--text-dim);
       max-width: 54ch; margin: 0 auto;
     }
@@ -404,9 +406,40 @@ PAGE = Template("""<!DOCTYPE html>
 
     footer { padding: var(--step-5) 0 var(--step-6); color: var(--text-faint); font-size: 12px; }
 
+    /* Below this width the table stops being a table. Scrolling it sideways
+       left the visible columns beside a column of dead space, because an
+       off-screen wrapped title still set the row height. Each row becomes a
+       labelled block instead, so nothing is hidden and nothing is empty. */
     @media (max-width: 720px) {
       .shell { padding: 0 var(--step-4); }
-      td, th { padding-left: var(--step-3); padding-right: var(--step-3); }
+
+      .scroll-x { overflow-x: visible; }
+      table, tbody, tr, td { display: block; width: auto; }
+      thead { position: absolute; width: 1px; height: 1px;
+              overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+      tbody tr {
+        padding: var(--step-3) var(--step-4);
+        border-bottom: 1px solid var(--line);
+      }
+      tbody tr:last-child { border-bottom: 0; }
+
+      td {
+        display: flex; align-items: baseline; gap: var(--step-3);
+        padding: 2px 0; border-bottom: 0; white-space: normal;
+      }
+      td::before {
+        content: attr(data-label);
+        /* min-width, not width: the longest label (TECHNOLOGY) overflowed a
+           fixed box and ate the gap, so labels ran into their values. */
+        flex: none; min-width: 78px;
+        color: var(--text-faint);
+        font-size: 11px; font-weight: 600;
+        letter-spacing: 0.06em; text-transform: uppercase;
+      }
+      .col-shrink { width: auto; white-space: normal; }
+      .col-title { font-weight: 600; }
+      td > details { flex: 1 1 auto; min-width: 0; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -432,7 +465,7 @@ PAGE = Template("""<!DOCTYPE html>
          tool name stays chrome in the masthead. -->
     <div class="subject">
       <h1 title="$target">$target</h1>
-      <p class="subject-meta">Scanned $scan_time<span class="sep">/</span>$findings_count</p>
+      <p class="subject-meta">Scanned $scan_time</p>
     </div>
 
     <div class="rail" role="group" aria-label="Filter findings by severity">
@@ -621,12 +654,14 @@ class DashboardServer:
                 shown = evidence[:500] + ("..." if len(evidence) > 500 else "")
                 rows += (
                     f'<tr data-sev="{slug}">'
-                    f'<td><span class="sev sev-{slug}"><span class="dot"></span>'
+                    f'<td class="col-shrink" data-label="Severity">'
+                    f'<span class="sev sev-{slug}"><span class="dot"></span>'
                     f'{html.escape(severity.value.upper())}</span></td>'
-                    f'<td class="col-id">{html.escape(finding.id)}</td>'
-                    f'<td class="col-title">{html.escape(finding.title)}</td>'
-                    f'<td class="col-cat">{html.escape(finding.category)}</td>'
-                    f'<td><details><summary>{chevron}Evidence</summary>'
+                    f'<td class="col-id col-shrink" data-label="ID">{html.escape(finding.id)}</td>'
+                    f'<td class="col-title" data-label="Title">{html.escape(finding.title)}</td>'
+                    f'<td class="col-cat col-shrink" data-label="Category">{html.escape(finding.category)}</td>'
+                    f'<td class="col-shrink" data-label="Evidence">'
+                    f'<details><summary>{chevron}Evidence</summary>'
                     f'<pre>{html.escape(shown)}</pre></details></td>'
                     "</tr>"
                 )
@@ -642,11 +677,12 @@ class DashboardServer:
             shown = description[:180] + ("..." if len(description) > 180 else "")
             rows += (
                 "<tr>"
-                f'<td><span class="sev sev-{slug}"><span class="dot"></span>'
+                f'<td class="col-shrink" data-label="Severity">'
+                    f'<span class="sev sev-{slug}"><span class="dot"></span>'
                 f'{html.escape(str(cve.severity).upper())}</span></td>'
-                f'<td class="col-id">{html.escape(str(cve.cve_id))}</td>'
-                f'<td class="col-score">{html.escape(str(cve.cvss_score))}</td>'
-                f'<td class="col-cat">{html.escape(str(item["technology"]))}</td>'
+                f'<td class="col-id col-shrink" data-label="CVE">{html.escape(str(cve.cve_id))}</td>'
+                f'<td class="col-score col-shrink" data-label="CVSS">{html.escape(str(cve.cvss_score))}</td>'
+                f'<td class="col-cat col-shrink" data-label="Technology">{html.escape(str(item["technology"]))}</td>'
                 f'<td class="col-desc">{html.escape(shown)}</td>'
                 "</tr>"
             )
@@ -683,8 +719,9 @@ class DashboardServer:
         if findings_rows:
             findings_body = (
                 '<div class="scroll-x"><table><thead><tr>'
-                "<th>Severity</th><th>ID</th><th>Title</th>"
-                "<th>Category</th><th>Evidence</th>"
+                '<th class="col-shrink">Severity</th><th class="col-shrink">ID</th>'
+                '<th>Title</th><th class="col-shrink">Category</th>'
+                '<th class="col-shrink">Evidence</th>'
                 f"</tr></thead><tbody>{findings_rows}</tbody></table></div>"
                 '<div class="empty" id="no-match" hidden>'
                 "<strong>No findings match this filter</strong>"
@@ -701,8 +738,9 @@ class DashboardServer:
         if cve_rows:
             cve_body = (
                 '<div class="scroll-x"><table><thead><tr>'
-                "<th>Severity</th><th>CVE</th><th>CVSS</th>"
-                "<th>Technology</th><th>Summary</th>"
+                '<th class="col-shrink">Severity</th><th class="col-shrink">CVE</th>'
+                '<th class="col-shrink">CVSS</th>'
+                '<th class="col-shrink">Technology</th><th>Summary</th>'
                 f"</tr></thead><tbody>{cve_rows}</tbody></table></div>"
             )
         else:
