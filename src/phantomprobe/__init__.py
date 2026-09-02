@@ -8,6 +8,7 @@ lazily so that the dependency-free core keeps working without extras installed.
 
 from .active import ActiveReconEngine
 from .cli import main, print_banner
+from .cookies import CookieScanner
 from .constants import BROWSER_USER_AGENT, USER_AGENT, __version__
 from .cve import CVE, CVEMatcher
 from .js import JSEngine, ScriptTagParser
@@ -31,6 +32,7 @@ __all__ = [
     "ScreenshotCapture",
     "TakeoverScanner",
     "WafScanner",
+    "CookieScanner",
     "detect_waf",
     "JSEngine",
     "ScriptTagParser",

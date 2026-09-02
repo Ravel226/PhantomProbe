@@ -39,6 +39,9 @@ New features:
 - HTTP Headers - Security headers, information disclosure
 - WAF/CDN detection - Passive header and cookie fingerprinting of 35 WAFs,
   using the wafw00f signature set; reuses the header fetch, sends nothing extra
+- Cookie security - Secure, HttpOnly and SameSite attributes, with severity set
+  by what each one buys today: a session cookie readable by script outranks a
+  tracking one, and a missing SameSite is hardening rather than a hole
 
 ### Phase 2 - Active Reconnaissance
 - Port scanning - Common ports with service identification

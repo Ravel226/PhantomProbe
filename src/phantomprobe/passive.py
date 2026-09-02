@@ -313,11 +313,13 @@ class ReconEngine:
             req.add_header('User-Agent', USER_AGENT)
 
             with safe_urlopen(req, context=ctx, timeout=10) as response:
-                # WAF detection reads the raw message first, because dict()
-                # below collapses the repeated Set-Cookie a cookie signature
-                # needs. No extra request: it reuses this same response.
+                # WAF and cookie analysis read the raw message first, because
+                # dict() below collapses the repeated Set-Cookie both of them
+                # need. No extra request: they reuse this same response.
+                from .cookies import CookieScanner
                 from .waf import WafScanner
                 findings.extend(WafScanner(self.target).analyze(response.headers))
+                findings.extend(CookieScanner(self.target).analyze(response.headers))
 
                 headers = dict(response.headers)
 
