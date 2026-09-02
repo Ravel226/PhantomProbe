@@ -316,16 +316,21 @@ PAGE = Template("""<!DOCTYPE html>
       font-size: 11px; font-weight: 600;
       letter-spacing: 0.06em; text-transform: uppercase;
       color: var(--text-faint);
-      padding: var(--step-2) var(--step-4);
+      padding: 7px var(--step-4);
       border-bottom: 1px solid var(--line);
       white-space: nowrap;
       background: var(--panel);
     }
     td {
-      padding: var(--step-3) var(--step-4);
+      padding: var(--step-1) var(--step-4);
       border-bottom: 1px solid var(--line);
       vertical-align: top;
+      line-height: 1.45;
     }
+    /* First and last row keep a little more air so the table does not collide
+       with the panel edges. */
+    tbody tr:first-child td { padding-top: 7px; }
+    tbody tr:last-child td { padding-bottom: 7px; }
     tbody tr:last-child td { border-bottom: 0; }
     tbody tr { transition: background-color var(--fast) var(--ease); }
     tbody tr:hover { background: var(--panel-hi); }
@@ -365,6 +370,8 @@ PAGE = Template("""<!DOCTYPE html>
       cursor: pointer; list-style: none;
       color: var(--text-dim); font-size: 12px;
       border-radius: 4px;
+      min-height: 24px;
+      padding: 0 6px; margin: 0 -6px;
       transition: color var(--fast) var(--ease);
     }
     details summary::-webkit-details-marker { display: none; }
@@ -387,15 +394,19 @@ PAGE = Template("""<!DOCTYPE html>
 
     /* empty states teach the next step rather than announcing nothing */
 
+    /* A section reporting nothing should be quiet. Centred in a tall box, the
+       empty CVE panel outweighed the findings table it sat under, which is the
+       wrong emphasis for the part of the page with no content in it. It still
+       says what would fill it, just at the weight the absence deserves. */
     .empty {
-      padding: var(--step-5) var(--step-4);
-      text-align: center; color: var(--text-dim);
-      max-width: 54ch; margin: 0 auto;
+      padding: var(--step-3) var(--step-4);
+      color: var(--text-dim);
+      max-width: 76ch;
     }
     .empty strong {
-      display: block; color: var(--text); font-weight: 550;
-      margin-bottom: var(--step-1);
+      color: var(--text); font-weight: 550;
     }
+    .empty strong::after { content: "."; }
     .empty code {
       font-family: ui-monospace, Menlo, Consolas, monospace;
       font-size: 12px; color: var(--bone-dim);
@@ -419,15 +430,16 @@ PAGE = Template("""<!DOCTYPE html>
               overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
       tbody tr {
-        padding: var(--step-3) var(--step-4);
+        padding: var(--step-2) var(--step-4);
         border-bottom: 1px solid var(--line);
       }
       tbody tr:last-child { border-bottom: 0; }
 
       td {
         display: flex; align-items: baseline; gap: var(--step-3);
-        padding: 2px 0; border-bottom: 0; white-space: normal;
+        padding: 1px 0; border-bottom: 0; white-space: normal;
       }
+      tbody tr:first-child td, tbody tr:last-child td { padding: 1px 0; }
       td::before {
         content: attr(data-label);
         /* min-width, not width: the longest label (TECHNOLOGY) overflowed a
@@ -724,12 +736,12 @@ class DashboardServer:
                 '<th class="col-shrink">Evidence</th>'
                 f"</tr></thead><tbody>{findings_rows}</tbody></table></div>"
                 '<div class="empty" id="no-match" hidden>'
-                "<strong>No findings match this filter</strong>"
+                "<strong>No findings match this filter</strong> "
                 "Clear a severity chip above to widen the view.</div>"
             )
         else:
             findings_body = (
-                '<div class="empty"><strong>No findings yet</strong>'
+                '<div class="empty"><strong>No findings yet</strong> '
                 "This view fills in when a scan completes. Run "
                 "<code>phantomprobe example.com --dashboard</code> to populate it."
                 "</div>"
@@ -745,7 +757,7 @@ class DashboardServer:
             )
         else:
             cve_body = (
-                '<div class="empty"><strong>No CVE correlation</strong>'
+                '<div class="empty"><strong>No CVE correlation</strong> '
                 "Correlation runs only with <code>--cve</code>, and needs a version "
                 "string in a banner to match against NVD.</div>"
             )
