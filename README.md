@@ -37,6 +37,8 @@ New features:
 - DNS Analysis - A/AAAA records, reverse DNS, wildcard detection
 - SSL/TLS Analysis - Certificate info, expiry checks, weak ciphers, deprecated TLS
 - HTTP Headers - Security headers, information disclosure
+- WAF/CDN detection - Passive header and cookie fingerprinting of 35 WAFs,
+  using the wafw00f signature set; reuses the header fetch, sends nothing extra
 
 ### Phase 2 - Active Reconnaissance
 - Port scanning - Common ports with service identification

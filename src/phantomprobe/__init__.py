@@ -16,6 +16,7 @@ from .passive import ReconEngine
 from .report import ReportGenerator
 from .screenshot import ScreenshotCapture
 from .takeover import TakeoverScanner
+from .waf import WafScanner, detect_waf
 
 __all__ = [
     "__version__",
@@ -29,6 +30,8 @@ __all__ = [
     "CVEMatcher",
     "ScreenshotCapture",
     "TakeoverScanner",
+    "WafScanner",
+    "detect_waf",
     "JSEngine",
     "ScriptTagParser",
     "ReportGenerator",
