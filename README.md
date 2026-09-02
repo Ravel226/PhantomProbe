@@ -35,6 +35,11 @@ New features:
 
 ### Phase 1 - Passive Reconnaissance
 - DNS Analysis - A/AAAA records, reverse DNS, wildcard detection
+- Email security - SPF, DMARC and DKIM, resolved over DNS-over-HTTPS so the
+  core stays dependency-free. Missing SPF or DMARC lets anyone put the domain
+  in a From: header, which is the cheapest phishing route into an organisation
+- CAA and DNSSEC - Certificate issuance restrictions and zone signing, reported
+  as hardening rather than as vulnerabilities
 - SSL/TLS Analysis - Certificate info, expiry checks, weak ciphers, deprecated TLS
 - HTTP Headers - Security headers, information disclosure
 - HSTS preload eligibility - Judged against hstspreload.org's current one-year

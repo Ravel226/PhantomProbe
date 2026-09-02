@@ -1,8 +1,8 @@
 """
 Tests for subdomain takeover detection.
 
-The DoH resolver and the HTTP fetch are stubbed so the two-signal logic is
-exercised offline. The stub returns the Google DNS-JSON shape the real endpoint
+The DoH resolver (doh.py) and the HTTP fetch are stubbed so the two-signal
+logic is exercised offline. The stub returns the Google DNS-JSON shape the real endpoint
 uses: a Status code and an Answer list whose CNAME records have type 5.
 """
 import json
@@ -89,7 +89,7 @@ class TestTwoSignalLogic:
                 return _Resp(doh_response(cname=cname))
             return _Resp(doh_response(status=a_status))
 
-        monkeypatch.setattr("phantomprobe.takeover.safe_urlopen", fake_doh)
+        monkeypatch.setattr("phantomprobe.doh.safe_urlopen", fake_doh)
         monkeypatch.setattr(scanner, "fetch_body", lambda host: body)
 
     def test_body_fingerprint_match_is_a_finding(self, scanner, monkeypatch):
@@ -133,7 +133,7 @@ class TestTwoSignalLogic:
                 return _Resp(doh_response(cname="gone.cloudapp.net"))
             raise OSError("network down")
 
-        monkeypatch.setattr("phantomprobe.takeover.safe_urlopen", flaky_doh)
+        monkeypatch.setattr("phantomprobe.doh.safe_urlopen", flaky_doh)
         # target_resolves must treat the failure as "still there".
         assert scanner.target_resolves("gone.cloudapp.net") is True
         assert scanner.check_host("app.victim.com") is None

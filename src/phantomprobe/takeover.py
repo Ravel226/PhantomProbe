@@ -16,38 +16,26 @@ fingerprint can appear in unrelated content. Together they are specific.
               the CNAME target failing to resolve (NXDOMAIN) or as a known
               string in the page body
 
-CNAMEs are resolved over DNS-over-HTTPS, so this stays within the standard
-library like the rest of the passive core: the socket module cannot return a
-CNAME, and a dangling one often has no A record for getaddrinfo to find at all.
+CNAMEs are resolved over DNS-over-HTTPS (see doh.py), so this stays within the
+standard library like the rest of the passive core: the socket module cannot
+return a CNAME, and a dangling one often has no A record for getaddrinfo to
+find at all.
 
 Fingerprints are the community-maintained set from can-i-take-over-xyz
 (https://github.com/EdOverflow/can-i-take-over-xyz), embedded here so the check
 runs offline. Only entries the project marks Vulnerable or Edge case are kept.
 """
 
-import json
 import re
 from datetime import datetime
 from typing import List, Optional
-from urllib.error import URLError
-from urllib.parse import urlencode
 from urllib.request import Request
 
-from .constants import BROWSER_USER_AGENT, USER_AGENT
+from . import doh
+from .constants import BROWSER_USER_AGENT
 from .http_client import safe_urlopen
 from .models import Finding, Severity
 
-# Public DoH resolver that returns Google's DNS-JSON shape. Cloudflare's
-# 1.1.1.1 speaks the same format and is the fallback if this one is blocked.
-DOH_ENDPOINTS = (
-    "https://dns.google/resolve",
-    "https://cloudflare-dns.com/dns-query",
-)
-
-# DNS response codes we care about (RFC 1035).
-_RCODE_NOERROR = 0
-_RCODE_NXDOMAIN = 3
-_DNS_TYPE_CNAME = 5
 
 
 # Curated from can-i-take-over-xyz; only entries with a real CNAME pattern and a
@@ -91,44 +79,19 @@ class TakeoverScanner:
 
     # -- DNS over HTTPS -------------------------------------------------------
 
-    def _doh(self, name: str, rtype: str) -> Optional[dict]:
-        """Resolve name/type over DoH, trying each endpoint in turn."""
-        params = urlencode({"name": name, "type": rtype})
-        for endpoint in DOH_ENDPOINTS:
-            request = Request(
-                f"{endpoint}?{params}",
-                headers={"Accept": "application/dns-json", "User-Agent": USER_AGENT},
-            )
-            try:
-                with safe_urlopen(request, timeout=self.timeout) as response:
-                    return json.loads(response.read().decode())
-            except (URLError, json.JSONDecodeError, OSError):
-                continue
-        return None
-
     def resolve_cname(self, host: str) -> Optional[str]:
         """Return the CNAME target for host, or None if it has no CNAME."""
-        data = self._doh(host, "CNAME")
-        if not data or data.get("Status") != _RCODE_NOERROR:
-            return None
-        for answer in data.get("Answer", []):
-            if answer.get("type") == _DNS_TYPE_CNAME:
-                return answer.get("data", "").rstrip(".").lower()
-        return None
+        targets = doh.records(host, "CNAME", timeout=self.timeout)
+        return targets[0].rstrip(".").lower() if targets else None
 
     def target_resolves(self, host: str) -> bool:
         """
-        Whether host resolves at all.
+        Whether the CNAME target still exists.
 
-        Used for the NXDOMAIN services, where the takeover is confirmed by the
-        CNAME target no longer existing. NXDOMAIN is authoritative; any other
-        answer (including a transient DoH failure) is treated as "still there"
-        so a network blip cannot be reported as a takeover.
+        NXDOMAIN is authoritative; a transient resolver failure is treated as
+        "still there", so a network blip cannot be reported as a takeover.
         """
-        data = self._doh(host, "A")
-        if data is None:
-            return True
-        return data.get("Status") != _RCODE_NXDOMAIN
+        return doh.resolves(host, timeout=self.timeout)
 
     # -- HTTP body fingerprint ------------------------------------------------
 

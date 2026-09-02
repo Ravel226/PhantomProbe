@@ -449,6 +449,12 @@ class ReconEngine:
         print(f"[+] HTTP headers analysis: {len(findings)} findings")
         return findings
 
+    def analyze_dns_security(self) -> List[Finding]:
+        """SPF, DMARC, DKIM, CAA and DNSSEC, all resolved over DoH."""
+        from .dns_security import DnsSecurityScanner
+
+        return DnsSecurityScanner(self.target).run()
+
     def analyze_transport(self) -> List[Finding]:
         """Redirect chain and security.txt, each needing its own request."""
         from .http_checks import RedirectScanner, SecurityTxtScanner
@@ -482,6 +488,10 @@ class ReconEngine:
         header_findings = self.analyze_headers()
         self.findings.extend(header_findings)
 
+        # DNS-derived security posture. Resolved over DoH, so nothing extra
+        # is sent to the target itself.
+        self.findings.extend(self.analyze_dns_security())
+
         # Transport and disclosure. These fetch on their own rather than
         # reusing the header response, so they are a separate step.
         self.findings.extend(self.analyze_transport())
@@ -494,6 +504,7 @@ class ReconEngine:
         print(f"  - DNS: {len([f for f in self.findings if f.category == 'DNS'])}")
         print(f"  - SSL/TLS: {len([f for f in self.findings if f.category == 'SSL/TLS'])}")
         print(f"  - Headers: {len([f for f in self.findings if f.category in ['Security Headers', 'Information Disclosure']])}")
+        print(f"  - Email security: {len([f for f in self.findings if f.category == 'Email Security'])}")
         print(f"  - Transport: {len([f for f in self.findings if f.category == 'Transport'])}")
         print()
 
