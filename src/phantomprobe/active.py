@@ -54,6 +54,8 @@ class ActiveReconEngine:
     def __init__(self, target: str):
         self.target = target
         self.findings: List[Finding] = []
+        self.subdomain_candidates: List[str] = []
+        self.found_subdomains: List[str] = []
 
     def scan_ports(self, ports: List[int] = None) -> List[Finding]:
         """Scan common ports"""
@@ -130,6 +132,12 @@ class ActiveReconEngine:
             results = executor.map(check_subdomain, wordlist)
             found_subdomains = [s for s in results if s is not None]
 
+        # Record every candidate tried, not only those that resolved: a
+        # dangling CNAME to a dead service has no A record, so the takeover
+        # check needs the full list to catch the NXDOMAIN takeovers.
+        self.subdomain_candidates = [f"{s}.{self.target}" for s in wordlist]
+        self.found_subdomains = found_subdomains
+
         for subdomain in found_subdomains:
             findings.append(Finding(
                 id=f"SUBDOMAIN-{subdomain.split('.')[0]}",
@@ -205,7 +213,23 @@ class ActiveReconEngine:
         print(f"[+] Technology fingerprinting: {len(detected_tech)} detected")
         return findings
 
-    def run(self) -> List[Finding]:
+    def check_takeovers(self) -> List[Finding]:
+        """
+        Check enumerated hosts for dangling-CNAME subdomain takeover.
+
+        Kept separate from the resolve-only enumeration because it reaches out
+        over DoH and HTTP to third-party services, which the rest of Phase 2
+        does not. Runs against every candidate, resolving or not, since a
+        NXDOMAIN takeover has no A record to have been found by.
+        """
+        from .takeover import TakeoverScanner
+
+        hosts = self.subdomain_candidates or self.found_subdomains
+        findings = TakeoverScanner(self.target).run(hosts)
+        self.findings.extend(findings)
+        return findings
+
+    def run(self, check_takeover: bool = True) -> List[Finding]:
         """Run all Phase 2 active reconnaissance"""
         print()
         print("=" * 60)
@@ -225,6 +249,10 @@ class ActiveReconEngine:
         tech_findings = self.fingerprint_tech()
         self.findings.extend(tech_findings)
 
+        # Subdomain takeover (uses the hosts enumerated just above)
+        if check_takeover:
+            self.check_takeovers()
+
         print()
         print("=" * 60)
         print("PHASE 2 COMPLETE")
@@ -233,6 +261,7 @@ class ActiveReconEngine:
         print(f"  - Ports: {len([f for f in self.findings if f.category == 'Port Scan'])}")
         print(f"  - Subdomains: {len([f for f in self.findings if f.category == 'Subdomain Enumeration'])}")
         print(f"  - Technologies: {len([f for f in self.findings if f.category == 'Technology'])}")
+        print(f"  - Takeover: {len([f for f in self.findings if f.category == 'Subdomain Takeover'])}")
         print()
 
         return self.findings

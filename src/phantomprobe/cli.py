@@ -123,6 +123,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("-a", "--phase2", action="store_true",
                         help="Enable active reconnaissance (ports, subdomains, fingerprinting)")
+    parser.add_argument("--no-takeover", action="store_true",
+                        help="Skip the subdomain takeover check in phase 2. It "
+                             "reaches out to third-party services (DoH and HTTP), "
+                             "unlike the rest of the passive-leaning scan.")
     parser.add_argument("-c", "--cve", action="store_true",
                         help="Enable CVE matching via the NVD API")
     parser.add_argument("-s", "--screenshot", action="store_true",
@@ -266,7 +270,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Phase 2: Active Reconnaissance (optional)
     if args.phase2:
         broadcast_progress("Phase 2: Active Reconnaissance")
-        findings.extend(ActiveReconEngine(target).run())
+        findings.extend(ActiveReconEngine(target).run(
+            check_takeover=not args.no_takeover))
 
     # CVE Matching (optional)
     cve_results = []

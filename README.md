@@ -42,6 +42,8 @@ New features:
 - Port scanning - Common ports with service identification
 - Subdomain enumeration - Common subdomain discovery
 - Technology fingerprinting - Server and framework detection
+- Subdomain takeover - Dangling-CNAME detection against a two-signal check,
+  using fingerprints from [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz)
 
 ### CVE Correlation
 - Matches technologies to known CVEs through the NVD API, covering 74 products:
@@ -303,7 +305,8 @@ Install it under Extensions > Installed > Add, with extension type Python.
 
 | Flag | Description |
 |------|-------------|
-| `-a`, `--phase2` | Enable active reconnaissance (ports, subdomains, fingerprinting) |
+| `-a`, `--phase2` | Enable active reconnaissance (ports, subdomains, fingerprinting, takeover) |
+| `--no-takeover` | Skip the takeover check (it queries DoH + third-party services) |
 | `-c`, `--cve` | Enable CVE matching via the NVD API |
 | `-s`, `--screenshot` | Capture website screenshot (requires Playwright) |
 | `-j`, `--js` | JavaScript analysis for secrets/endpoints |

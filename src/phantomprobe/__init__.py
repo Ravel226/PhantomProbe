@@ -15,6 +15,7 @@ from .models import Finding, Severity
 from .passive import ReconEngine
 from .report import ReportGenerator
 from .screenshot import ScreenshotCapture
+from .takeover import TakeoverScanner
 
 __all__ = [
     "__version__",
@@ -27,6 +28,7 @@ __all__ = [
     "CVE",
     "CVEMatcher",
     "ScreenshotCapture",
+    "TakeoverScanner",
     "JSEngine",
     "ScriptTagParser",
     "ReportGenerator",
