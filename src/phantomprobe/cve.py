@@ -14,7 +14,7 @@ import time
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 from urllib.request import Request
 
 from .http_client import safe_urlopen
@@ -35,6 +35,14 @@ class CVE:
     references: List[str]
     published: str
     modified: str
+    # Exploitation context, filled in by enrich_exploitation(). in_kev means
+    # CISA has recorded this CVE as exploited in the wild, which outranks a
+    # higher CVSS that has never been used. epss_score is the probability of
+    # exploitation in the next 30 days (0..1).
+    in_kev: bool = False
+    kev_ransomware: bool = False
+    epss_score: Optional[float] = None
+    epss_percentile: Optional[float] = None
 
 
 class CVEMatcher:
@@ -42,6 +50,11 @@ class CVEMatcher:
 
     NVD_API_BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     CVE_API_BASE = "https://cveawg.mitre.org/api/cve"
+    # Free, keyless exploitation-intelligence feeds.
+    KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    EPSS_URL = "https://api.first.org/data/v1/epss"
+    # EPSS takes a comma-separated cve= list; keep each request's URL sane.
+    EPSS_BATCH = 80
 
     # Technology to CPE vendor/product mapping
     CPE_MAPPING = {
@@ -136,6 +149,7 @@ class CVEMatcher:
 
     def __init__(self, api_key: Optional[str] = None, results_per_page: int = 20):
         self.cache: Dict[str, List[CVE]] = {}
+        self._kev_cache: Optional[Dict[str, bool]] = None
         self.session_timeout = 10
         self.api_key = api_key or os.environ.get('NVD_API_KEY', '') or None
         self.results_per_page = results_per_page
@@ -422,6 +436,91 @@ class CVEMatcher:
 
         return cves
 
+    def _load_kev(self) -> Optional[Dict[str, bool]]:
+        """
+        Fetch CISA's Known Exploited Vulnerabilities catalog.
+
+        Returns {cve_id: ransomware_flag}, or None if it could not be fetched.
+        One request covers every CVE, so it is fetched once and cached.
+        """
+        if self._kev_cache is not None:
+            return self._kev_cache
+        try:
+            req = Request(self.KEV_URL, headers={"User-Agent": USER_AGENT})
+            with safe_urlopen(req, timeout=self.session_timeout * 3) as response:
+                data = json.loads(response.read().decode())
+        except (HTTPError, URLError, json.JSONDecodeError, OSError) as exc:
+            print(f"    [!] Could not fetch the CISA KEV catalog: {exc}")
+            return None
+
+        self._kev_cache = {
+            entry.get("cveID", ""): entry.get("knownRansomwareCampaignUse") == "Known"
+            for entry in data.get("vulnerabilities", [])
+        }
+        return self._kev_cache
+
+    def _load_epss(self, cve_ids: List[str]) -> Dict[str, Tuple[float, float]]:
+        """Batch-query EPSS scores, returning {cve_id: (score, percentile)}."""
+        scores: Dict[str, Tuple[float, float]] = {}
+        for start in range(0, len(cve_ids), self.EPSS_BATCH):
+            batch = cve_ids[start:start + self.EPSS_BATCH]
+            url = f"{self.EPSS_URL}?{urlencode({'cve': ','.join(batch)})}"
+            try:
+                req = Request(url, headers={"User-Agent": USER_AGENT})
+                with safe_urlopen(req, timeout=self.session_timeout) as response:
+                    data = json.loads(response.read().decode())
+            except (HTTPError, URLError, json.JSONDecodeError, OSError) as exc:
+                print(f"    [!] Could not fetch EPSS scores: {exc}")
+                continue
+            for row in data.get("data", []):
+                try:
+                    scores[row["cve"]] = (float(row["epss"]), float(row["percentile"]))
+                except (KeyError, ValueError, TypeError):
+                    continue
+        return scores
+
+    def enrich_exploitation(self, matched: List[Dict]) -> List[Dict]:
+        """
+        Annotate matched CVEs with KEV membership and EPSS scores.
+
+        A CVSS score says how bad a vulnerability is in theory; these say
+        whether anyone is actually using it. Both feeds are free and keyless,
+        and both fail soft: on a network error the CVEs keep their base scores.
+        """
+        if not matched:
+            return matched
+
+        cves = [item["cve"] for item in matched]
+        print("[*] Enriching CVEs with exploitation data (CISA KEV, EPSS)...")
+
+        kev = self._load_kev()
+        if kev is not None:
+            for cve in cves:
+                if cve.cve_id in kev:
+                    cve.in_kev = True
+                    cve.kev_ransomware = kev[cve.cve_id]
+
+        epss = self._load_epss([c.cve_id for c in cves])
+        for cve in cves:
+            if cve.cve_id in epss:
+                cve.epss_score, cve.epss_percentile = epss[cve.cve_id]
+
+        in_kev = sum(1 for c in cves if c.in_kev)
+        print(f"[+] Exploitation data: {in_kev} in CISA KEV, "
+              f"{sum(1 for c in cves if c.epss_score is not None)} scored by EPSS")
+        return matched
+
+    @staticmethod
+    def _priority(item: Dict) -> Tuple:
+        """
+        Rank key: actively exploited first, then likely, then severe.
+
+        A CVE in KEV is being used right now, so it outranks a higher-CVSS one
+        that never has been; EPSS breaks ties below that.
+        """
+        cve = item["cve"]
+        return (cve.in_kev, cve.epss_score or 0.0, cve.cvss_score)
+
     def match_findings(self, findings: List[Finding]) -> List[Dict]:
         """Match findings to CVEs and return enriched findings"""
         matched = []
@@ -476,8 +575,10 @@ class CVEMatcher:
                         'cve': cve
                     })
 
-        # Sort by CVSS score
-        matched.sort(key=lambda x: x['cve'].cvss_score, reverse=True)
+        # Enrich with real-world exploitation data before ranking, so an
+        # actively-exploited CVE rises above a higher-scored dormant one.
+        self.enrich_exploitation(matched)
+        matched.sort(key=self._priority, reverse=True)
 
         print(f"[+] Found {len(matched)} relevant CVEs (CVSS >= 7.0)")
         return matched
@@ -495,10 +596,17 @@ class CVEMatcher:
             tech = item['technology']
             version = item['version'] or 'any'
 
-            lines.append(f"### {cve.cve_id}")
+            kev_tag = " [KEV: actively exploited]" if cve.in_kev else ""
+            lines.append(f"### {cve.cve_id}{kev_tag}")
             lines.append(f"")
             lines.append(f"**Technology:** {tech} ({version})")
             lines.append(f"**CVSS Score:** {cve.cvss_score} ({cve.severity})")
+            if cve.in_kev:
+                ransom = ", linked to ransomware" if cve.kev_ransomware else ""
+                lines.append(f"**Exploitation:** In CISA KEV{ransom}")
+            if cve.epss_score is not None:
+                pct = f"{cve.epss_percentile * 100:.0f}th percentile"
+                lines.append(f"**EPSS:** {cve.epss_score:.4f} ({pct})")
             lines.append(f"")
             lines.append(f"**Description:**")
             lines.append(f"{cve.description}")

@@ -58,6 +58,9 @@ New features:
   Products seen without a version are listed as skipped rather than guessed at
 - CVSS score-based filtering (>= 7.0), reading v4.0, v3.1, v3.0 or v2 scores
 - Reports the first fixed release for each match where NVD records one
+- Flags exploitation with CISA KEV (actively exploited in the wild, with a
+  ransomware marker) and EPSS (probability of exploitation), both free and
+  keyless. An exploited CVE is ranked above a higher-scored dormant one
 
 #### Keeping the CPE table honest
 

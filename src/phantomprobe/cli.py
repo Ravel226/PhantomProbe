@@ -174,7 +174,14 @@ def print_summary(findings: List[Finding], cve_results: List[dict]) -> None:
         print("=" * 60)
         for item in cve_results[:10]:
             cve = item['cve']
-            print(f"  [{cve.severity}] {cve.cve_id} (CVSS {cve.cvss_score}) - {item['technology']}")
+            tags = []
+            if cve.in_kev:
+                tags.append("KEV" + ("/ransomware" if cve.kev_ransomware else ""))
+            if cve.epss_score is not None:
+                tags.append(f"EPSS {cve.epss_score:.2f}")
+            suffix = f"  [{', '.join(tags)}]" if tags else ""
+            print(f"  [{cve.severity}] {cve.cve_id} (CVSS {cve.cvss_score}) "
+                  f"- {item['technology']}{suffix}")
 
 
 def write_reports(findings: List[Finding], cve_results: List[dict],
@@ -204,6 +211,10 @@ def write_reports(findings: List[Finding], cve_results: List[dict],
                 'severity': item['cve'].severity,
                 'description': item['cve'].description,
                 'references': item['cve'].references,
+                'in_kev': item['cve'].in_kev,
+                'kev_ransomware': item['cve'].kev_ransomware,
+                'epss_score': item['cve'].epss_score,
+                'epss_percentile': item['cve'].epss_percentile,
             }
             for item in cve_results
         ]

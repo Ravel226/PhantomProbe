@@ -363,6 +363,20 @@ PAGE = Template("""<!DOCTYPE html>
     .sev-low  { color: var(--low); }
     .sev-info { color: var(--info); }
 
+    /* Exploitation badges. KEV reuses the critical hue because an actively
+       exploited CVE is the most urgent thing on the page; EPSS is quiet mono. */
+    .kev {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
+      color: var(--crit); border: 1px solid var(--crit);
+    }
+    .epss {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums; font-size: 12px;
+      color: var(--text-dim); margin-left: 6px;
+    }
+    td[data-label="Exploit"] { white-space: nowrap; }
+
     /* evidence disclosure */
 
     details summary {
@@ -694,11 +708,26 @@ class DashboardServer:
                 f'{html.escape(str(cve.severity).upper())}</span></td>'
                 f'<td class="col-id col-shrink" data-label="CVE">{html.escape(str(cve.cve_id))}</td>'
                 f'<td class="col-score col-shrink" data-label="CVSS">{html.escape(str(cve.cvss_score))}</td>'
+                f'<td class="col-shrink" data-label="Exploit">{self._exploit_cell(cve)}</td>'
                 f'<td class="col-cat col-shrink" data-label="Technology">{html.escape(str(item["technology"]))}</td>'
                 f'<td class="col-desc">{html.escape(shown)}</td>'
                 "</tr>"
             )
         return rows
+
+    @staticmethod
+    def _exploit_cell(cve) -> str:
+        """KEV badge and EPSS score. Empty when neither feed knew the CVE."""
+        parts = []
+        if getattr(cve, "in_kev", False):
+            label = "KEV" + ("·RANSOM" if getattr(cve, "kev_ransomware", False) else "")
+            parts.append(f'<span class="kev" title="In CISA Known Exploited '
+                         f'Vulnerabilities">{label}</span>')
+        epss = getattr(cve, "epss_score", None)
+        if epss is not None:
+            parts.append(f'<span class="epss" title="EPSS: probability of '
+                         f'exploitation in 30 days">{epss:.2f}</span>')
+        return "".join(parts) or '<span class="epss">n/a</span>'
 
     def _build_filters(self, stats: Dict) -> str:
         """
@@ -752,6 +781,7 @@ class DashboardServer:
                 '<div class="scroll-x"><table><thead><tr>'
                 '<th class="col-shrink">Severity</th><th class="col-shrink">CVE</th>'
                 '<th class="col-shrink">CVSS</th>'
+                '<th class="col-shrink">Exploit</th>'
                 '<th class="col-shrink">Technology</th><th>Summary</th>'
                 f"</tr></thead><tbody>{cve_rows}</tbody></table></div>"
             )

@@ -9,6 +9,7 @@ from urllib.error import HTTPError, URLError
 
 import pytest
 
+import phantomprobe.cve as cve_module
 from phantomprobe.cve import CVEMatcher
 
 
@@ -423,3 +424,73 @@ class TestBannerShapes:
         matcher.query_nvd = lambda cpe, tech, version=None: queried.append(tech) or []
         matcher.match_findings([finding])
         assert "jquery" in queried
+
+
+class TestExploitationEnrichment:
+    """
+    KEV and EPSS say whether a CVE is actually being used, which reorders the
+    report: an exploited 7.5 outranks a dormant 9.8. Both feeds are stubbed.
+    """
+
+    def _cve(self, cve_id, score):
+        return {"technology": "t", "version": "1",
+                "cve": cve_module.CVE(cve_id, "HIGH", score, "d", [], [], [], "", "")}
+
+    def test_kev_and_epss_annotate_the_cve(self, matcher, monkeypatch):
+        monkeypatch.setattr(matcher, "_load_kev",
+                            lambda: {"CVE-2023-44487": False, "CVE-2021-44228": True})
+        monkeypatch.setattr(matcher, "_load_epss",
+                            lambda ids: {"CVE-2023-44487": (0.97, 0.99)})
+        matched = [self._cve("CVE-2023-44487", 7.5), self._cve("CVE-2021-44228", 10.0)]
+        matcher.enrich_exploitation(matched)
+
+        a = matched[0]["cve"]
+        assert a.in_kev is True and a.kev_ransomware is False
+        assert a.epss_score == 0.97 and a.epss_percentile == 0.99
+        assert matched[1]["cve"].kev_ransomware is True
+
+    def test_priority_puts_exploited_above_higher_cvss(self, matcher, monkeypatch):
+        monkeypatch.setattr(matcher, "_load_kev", lambda: {"CVE-2023-44487": False})
+        monkeypatch.setattr(matcher, "_load_epss", lambda ids: {"CVE-2023-44487": (0.99, 0.99)})
+        # A KEV 7.5 and a non-KEV 9.8.
+        matched = [self._cve("CVE-2099-0001", 9.8), self._cve("CVE-2023-44487", 7.5)]
+        matcher.enrich_exploitation(matched)
+        matched.sort(key=matcher._priority, reverse=True)
+        assert matched[0]["cve"].cve_id == "CVE-2023-44487"
+
+    def test_kev_fetch_failure_is_soft(self, matcher, monkeypatch):
+        """A network error must leave CVEs with their base scores, not crash."""
+        monkeypatch.setattr(matcher, "_load_kev", lambda: None)
+        monkeypatch.setattr(matcher, "_load_epss", lambda ids: {})
+        matched = [self._cve("CVE-2023-44487", 7.5)]
+        matcher.enrich_exploitation(matched)
+        cve = matched[0]["cve"]
+        assert cve.in_kev is False and cve.epss_score is None
+
+    def test_kev_catalog_is_fetched_once(self, matcher, monkeypatch):
+        calls = {"n": 0}
+
+        def fake_open(req, timeout=None):
+            calls["n"] += 1
+            return _FakeResponse({"vulnerabilities": [
+                {"cveID": "CVE-1", "knownRansomwareCampaignUse": "Known"}]})
+
+        monkeypatch.setattr("phantomprobe.cve.safe_urlopen", fake_open)
+        matcher._load_kev()
+        matcher._load_kev()
+        assert calls["n"] == 1
+        assert matcher._kev_cache == {"CVE-1": True}
+
+    def test_epss_is_batched(self, matcher, monkeypatch):
+        matcher.EPSS_BATCH = 2
+        seen = []
+
+        def fake_open(req, timeout=None):
+            seen.append(req.full_url)
+            return _FakeResponse({"data": [{"cve": "CVE-X", "epss": "0.5", "percentile": "0.9"}]})
+
+        monkeypatch.setattr("phantomprobe.cve.safe_urlopen", fake_open)
+        result = matcher._load_epss(["CVE-1", "CVE-2", "CVE-3"])
+        # 3 ids, batch of 2 -> two requests.
+        assert len(seen) == 2
+        assert result["CVE-X"] == (0.5, 0.9)
