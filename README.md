@@ -37,6 +37,11 @@ New features:
 - DNS Analysis - A/AAAA records, reverse DNS, wildcard detection
 - SSL/TLS Analysis - Certificate info, expiry checks, weak ciphers, deprecated TLS
 - HTTP Headers - Security headers, information disclosure
+- HSTS preload eligibility - Judged against hstspreload.org's current one-year
+  max-age floor, not the 10886400 older guidance still quotes
+- Redirect chain - Walks the hops by hand; flags plain HTTP that never reaches
+  HTTPS, and redirects that leave the target host
+- security.txt - RFC 9116 disclosure contact, reported as information
 - WAF/CDN detection - Passive header and cookie fingerprinting of 35 WAFs,
   using the wafw00f signature set; reuses the header fetch, sends nothing extra
 - Cookie security - Secure, HttpOnly and SameSite attributes, with severity set

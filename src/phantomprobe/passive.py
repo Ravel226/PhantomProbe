@@ -317,9 +317,11 @@ class ReconEngine:
                 # dict() below collapses the repeated Set-Cookie both of them
                 # need. No extra request: they reuse this same response.
                 from .cookies import CookieScanner
+                from .http_checks import HstsPreloadScanner
                 from .waf import WafScanner
                 findings.extend(WafScanner(self.target).analyze(response.headers))
                 findings.extend(CookieScanner(self.target).analyze(response.headers))
+                findings.extend(HstsPreloadScanner(self.target).analyze(response.headers))
 
                 headers = dict(response.headers)
 
@@ -447,6 +449,16 @@ class ReconEngine:
         print(f"[+] HTTP headers analysis: {len(findings)} findings")
         return findings
 
+    def analyze_transport(self) -> List[Finding]:
+        """Redirect chain and security.txt, each needing its own request."""
+        from .http_checks import RedirectScanner, SecurityTxtScanner
+
+        print("[*] Tracing redirects and checking security.txt...")
+        findings = RedirectScanner(self.target).run()
+        findings.extend(SecurityTxtScanner(self.target).run())
+        print(f"[+] Transport and disclosure: {len(findings)} findings")
+        return findings
+
     def run(self) -> List[Finding]:
         """Run all Phase 1 reconnaissance checks"""
         print()
@@ -470,6 +482,10 @@ class ReconEngine:
         header_findings = self.analyze_headers()
         self.findings.extend(header_findings)
 
+        # Transport and disclosure. These fetch on their own rather than
+        # reusing the header response, so they are a separate step.
+        self.findings.extend(self.analyze_transport())
+
         print()
         print("=" * 60)
         print("PHASE 1 COMPLETE")
@@ -478,6 +494,7 @@ class ReconEngine:
         print(f"  - DNS: {len([f for f in self.findings if f.category == 'DNS'])}")
         print(f"  - SSL/TLS: {len([f for f in self.findings if f.category == 'SSL/TLS'])}")
         print(f"  - Headers: {len([f for f in self.findings if f.category in ['Security Headers', 'Information Disclosure']])}")
+        print(f"  - Transport: {len([f for f in self.findings if f.category == 'Transport'])}")
         print()
 
         return self.findings

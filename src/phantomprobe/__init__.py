@@ -11,6 +11,7 @@ from .cli import main, print_banner
 from .cookies import CookieScanner
 from .constants import BROWSER_USER_AGENT, USER_AGENT, __version__
 from .cve import CVE, CVEMatcher
+from .http_checks import HstsPreloadScanner, RedirectScanner, SecurityTxtScanner
 from .js import JSEngine, ScriptTagParser
 from .models import Finding, Severity
 from .passive import ReconEngine
@@ -33,6 +34,9 @@ __all__ = [
     "TakeoverScanner",
     "WafScanner",
     "CookieScanner",
+    "HstsPreloadScanner",
+    "RedirectScanner",
+    "SecurityTxtScanner",
     "detect_waf",
     "JSEngine",
     "ScriptTagParser",
