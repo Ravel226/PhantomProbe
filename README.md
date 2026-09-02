@@ -55,6 +55,21 @@ New features:
 - CVSS score-based filtering (>= 7.0), reading v4.0, v3.1, v3.0 or v2 scores
 - Reports the first fixed release for each match where NVD records one
 
+#### Keeping the CPE table honest
+
+A wrong vendor fails silently: NVD answers 200 with no results, so a broken
+mapping is indistinguishable from a clean target. Vendors also drift, which is
+why nginx is filed under `f5` today. Re-check the table with:
+
+```bash
+python scripts/audit_cpe_mapping.py                   # the whole table
+python scripts/audit_cpe_mapping.py --tech nginx php  # a few entries
+python scripts/audit_cpe_mapping.py --check f5:nginx  # try a candidate pair
+```
+
+It exits non-zero if any mapping matches nothing. Set `NVD_API_KEY` to run it
+in under a minute instead of about nine.
+
 ### Screenshot Capture
 - Full-page or viewport screenshots
 - Headless Chromium via Playwright
