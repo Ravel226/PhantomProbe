@@ -2,6 +2,7 @@
 
 **Passive-first reconnaissance scanner for penetration testers and bug bounty hunters.**
 
+[![PyPI](https://img.shields.io/pypi/v/phantomprobe.svg)](https://pypi.org/project/phantomprobe/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-264%20passing-brightgreen.svg)](tests/)
@@ -27,9 +28,7 @@ Two ideas run through it:
 ## Quick start
 
 ```bash
-git clone https://github.com/Ravel226/PhantomProbe.git
-cd PhantomProbe
-pip install -e .
+pip install phantomprobe
 phantomprobe example.com
 ```
 
@@ -49,24 +48,26 @@ Every scan writes `report-<target>.md` and `report-<target>.json` to the
 ## Installation
 
 The core scanner is dependency-free. Install extras only for the features you
-want; `pip install -e .` is enough for a full passive and active scan.
+want; `pip install phantomprobe` is enough for a full passive and active scan.
 
 | Command | Adds |
 |---------|------|
-| `pip install -e .` | Core scanner (no dependencies) |
-| `pip install -e ".[dashboard]"` | Interactive web dashboard (FastAPI, uvicorn) |
-| `pip install -e ".[screenshot]"` | Full-page screenshots (Playwright) |
-| `pip install -e ".[burp]"` | Burp Professional REST integration (requests) |
-| `pip install -e ".[all]"` | Every feature above |
+| `pip install phantomprobe` | Core scanner (no dependencies) |
+| `pip install "phantomprobe[dashboard]"` | Interactive web dashboard (FastAPI, uvicorn) |
+| `pip install "phantomprobe[screenshot]"` | Full-page screenshots (Playwright) |
+| `pip install "phantomprobe[burp]"` | Burp Professional REST integration (requests) |
+| `pip install "phantomprobe[all]"` | Every feature above |
 
 Screenshots need the browser as well as the package:
 
 ```bash
-pip install -e ".[screenshot]"
+pip install "phantomprobe[screenshot]"
 playwright install chromium
 ```
 
-Run it without installing at all, straight from a checkout:
+To hack on the scanner itself, install from a clone in editable mode
+(`pip install -e ".[all,dev]"`); see [CONTRIBUTING.md](CONTRIBUTING.md). Or run
+it without installing at all, straight from a checkout:
 
 ```bash
 PYTHONPATH=src python -m phantomprobe example.com
