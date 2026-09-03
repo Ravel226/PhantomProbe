@@ -4,36 +4,55 @@ build-backend = "hatchling.build"
 
 [project]
 name = "phantomprobe"
-version = "0.8.0"
-description = "Reconnaissance Scanner for Penetration Testing"
+dynamic = ["version"]
+description = "Passive-first reconnaissance scanner for penetration testers and bug bounty hunters"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 requires-python = ">=3.8"
 authors = [
-    {name = "Ravel226", email = "ravel@example.com"}
+    { name = "Ravel226", email = "86806675+Ravel226@users.noreply.github.com" },
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Information Technology",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Security",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
 ]
-keywords = ["security", "reconnaissance", "penetration-testing", "cve", "scanner"]
+keywords = [
+    "security", "reconnaissance", "penetration-testing", "bug-bounty",
+    "cve", "osint", "scanner", "dns", "subdomain-takeover",
+]
 
+# The core scanner runs on the standard library alone. Every dependency below
+# is optional and belongs to one feature, so a default install stays small.
 dependencies = []
 
 [project.optional-dependencies]
-screenshot = ["playwright>=1.40.0"]
+# Interactive dashboard. uvicorn needs websockets to serve the live-update WS.
 dashboard = ["fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0"]
-burp = ["requests>=2.25.0", "websockets>=11.0"]
-all = ["playwright>=1.40.0", "fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0", "requests>=2.25.0"]
-dev = ["pytest>=7.0", "pytest-cov>=4.0", "black>=23.0", "flake8>=6.0", "isort>=5.12", "bandit>=1.7"]
+# Full-page screenshots.
+screenshot = ["playwright>=1.40.0"]
+# Burp Professional REST integration (HTTP only, no websockets).
+burp = ["requests>=2.25.0"]
+# Everything a user-facing feature can need.
+all = [
+    "fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0",
+    "playwright>=1.40.0", "requests>=2.25.0",
+]
+# Contributor tooling. See also requirements-dev.txt.
+dev = [
+    "pytest>=7.0", "pytest-cov>=4.0",
+    "black>=23.0", "flake8>=6.0", "isort>=5.12", "bandit>=1.7",
+]
 
 [project.scripts]
 phantomprobe = "phantomprobe.cli:main"
@@ -43,6 +62,11 @@ Homepage = "https://github.com/Ravel226/PhantomProbe"
 Repository = "https://github.com/Ravel226/PhantomProbe"
 Issues = "https://github.com/Ravel226/PhantomProbe/issues"
 
+# Single source of truth for the version: the package's own __version__, so the
+# distribution metadata can never drift from what the running code reports.
+[tool.hatch.version]
+path = "src/phantomprobe/constants.py"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/phantomprobe"]
 
@@ -50,7 +74,9 @@ packages = ["src/phantomprobe"]
 include = [
     "/src",
     "/tests",
+    "/scripts",
     "/README.md",
+    "/CONTRIBUTING.md",
     "/LICENSE",
 ]
 

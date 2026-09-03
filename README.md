@@ -1,136 +1,30 @@
 # PhantomProbe
 
-**Reconnaissance Scanner for Penetration Testing**
+**Passive-first reconnaissance scanner for penetration testers and bug bounty hunters.**
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Tests](https://img.shields.io/badge/tests-264%20passing-brightgreen.svg)](tests/)
 
-PhantomProbe is a lightweight vulnerability reconnaissance scanner for penetration testers and security researchers. It performs passive and active analysis, correlates findings with known CVEs, captures visual documentation, discovers JavaScript secrets, and provides an interactive web dashboard.
+PhantomProbe maps a target's attack surface and reports what is actually wrong
+with it. The core runs on the Python standard library alone, so a default
+install has no dependencies and starts in one command. Optional features (a web
+dashboard, screenshots, a Burp bridge) each pull in their own packages and
+nothing else.
 
-## v0.8.0 - Burp Suite Integration & Docker Support
+Two ideas run through it:
 
-New features:
-- **Burp Suite Integration** - Burp Professional REST API support
-  - Run a Burp crawl and audit from the command line
-  - Import the resulting issues into the PhantomProbe report
-  - Generate a starter Burp extension
-- **Full Docker Support** - Multi-stage builds with compose profiles
-  - Core edition (lightweight)
-  - Dashboard edition (interactive)
-  - Full edition (all features)
-  - Development mode with hot-reload
+- **Observe before you touch.** Everything except the opt-in `--aggressive`
+  phase either reads what the target already sends or resolves DNS. Records that
+  the standard library cannot reach, such as TXT, MX and DNSKEY, are fetched
+  over DNS-over-HTTPS rather than by adding a DNS dependency.
+- **Say something only when it means something.** Severities are set by what a
+  finding buys an attacker today, not by dated checklists. A missing `SameSite`
+  is hardening; a session cookie readable by script is not. A CVE that CISA
+  lists as exploited outranks a higher-scored one nobody uses. On a
+  well-configured target, PhantomProbe stays quiet.
 
-### v0.7.0 - Interactive Web Dashboard
-
-New features:
-- **Interactive Web Dashboard** - FastAPI-based real-time visualization
-- Live WebSocket updates during scans
-- Severity-based filtering and statistics
-- Dark theme UI optimized for security work
-- CVE correlation visualization
-- Finding evidence viewer with expandable details
-
-## Features
-
-### Phase 1 - Passive Reconnaissance
-- DNS Analysis - A/AAAA records, reverse DNS, wildcard detection
-- Email security - SPF, DMARC and DKIM, resolved over DNS-over-HTTPS so the
-  core stays dependency-free. Missing SPF or DMARC lets anyone put the domain
-  in a From: header, which is the cheapest phishing route into an organisation
-- CAA and DNSSEC - Certificate issuance restrictions and zone signing, reported
-  as hardening rather than as vulnerabilities
-- SSL/TLS Analysis - Certificate info, expiry checks, weak ciphers, deprecated TLS
-- HTTP Headers - Security headers, information disclosure
-- HSTS preload eligibility - Judged against hstspreload.org's current one-year
-  max-age floor, not the 10886400 older guidance still quotes
-- Redirect chain - Walks the hops by hand; flags plain HTTP that never reaches
-  HTTPS, and redirects that leave the target host
-- security.txt - RFC 9116 disclosure contact, reported as information
-- WAF/CDN detection - Passive header and cookie fingerprinting of 35 WAFs,
-  using the wafw00f signature set; reuses the header fetch, sends nothing extra
-- Cookie security - Secure, HttpOnly and SameSite attributes, with severity set
-  by what each one buys today: a session cookie readable by script outranks a
-  tracking one, and a missing SameSite is hardening rather than a hole
-
-### Phase 2 - Active Reconnaissance
-- Port scanning - Common ports with service identification
-- Subdomain enumeration - 198 curated subdomains, with the CNAME target of
-  each hit resolved so third-party dependencies are visible
-- Technology fingerprinting - Server and framework detection
-- Subdomain takeover - Dangling-CNAME detection against a two-signal check,
-  using fingerprints from [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz)
-
-### Phase 3 - Active Vulnerability Probing (opt-in, `--aggressive`)
-
-Off by default, because unlike the rest of the scanner these checks send
-crafted requests to the target. All four are non-destructive: no request
-rewriting, no writes, no flooding. Run them only where you are authorized.
-
-- CORS - Sends a hostile Origin and reads the response. A reflected origin with
-  credentials is high; a bare `*`, which browsers already block from
-  credentialed use, is not reported at all
-- Open redirect - Probes common redirect parameters on the root path; a hit is
-  a Location header pointing off-site
-- HTTP parameter pollution - Flags only a status-code change on a duplicated
-  parameter, not a length wobble, and files it as an informational hint
-- S3 buckets - Guesses bucket names from the domain and reads them; a public
-  listing is high, a private-but-present bucket is recon context
-
-Request smuggling is deliberately excluded: a faithful probe desyncs the
-connection and can affect other users of a shared server, which belongs in a
-dedicated tool under a scoped engagement.
-
-### CVE Correlation
-- Matches technologies to known CVEs through the NVD API, covering 74 products:
-  web servers and proxies, application frameworks, client-side libraries, CMSes
-  and the services a port scan turns up. Every vendor/product pair was checked
-  against NVD before being added, since a wrong one returns a clean 200 with no
-  results rather than an error
-- Correlates only where a banner gave a version, since asking NVD for a bare
-  product name returns every CVE ever filed against it, most long since fixed.
-  Products seen without a version are listed as skipped rather than guessed at
-- CVSS score-based filtering (>= 7.0), reading v4.0, v3.1, v3.0 or v2 scores
-- Reports the first fixed release for each match where NVD records one
-- Flags exploitation with CISA KEV (actively exploited in the wild, with a
-  ransomware marker) and EPSS (probability of exploitation), both free and
-  keyless. An exploited CVE is ranked above a higher-scored dormant one
-
-#### Keeping the CPE table honest
-
-A wrong vendor fails silently: NVD answers 200 with no results, so a broken
-mapping is indistinguishable from a clean target. Vendors also drift, which is
-why nginx is filed under `f5` today. Re-check the table with:
-
-```bash
-python scripts/audit_cpe_mapping.py                   # the whole table
-python scripts/audit_cpe_mapping.py --tech nginx php  # a few entries
-python scripts/audit_cpe_mapping.py --check f5:nginx  # try a candidate pair
-```
-
-It exits non-zero if any mapping matches nothing. Set `NVD_API_KEY` to run it
-in under a minute instead of about nine.
-
-### Screenshot Capture
-- Full-page or viewport screenshots
-- Headless Chromium via Playwright
-- HTTPS bypass for testing environments
-
-### JavaScript Analysis
-- Extract API endpoints from JS files
-- Detect exposed secrets (API keys, tokens, AWS keys)
-- Find hidden paths and admin routes
-- Identify potential vulnerabilities in client code
-
-### Web Dashboard
-- Real-time scan visualization
-- Severity-based statistics cards
-- Interactive findings table
-- CVE correlation view
-- WebSocket live updates
-- Dark theme for long sessions
-
-## Quick Start
+## Quick start
 
 ```bash
 git clone https://github.com/Ravel226/PhantomProbe.git
@@ -139,372 +33,284 @@ pip install -e .
 phantomprobe example.com
 ```
 
-## Installation
-
-### Basic (core features, dependency-free)
-
-The core scanner runs on the Python standard library alone.
+That first scan is entirely passive. Add phases as you need them:
 
 ```bash
-pip install -e .
-phantomprobe example.com
+phantomprobe example.com --phase2                 # active recon (ports, subdomains, takeover)
+phantomprobe example.com --phase2 --cve           # correlate versions to CVEs (KEV/EPSS ranked)
+phantomprobe example.com --phase2 --cve --js      # add JavaScript endpoint/secret discovery
+phantomprobe example.com --phase2 --aggressive    # opt-in active probes (authorized targets only)
+phantomprobe example.com --phase2 --cve --dashboard   # serve results in the web UI
 ```
 
-You can also run it without installing:
+Every scan writes `report-<target>.md` and `report-<target>.json` to the
+`--output-dir` (default: the current directory).
+
+## Installation
+
+The core scanner is dependency-free. Install extras only for the features you
+want; `pip install -e .` is enough for a full passive and active scan.
+
+| Command | Adds |
+|---------|------|
+| `pip install -e .` | Core scanner (no dependencies) |
+| `pip install -e ".[dashboard]"` | Interactive web dashboard (FastAPI, uvicorn) |
+| `pip install -e ".[screenshot]"` | Full-page screenshots (Playwright) |
+| `pip install -e ".[burp]"` | Burp Professional REST integration (requests) |
+| `pip install -e ".[all]"` | Every feature above |
+
+Screenshots need the browser as well as the package:
+
+```bash
+pip install -e ".[screenshot]"
+playwright install chromium
+```
+
+Run it without installing at all, straight from a checkout:
 
 ```bash
 PYTHONPATH=src python -m phantomprobe example.com
 ```
 
-### With the dashboard
+## What it checks
+
+### Phase 1: passive (always on)
+
+Reads what the target already sends and resolves DNS. No probing.
+
+- **DNS** - A/AAAA records, reverse DNS, wildcard detection
+- **SSL/TLS** - certificate details and expiry, weak ciphers, deprecated TLS versions
+- **Security headers** - the six response headers that harden a browser session (CSP, HSTS, X-Frame-Options and the rest)
+- **Cookies** - `Secure`, `HttpOnly` and `SameSite`, weighted by whether a
+  cookie looks like a session or a tracker
+- **Email security** - SPF, DMARC and DKIM over DoH. Missing SPF or DMARC lets
+  anyone forge mail from the domain, the cheapest phishing route into an org
+- **CAA and DNSSEC** - certificate-issuance restrictions and zone signing,
+  reported as hardening
+- **HSTS preload eligibility** - judged against hstspreload.org's current
+  one-year `max-age` floor
+- **Redirect chain** - flags plain HTTP that never reaches HTTPS, and redirects
+  that leave the target host
+- **security.txt** - the RFC 9116 disclosure contact
+
+### Phase 2: active reconnaissance (`--phase2`)
+
+- **Port scan** - common service ports, concurrently
+- **Subdomain enumeration** - common-name discovery
+- **Technology fingerprinting** - server and framework detection
+- **Subdomain takeover** - dangling-CNAME detection against a two-signal check
+  (the CNAME must point at a known service *and* the service must report the
+  resource unclaimed), using the [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz)
+  fingerprints. Disable with `--no-takeover`.
+- **WAF / CDN** - passive fingerprinting of 35 WAFs from the wafw00f signature set
+
+### CVE correlation (`--cve`)
+
+Matches fingerprinted technology versions to NVD, across 74 products whose CPE
+vendor/product pairs were each verified against the live API before being added
+(a wrong vendor returns a clean empty result, so it fails silently). It only
+correlates where a banner gave a version, reads CVSS v4.0/v3.1/v3.0/v2 scores,
+and enriches every match with:
+
+- **CISA KEV** - whether the CVE is exploited in the wild, with a ransomware marker
+- **EPSS** - the probability of exploitation in the next 30 days
+
+An exploited CVE is ranked above a higher-scored dormant one. Keep the CPE table
+honest as vendors change hands:
 
 ```bash
-pip install -e ".[dashboard]"
-phantomprobe example.com --dashboard
+python scripts/audit_cpe_mapping.py            # re-check every mapping against NVD
 ```
 
-### With screenshots
+### Phase 3: active vulnerability probing (`--aggressive`, opt-in)
 
-```bash
-pip install -e ".[screenshot]"
-playwright install chromium
-phantomprobe example.com --screenshot
-```
+Off by default, and it prints an authorization notice when it runs, because
+these checks send crafted requests to the target rather than observing it. All
+four are non-destructive.
 
-### Everything
+- **CORS** - a reflected origin with credentials is high; a bare `*`, which
+  browsers already block from credentialed use, is not reported
+- **Open redirect** - common redirect parameters on the root path
+- **HTTP parameter pollution** - flags a status-code change on a duplicated
+  parameter, filed as an informational hint
+- **S3 buckets** - guesses bucket names from the domain; a public listing is high
 
-```bash
-pip install -e ".[all]"
-```
+Request smuggling is deliberately excluded: a faithful probe desyncs the
+connection and can affect other users of a shared server, which belongs in a
+dedicated tool under a scoped engagement.
 
-## Usage
+### Other features
 
-```bash
-# Basic scan (Phase 1 - passive only)
-phantomprobe example.com
+- **JavaScript analysis** (`--js`) - extracts API endpoints, exposed secrets
+  (API keys, tokens, AWS keys) and hidden paths from linked scripts
+- **Screenshot** (`--screenshot`) - a full-page capture via headless Chromium
+- **Burp Professional** (`--burp`) - runs a Burp scan and imports its issues; see below
 
-# Add active reconnaissance (ports, subdomains, fingerprinting)
-phantomprobe example.com --phase2
-
-# Add CVE matching
-phantomprobe example.com --phase2 --cve
-
-# Add a screenshot
-phantomprobe example.com --phase2 --cve --screenshot
-
-# Add JavaScript analysis
-phantomprobe example.com --phase2 --cve --screenshot --js
-
-# Add active vulnerability probing (only where authorized)
-phantomprobe example.com --phase2 --aggressive
-
-# Serve the interactive dashboard when the scan finishes
-phantomprobe example.com --phase2 --cve --js --dashboard
-```
-
-Equivalent module form, if you prefer not to install the console script:
-
-```bash
-python -m phantomprobe example.com --phase2
-```
-
-### Dashboard on its own
-
-To serve an empty dashboard (and the `/api/*` endpoints) without running a scan:
-
-```bash
-uvicorn phantomprobe.asgi:app --host 127.0.0.1 --port 8080
-```
-
-Output files (written to `--output-dir`, default `.`):
-- `report-example.com.md` - Markdown report
-- `report-example.com.json` - JSON report with CVE data
-- `screenshot-example.com.png` - Website screenshot (with `--screenshot`)
-- Dashboard at `http://127.0.0.1:8080` (with `--dashboard`)
-
-## Docker Usage
-
-### Quick Start
-
-```bash
-# Clone repository
-git clone https://github.com/Ravel226/PhantomProbe.git
-cd PhantomProbe
-
-# Run with Docker Compose
-docker-compose --profile dashboard up
-
-# Or use Docker directly
-docker build -t phantomprobe .
-mkdir -p reports
-docker run -p 8080:8080 -v $(pwd)/reports:/app/reports phantomprobe target.com --dashboard
-```
-
-The container runs as uid 1000. If your host directory is owned by a different
-uid, the scan fails with `Permission denied` when writing its reports; run it as
-yourself instead:
-
-```bash
-docker run --user "$(id -u):$(id -g)" -v $(pwd)/reports:/app/reports \
-  phantomprobe target.com
-```
-
-### Docker Compose Profiles
-
-```bash
-# Core edition (lightweight, CLI only)
-docker-compose --profile core up phantomprobe-core
-
-# Dashboard edition
-# Runs at http://localhost:8080
-docker-compose --profile dashboard up phantomprobe-dashboard
-
-# Full edition (all features, larger image)
-docker-compose --profile full up phantomprobe-full
-
-# Development mode: serves the dashboard and reloads on source changes
-# (mounts ./src, so edits apply without rebuilding the image)
-docker-compose --profile dev up phantomprobe-dev
-
-# Dashboard API only, no scan (serves phantomprobe.asgi:app)
-docker-compose --profile api up phantomprobe-api
-
-# With Burp Suite integration
-docker-compose --profile burp up phantomprobe-burp
-```
-
-The compose services bind the dashboard to `0.0.0.0` via
-`PHANTOMPROBE_DASHBOARD_HOST` so it is reachable through the published port.
-
-### Environment Configuration
-
-```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit .env with your settings
-vim .env
-
-# Run with environment file
-docker-compose --profile dashboard --env-file .env up
-```
-
-## Burp Suite Integration
-
-PhantomProbe can run a scan in Burp Professional and pull its issues into the
-same report as the rest of the scan. Burp's REST API only scans, so results flow
-one way: there is no endpoint for pushing findings back into Burp or for driving
-the proxy, and PhantomProbe does not claim to do either.
-
-### Prerequisites
-
-1. Burp Suite Professional (this is the local REST API, not the Enterprise
-   GraphQL API)
-2. Settings > Suite > REST API: enable the service
-3. Create an API key on that same screen and copy it, since Burp shows the value
-   only once
-4. `pip install "phantomprobe[burp]"`
-
-### Configuration
-
-```bash
-export BURP_API_KEY=your-api-key
-export BURP_API_URL=http://127.0.0.1:1337   # only if you moved the service
-```
-
-The key is a path prefix rather than a header: Burp serves the whole API under
-`http://127.0.0.1:1337/<your-key>/v0.1/`. Opening that URL in a browser gives
-you the API documentation for your exact Burp version.
-
-### Usage
-
-```bash
-phantomprobe target.com --burp
-
-# An audit usually needs much longer than the 300s default
-phantomprobe target.com --burp --burp-timeout 1800
-```
-
-PhantomProbe queues a crawl and audit on `https://<target>`, polls until Burp
-reports the scan finished, and converts each issue into a finding that lands in
-the Markdown and JSON reports alongside its own. If the scan is still running
-when the timeout expires, whatever Burp has found so far is still imported.
-
-### Burp Extension
-
-The starter extension is unrelated to the REST API: it runs inside Burp itself.
-
-```python
-from phantomprobe import BurpSuiteEngine
-
-BurpSuiteEngine.generate_extension_template("burp_extension.py")
-```
-
-Burp runs Python extensions on Jython 2.7, so the generated file is Python 2.
-Install it under Extensions > Installed > Add, with extension type Python.
-
-## CLI Options
+## CLI options
 
 | Flag | Description |
 |------|-------------|
-| `-a`, `--phase2` | Enable active reconnaissance (ports, subdomains, fingerprinting, takeover) |
-| `--no-takeover` | Skip the takeover check (it queries DoH + third-party services) |
-| `--aggressive` | Phase 3 active probes (CORS, open redirect, HPP, S3). Sends crafted requests; authorized targets only |
-| `-c`, `--cve` | Enable CVE matching via the NVD API |
-| `-s`, `--screenshot` | Capture website screenshot (requires Playwright) |
-| `-j`, `--js` | JavaScript analysis for secrets/endpoints |
-| `-b`, `--burp` | Run a Burp Professional scan and import its issues |
+| `-a`, `--phase2` | Active recon: ports, subdomains, fingerprinting, takeover |
+| `--no-takeover` | Skip the takeover check (it queries DoH and third-party services) |
+| `--aggressive` | Phase 3 active probes. Sends crafted requests; authorized targets only |
+| `-c`, `--cve` | CVE correlation via NVD, ranked by KEV and EPSS |
+| `-s`, `--screenshot` | Full-page screenshot (needs `[screenshot]`) |
+| `-j`, `--js` | JavaScript endpoint and secret discovery |
+| `-b`, `--burp` | Run a Burp Professional scan and import its issues (needs `[burp]`) |
 | `--burp-timeout SECONDS` | How long to wait for the Burp scan (default: 300) |
-| `-d`, `--dashboard` | Launch the interactive web dashboard |
-| `-v`, `--verbose` | Show detailed output |
+| `-d`, `--dashboard` | Serve the interactive web dashboard (needs `[dashboard]`) |
 | `--output-dir DIR` | Where to write reports and screenshots (default: `.`) |
-| `--dashboard-host HOST` | Dashboard bind address (default: `$PHANTOMPROBE_DASHBOARD_HOST` or `127.0.0.1`) |
-| `--dashboard-port PORT` | Dashboard port (default: `$PHANTOMPROBE_DASHBOARD_PORT` or `8080`) |
-| `--no-browser` | Do not open a browser when starting the dashboard |
-| `--version` | Print the version and exit |
-
-Run `phantomprobe --help` for the authoritative list.
-
-## Requirements
-
-- **Python 3.8+** (required)
-- **Standard library only** for core reconnaissance - no third-party packages needed
-
-Optional features are installed as extras:
-
-| Extra | Enables | Install |
-|-------|---------|---------|
-| `dashboard` | FastAPI web dashboard | `pip install -e ".[dashboard]"` |
-| `screenshot` | Playwright screenshots | `pip install -e ".[screenshot]"` then `playwright install chromium` |
-| `burp` | Burp Suite REST integration | `pip install -e ".[burp]"` |
-| `all` | Everything above | `pip install -e ".[all]"` |
-| `dev` | Test and lint tooling | `pip install -e ".[dev]"` |
+| `-v`, `--verbose` | Verbose output |
 
 ### Environment variables
 
 | Variable | Purpose |
 |----------|---------|
-| `NVD_API_KEY` | Raises the NVD rate limit from 5 to 50 requests / 30s. Without it, `--cve` throttles to ~1 query every 6.5s. [Request one here](https://nvd.nist.gov/developers/request-an-api-key). |
+| `NVD_API_KEY` | Raises the NVD rate limit from 5 to 50 requests / 30s. Without it, `--cve` throttles to ~1 query every 6.5s. [Request one](https://nvd.nist.gov/developers/request-an-api-key). |
 | `BURP_API_KEY` | Burp REST API key, used by `--burp`. Sent as a URL path prefix. |
 | `BURP_API_URL` | Burp REST service URL (default: `http://127.0.0.1:1337`). |
-| `PHANTOMPROBE_DASHBOARD_HOST` | Dashboard bind address (set to `0.0.0.0` in Docker). |
-| `PHANTOMPROBE_DASHBOARD_PORT` | Dashboard port. |
+| `PHANTOMPROBE_DASHBOARD_HOST` | Dashboard bind address (default: `127.0.0.1`). |
+| `PHANTOMPROBE_DASHBOARD_PORT` | Dashboard port (default: `8080`). |
 
-## Dashboard Preview
+## Reports and dashboard
 
+Each scan writes two reports next to the output directory:
+
+- `report-<target>.md` - a HackerOne-style Markdown report
+- `report-<target>.json` - the same findings as structured JSON, including the
+  CVE matches with their KEV and EPSS fields
+
+The `--dashboard` flag serves the findings in a dark, dense web UI with
+severity filtering, live WebSocket updates, and a CVE table that surfaces which
+matches are actively exploited. Serve an empty dashboard, without running a
+scan, straight from the ASGI app:
+
+```bash
+pip install -e ".[dashboard]"
+uvicorn phantomprobe.asgi:app --host 127.0.0.1 --port 8080
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  PhantomProbe Dashboard                                     │
-│  Target: example.com | Scan Time: 2026-03-02T12:00:00      │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                  │
-│  │  12 │ │  3  │ │  5  │ │  8  │ │ 23  │  Total Findings │
-│  │TOTAL│ │CRIT │ │ HIGH│ │ MED │ │ INFO│                  │
-│  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                  │
-├─────────────────────────────────────────────────────────────┤
-│  Findings                                                  │
-│  ├─ [CRITICAL] CVE-2024-3566 - PHP vulnerability            │
-│  ├─ [HIGH]     DNS-AAAA - IPv6 DNS record                   │
-│  └─ ...                                                     │
-├─────────────────────────────────────────────────────────────┤
-│  CVE Matches                                               │
-│  ├─ CVE-2024-3566 (CVSS 9.8) - PHP/8.2.29                 │
-│  └─ ...                                                     │
-└─────────────────────────────────────────────────────────────┘
+
+## Docker
+
+```bash
+git clone https://github.com/Ravel226/PhantomProbe.git
+cd PhantomProbe
+mkdir -p reports
+
+# One-off scan (results land in ./reports)
+docker build -t phantomprobe .
+docker run -v "$(pwd)/reports:/app/reports" phantomprobe example.com --output-dir /app/reports
 ```
+
+The container runs as uid 1000. If your host `reports/` directory is owned by a
+different user, the scan fails with `Permission denied`; run it as yourself with
+`--user "$(id -u):$(id -g)"`.
+
+Compose ships a profile per edition:
+
+```bash
+docker compose --profile core up phantomprobe-core            # CLI only, smallest image
+docker compose --profile dashboard up phantomprobe-dashboard  # dashboard at http://localhost:8080
+docker compose --profile full up phantomprobe-full            # every feature, includes Chromium
+docker compose --profile dev up phantomprobe-dev              # dashboard with source reload
+docker compose --profile api up phantomprobe-api              # dashboard API only, no scan
+docker compose --profile burp up phantomprobe-burp            # with a Burp REST endpoint
+```
+
+## Burp Suite integration
+
+PhantomProbe can run a scan in Burp Professional and pull its issues into the
+same report. Burp's REST API only scans, so results flow one way: there is no
+endpoint for pushing findings back or driving the proxy, and PhantomProbe does
+not pretend to offer either.
+
+1. Burp Professional: enable the REST API under Settings → Suite → REST API
+2. Create an API key on that screen (Burp shows the value only once)
+3. `pip install -e ".[burp]"`
+
+```bash
+export BURP_API_KEY=your-api-key
+phantomprobe target.com --burp --burp-timeout 1800
+```
+
+The key is a URL path prefix, not a header: Burp serves the API under
+`http://127.0.0.1:1337/<your-key>/v0.1/`. Opening that URL in a browser shows
+the API documentation for your exact Burp version.
 
 ## Architecture
 
 ```
-PhantomProbe/
-├── src/phantomprobe/
-│   ├── __init__.py       # Public API
-│   ├── __main__.py       # python -m phantomprobe
-│   ├── cli.py            # Argument parsing and scan orchestration
-│   ├── constants.py      # Version and User-Agent (single source of truth)
-│   ├── models.py         # Finding, Severity
-│   ├── passive.py        # Phase 1: DNS, SSL/TLS, HTTP headers
-│   ├── active.py         # Phase 2: ports, subdomains, fingerprinting
-│   ├── cve.py            # NVD correlation
-│   ├── js.py             # JavaScript endpoint/secret discovery
-│   ├── screenshot.py     # Playwright capture
-│   ├── burp.py           # Burp Suite REST integration
-│   ├── report.py         # Markdown and JSON reports
-│   ├── dashboard.py      # FastAPI dashboard
-│   └── asgi.py           # Standalone ASGI entry point
-├── tests/                # pytest suite
-├── Dockerfile            # Multi-stage build
-├── docker-compose.yml    # Compose profiles
-└── pyproject.toml        # Packaging and tool config
+src/phantomprobe/
+├── cli.py            Argument parsing and scan orchestration
+├── constants.py      Version and User-Agent (single source of truth)
+├── models.py         Finding, Severity
+├── http_client.py    Fetch helper with a URL-scheme allowlist
+├── doh.py            DNS-over-HTTPS resolver (shared)
+│
+├── passive.py        Phase 1: DNS, SSL/TLS, HTTP headers
+├── cookies.py        Cookie security attributes
+├── dns_security.py   SPF, DMARC, DKIM, CAA, DNSSEC
+├── http_checks.py    HSTS preload, redirect chain, security.txt
+│
+├── active.py         Phase 2: ports, subdomains, fingerprinting
+├── takeover.py       Subdomain takeover (two-signal)
+├── waf.py            WAF/CDN fingerprinting
+│
+├── aggressive.py     Phase 3: CORS, open redirect, HPP, S3 (opt-in)
+│
+├── cve.py            NVD correlation + KEV/EPSS enrichment
+├── js.py             JavaScript endpoint/secret discovery
+├── screenshot.py     Playwright capture            (extra: screenshot)
+├── burp.py           Burp REST integration         (extra: burp)
+├── report.py         Markdown and JSON reports
+├── dashboard.py      FastAPI dashboard             (extra: dashboard)
+└── asgi.py           Standalone ASGI entry point   (extra: dashboard)
+
+scripts/audit_cpe_mapping.py   Re-check the CVE table against live NVD
+tests/                         264 tests, network stubbed
 ```
 
 ## Development
 
 ```bash
-pip install -e ".[all,dev]"
+pip install -r requirements-dev.txt   # editable install with all extras + tooling
 
-pytest tests/ -v              # run the test suite
-pytest tests/ --cov=phantomprobe   # with coverage
-black src/ tests/             # format
-flake8 src/ tests/            # lint
-bandit -r src/ -ll            # security scan
+pytest                    # run the suite (network is stubbed; no target needed)
+pytest --cov=phantomprobe # with coverage
+black src tests           # format
+flake8 src tests          # lint
+bandit -r src -ll         # security scan
 ```
 
-## Roadmap
+The test suite stubs every network call, so it runs offline and touches no real
+host. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow.
 
-### v0.8.0 (current)
-- [x] Burp Suite integration
-- [x] Docker support with compose profiles
-- [x] Modular package layout
+## Security notice
 
-### Next
-- [ ] Custom wordlists for subdomain enumeration
-- [ ] CSV/Excel export
-- [ ] Async I/O for the scanning engines
-
-### v1.0.0
-- [ ] Plugin system
-- [ ] Multi-target scanning
-- [ ] CI/CD integration
-- [ ] Webhook notifications
-
-## Security Notice
-
-**Use only on systems you own or have explicit permission to test.**
-
-This tool is designed for authorized penetration testing and security research only. Unauthorized scanning of systems you do not own is illegal and unethical.
+**Use PhantomProbe only against systems you own or are explicitly authorized to
+test.** Passive checks read what a target already exposes, but active
+reconnaissance (`--phase2`) and vulnerability probing (`--aggressive`) send
+traffic to it. Unauthorized scanning is illegal in most jurisdictions.
 
 ## Disclaimer
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
-## Author
+## Credits
 
-- **Ravel226**
-- GitHub: [@Ravel226](https://github.com/Ravel226)
+- CVE data from [NVD](https://nvd.nist.gov/); exploitation data from
+  [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) and
+  [FIRST EPSS](https://www.first.org/epss/)
+- Takeover fingerprints from [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz)
+- WAF signatures derived from [wafw00f](https://github.com/EnableSecurity/wafw00f)
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) file
-
-## Acknowledgments
-
-- CVE data from [NVD](https://nvd.nist.gov/)
-- Inspired by recon-ng and other reconnaissance tools
-- Built with [FastAPI](https://fastapi.tiangolo.com/) for the dashboard
+MIT - see [LICENSE](LICENSE). Author: [@Ravel226](https://github.com/Ravel226).
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-<p align="center">
-  <sub>Built by Ravel226</sub>
-</p>
+Contributions are welcome. Fork, branch, add tests, and open a pull request.
+See [CONTRIBUTING.md](CONTRIBUTING.md).

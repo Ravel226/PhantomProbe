@@ -1,0 +1,9 @@
+# Contributor setup. The core scanner has no runtime dependencies; these are
+# the optional features plus the test and lint tooling.
+#
+#   python -m venv venv && . venv/bin/activate   (Windows: venv\Scripts\activate)
+#   pip install -r requirements-dev.txt
+#
+# This installs PhantomProbe editable with every extra, so there is a single
+# source of truth (pyproject.toml) and nothing to keep in sync here.
+-e .[all,dev]
