@@ -5,37 +5,46 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  # Needed for the action to create the GitHub Release.
+  contents: write
+
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
+    # Map the secret to an env var so a step can test whether it is set:
+    # the secrets context is not available inside an `if` expression.
+    env:
+      PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    
-    - name: Install build dependencies
-      run: |
-        pip install build twine
-    
-    - name: Build package
-      run: |
-        python -m build
-    
-    - name: Upload to PyPI
-      if: startsWith(github.ref, 'refs/tags/')
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        twine upload dist/*
-    
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: dist/*
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build the package
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      # The GitHub Release comes first and always runs, so a missing or bad
+      # PyPI token can no longer swallow the whole release, which is what left
+      # v0.9.0 with no release at all.
+      - name: Create the GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+
+      # PyPI publish is optional: it runs only when a token is configured, and
+      # is the last step so its outcome cannot affect the release above.
+      - name: Publish to PyPI
+        if: env.PYPI_TOKEN != ''
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ env.PYPI_TOKEN }}
+        run: |
+          python -m pip install --upgrade twine
+          twine upload dist/*
