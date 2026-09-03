@@ -1,10 +1,10 @@
-# PhantomProbe v0.8.0 - Multi-stage Docker Build
+# PhantomProbe v0.9.0 - Multi-stage Docker Build
 # Stage 1: Base with core functionality (lightweight)
 FROM python:3.11-slim-bookworm AS phantomprobe-core
 
 LABEL maintainer="Ravel226"
 LABEL description="PhantomProbe - Reconnaissance Scanner for Penetration Testing"
-LABEL version="0.8.0"
+LABEL version="0.9.0"
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

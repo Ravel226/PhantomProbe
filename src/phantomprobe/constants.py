@@ -7,7 +7,7 @@ outbound request. Keep this module dependency-free so any other module can
 import it without risking a circular import.
 """
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 # Sent on every request PhantomProbe makes. Identifying the scanner honestly is
 # deliberate: it lets target owners attribute traffic during authorized tests.
