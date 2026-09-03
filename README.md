@@ -310,6 +310,10 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 MIT - see [LICENSE](LICENSE). Author: [@Ravel226](https://github.com/Ravel226).
 
+## Changelog
+
+Release history and unreleased changes are in [CHANGELOG.md](CHANGELOG.md).
+
 ## Contributing
 
 Contributions are welcome. Fork, branch, add tests, and open a pull request.

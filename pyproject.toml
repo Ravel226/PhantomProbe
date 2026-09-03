@@ -61,6 +61,7 @@ phantomprobe = "phantomprobe.cli:main"
 Homepage = "https://github.com/Ravel226/PhantomProbe"
 Repository = "https://github.com/Ravel226/PhantomProbe"
 Issues = "https://github.com/Ravel226/PhantomProbe/issues"
+Changelog = "https://github.com/Ravel226/PhantomProbe/blob/main/CHANGELOG.md"
 
 # Single source of truth for the version: the package's own __version__, so the
 # distribution metadata can never drift from what the running code reports.
@@ -77,6 +78,7 @@ include = [
     "/scripts",
     "/README.md",
     "/CONTRIBUTING.md",
+    "/CHANGELOG.md",
     "/LICENSE",
 ]
 
