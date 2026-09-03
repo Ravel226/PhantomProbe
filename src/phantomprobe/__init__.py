@@ -7,6 +7,7 @@ lazily so that the dependency-free core keeps working without extras installed.
 """
 
 from .active import ActiveReconEngine
+from .aggressive import AggressiveScanner
 from .cli import main, print_banner
 from .cookies import CookieScanner
 from .constants import BROWSER_USER_AGENT, USER_AGENT, __version__
@@ -29,6 +30,7 @@ __all__ = [
     "Severity",
     "ReconEngine",
     "ActiveReconEngine",
+    "AggressiveScanner",
     "CVE",
     "CVEMatcher",
     "ScreenshotCapture",

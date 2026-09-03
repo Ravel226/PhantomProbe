@@ -61,6 +61,26 @@ New features:
 - Subdomain takeover - Dangling-CNAME detection against a two-signal check,
   using fingerprints from [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz)
 
+### Phase 3 - Active Vulnerability Probing (opt-in, `--aggressive`)
+
+Off by default, because unlike the rest of the scanner these checks send
+crafted requests to the target. All four are non-destructive: no request
+rewriting, no writes, no flooding. Run them only where you are authorized.
+
+- CORS - Sends a hostile Origin and reads the response. A reflected origin with
+  credentials is high; a bare `*`, which browsers already block from
+  credentialed use, is not reported at all
+- Open redirect - Probes common redirect parameters on the root path; a hit is
+  a Location header pointing off-site
+- HTTP parameter pollution - Flags only a status-code change on a duplicated
+  parameter, not a length wobble, and files it as an informational hint
+- S3 buckets - Guesses bucket names from the domain and reads them; a public
+  listing is high, a private-but-present bucket is recon context
+
+Request smuggling is deliberately excluded: a faithful probe desyncs the
+connection and can affect other users of a shared server, which belongs in a
+dedicated tool under a scoped engagement.
+
 ### CVE Correlation
 - Matches technologies to known CVEs through the NVD API, covering 74 products:
   web servers and proxies, application frameworks, client-side libraries, CMSes
@@ -174,6 +194,9 @@ phantomprobe example.com --phase2 --cve --screenshot
 
 # Add JavaScript analysis
 phantomprobe example.com --phase2 --cve --screenshot --js
+
+# Add active vulnerability probing (only where authorized)
+phantomprobe example.com --phase2 --aggressive
 
 # Serve the interactive dashboard when the scan finishes
 phantomprobe example.com --phase2 --cve --js --dashboard
@@ -326,6 +349,7 @@ Install it under Extensions > Installed > Add, with extension type Python.
 |------|-------------|
 | `-a`, `--phase2` | Enable active reconnaissance (ports, subdomains, fingerprinting, takeover) |
 | `--no-takeover` | Skip the takeover check (it queries DoH + third-party services) |
+| `--aggressive` | Phase 3 active probes (CORS, open redirect, HPP, S3). Sends crafted requests; authorized targets only |
 | `-c`, `--cve` | Enable CVE matching via the NVD API |
 | `-s`, `--screenshot` | Capture website screenshot (requires Playwright) |
 | `-j`, `--js` | JavaScript analysis for secrets/endpoints |

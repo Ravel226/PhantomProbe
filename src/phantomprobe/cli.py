@@ -127,6 +127,11 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Skip the subdomain takeover check in phase 2. It "
                              "reaches out to third-party services (DoH and HTTP), "
                              "unlike the rest of the passive-leaning scan.")
+    parser.add_argument("--aggressive", action="store_true",
+                        help="Phase 3: active vulnerability probes (CORS, open "
+                             "redirect, parameter pollution, S3 buckets). These "
+                             "send crafted requests to the target. Off by "
+                             "default; use only where you are authorized.")
     parser.add_argument("-c", "--cve", action="store_true",
                         help="Enable CVE matching via the NVD API")
     parser.add_argument("-s", "--screenshot", action="store_true",
@@ -283,6 +288,17 @@ def main(argv: Optional[List[str]] = None) -> int:
         broadcast_progress("Phase 2: Active Reconnaissance")
         findings.extend(ActiveReconEngine(target).run(
             check_takeover=not args.no_takeover))
+
+    # Phase 3: active vulnerability probing (opt-in, sends crafted requests)
+    if args.aggressive:
+        broadcast_progress("Phase 3: Active Vulnerability Probing")
+        print()
+        print("=" * 60)
+        print("PHASE 3: Active Vulnerability Probing")
+        print("Only run this against systems you are authorized to test.")
+        print("=" * 60)
+        from .aggressive import AggressiveScanner
+        findings.extend(AggressiveScanner(target).run())
 
     # CVE Matching (optional)
     cve_results = []
