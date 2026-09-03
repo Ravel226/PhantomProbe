@@ -55,7 +55,8 @@ New features:
 
 ### Phase 2 - Active Reconnaissance
 - Port scanning - Common ports with service identification
-- Subdomain enumeration - Common subdomain discovery
+- Subdomain enumeration - 198 curated subdomains, with the CNAME target of
+  each hit resolved so third-party dependencies are visible
 - Technology fingerprinting - Server and framework detection
 - Subdomain takeover - Dangling-CNAME detection against a two-signal check,
   using fingerprints from [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz)

@@ -28,9 +28,45 @@ class ActiveReconEngine:
     ]
 
     COMMON_SUBDOMAINS = [
-        'www', 'mail', 'ftp', 'admin', 'blog', 'api', 'dev', 'staging',
-        'test', 'app', 'portal', 'secure', 'vpn', 'cdn', 'static',
-        'assets', 'img', 'images', 'shop', 'store', 'beta', 'demo'
+        # web front doors
+        'www', 'www2', 'web', 'app', 'apps', 'portal', 'secure', 'my',
+        'account', 'accounts', 'login', 'sso', 'auth', 'id', 'oauth',
+        # api and services
+        'api', 'apis', 'api-dev', 'api-staging', 'rest', 'graphql', 'grpc',
+        'gateway', 'service', 'services', 'ws', 'socket', 'rpc',
+        # environments
+        'dev', 'develop', 'development', 'staging', 'stage', 'stg', 'test',
+        'testing', 'qa', 'uat', 'sandbox', 'demo', 'beta', 'alpha', 'preview',
+        'preprod', 'prod', 'production', 'live', 'internal', 'int',
+        # mail
+        'mail', 'smtp', 'imap', 'pop', 'pop3', 'webmail', 'mx', 'mx1', 'mx2',
+        'email', 'exchange', 'autodiscover', 'mailgun', 'newsletter',
+        # infra and ops
+        'vpn', 'remote', 'gitlab', 'git', 'jenkins', 'ci', 'cd', 'build',
+        'deploy', 'monitor', 'monitoring', 'grafana', 'kibana', 'prometheus',
+        'status', 'health', 'metrics', 'logs', 'log', 'jira', 'confluence',
+        'wiki', 'nexus', 'registry', 'docker', 'k8s', 'kubernetes',
+        # data
+        'db', 'database', 'mysql', 'postgres', 'mongo', 'redis', 'sql',
+        'phpmyadmin', 'pma', 'adminer', 'backup', 'backups', 'ftp', 'sftp',
+        'files', 'file', 'share', 'drive', 'cloud', 's3', 'storage',
+        # content and cdn
+        'cdn', 'static', 'assets', 'media', 'img', 'images', 'image', 'video',
+        'download', 'downloads', 'uploads', 'content', 'cache', 'edge',
+        # sites and apps
+        'blog', 'news', 'shop', 'store', 'cart', 'checkout', 'pay', 'payment',
+        'billing', 'support', 'help', 'helpdesk', 'docs', 'documentation',
+        'kb', 'forum', 'community', 'events', 'careers', 'jobs', 'about',
+        # admin surfaces
+        'admin', 'administrator', 'adm', 'panel', 'cpanel', 'webadmin',
+        'dashboard', 'manage', 'management', 'console', 'control',
+        # network
+        'ns', 'ns1', 'ns2', 'ns3', 'dns', 'proxy', 'lb', 'router', 'firewall',
+        'gw', 'dmz', 'ipv4', 'ipv6', 'origin',
+        # regions and misc
+        'us', 'eu', 'uk', 'de', 'asia', 'east', 'west', 'mobile', 'm', 'wap',
+        'go', 'link', 'app1', 'app2', 'web1', 'web2', 'old', 'new', 'legacy',
+        'v1', 'v2', 'stats', 'analytics', 'track', 'ads', 'partner', 'partners',
     ]
 
     TECH_SIGNATURES = {
@@ -112,6 +148,23 @@ class ActiveReconEngine:
         }
         return services.get(port, 'Unknown')
 
+    def _resolve_cnames(self, hosts: List[str]) -> dict:
+        """CNAME target per host, resolved concurrently over DoH."""
+        from . import doh
+
+        def lookup(host):
+            targets = doh.records(host, "CNAME")
+            return host, (targets[0].rstrip(".").lower() if targets else None)
+
+        results = {}
+        if not hosts:
+            return results
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            for host, cname in executor.map(lookup, hosts):
+                if cname:
+                    results[host] = cname
+        return results
+
     def enumerate_subdomains(self, wordlist: List[str] = None) -> List[Finding]:
         """Enumerate common subdomains"""
         findings = []
@@ -138,14 +191,31 @@ class ActiveReconEngine:
         self.subdomain_candidates = [f"{s}.{self.target}" for s in wordlist]
         self.found_subdomains = found_subdomains
 
+        # Resolve where each hit points. A CNAME onto a third party is the
+        # interesting part of a subdomain finding: it names the cloud service
+        # or SaaS the host depends on, which is both recon context and the
+        # same signal the takeover check acts on. Only the hits are resolved,
+        # so the cost stays proportional to what was actually found.
+        cnames = self._resolve_cnames(found_subdomains)
+
         for subdomain in found_subdomains:
+            cname = cnames.get(subdomain)
+            offsite = bool(cname) and not cname.endswith(self.target)
+            evidence = f"{subdomain} exists"
+            if cname:
+                evidence += f"\nCNAME: {cname}"
+                if offsite:
+                    evidence += " (third-party host)"
             findings.append(Finding(
                 id=f"SUBDOMAIN-{subdomain.split('.')[0]}",
                 title=f"Subdomain Found: {subdomain}",
-                description=f"Subdomain {subdomain} resolves",
+                description=(
+                    f"Subdomain {subdomain} resolves"
+                    + (f" via CNAME to {cname}" if cname else "")
+                ),
                 severity=Severity.INFORMATIONAL,
                 category="Subdomain Enumeration",
-                evidence=f"{subdomain} exists",
+                evidence=evidence,
                 remediation="N/A - Information gathering",
                 references=["https://en.wikipedia.org/wiki/Subdomain"],
                 discovered_at=datetime.now().isoformat(),

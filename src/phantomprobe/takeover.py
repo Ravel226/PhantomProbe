@@ -26,6 +26,7 @@ Fingerprints are the community-maintained set from can-i-take-over-xyz
 runs offline. Only entries the project marks Vulnerable or Edge case are kept.
 """
 
+import concurrent.futures
 import re
 from datetime import datetime
 from typing import List, Optional
@@ -190,10 +191,13 @@ class TakeoverScanner:
         ordered = [h for h in candidates if not (h in seen or seen.add(h))]
 
         print(f"[*] Checking {len(ordered)} host(s) for subdomain takeover...")
-        for host in ordered:
-            finding = self.check_host(host)
-            if finding:
-                self.findings.append(finding)
+        # Every candidate costs a DoH lookup, and the wordlist is now in the
+        # hundreds, so the checks run concurrently. They are independent and
+        # I/O-bound, and the pool is small enough not to hammer the resolvers.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            for finding in executor.map(self.check_host, ordered):
+                if finding:
+                    self.findings.append(finding)
 
         print(f"[+] Subdomain takeover: {len(self.findings)} candidate(s)")
         return self.findings
