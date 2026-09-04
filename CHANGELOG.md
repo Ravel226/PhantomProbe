@@ -4,6 +4,24 @@ All notable changes to PhantomProbe are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-09-04
+
+### Fixed
+
+- **The CI was red on every run since the 0.9.0 dashboard redesign.** The docker
+  job's reachability check grepped the served page for a string the redesign
+  removed; it now matches a stable section heading. Local pytest stayed green,
+  which is why it went unnoticed.
+- **The release workflow could swallow itself**: PyPI publish ran first and was
+  mandatory, so a missing token failed the whole run and no GitHub Release was
+  created. The Release is now created first and always; the PyPI publish is last
+  and runs only when a token is configured.
+
+### Changed
+
+- The README leads with `pip install phantomprobe` now that the package is on
+  PyPI, and carries a PyPI version badge.
+
 ## [0.9.0] - 2026-09-03
 
 The first packaged release. It consolidates the earlier single-file prototypes
@@ -72,4 +90,5 @@ against its live source before shipping.
 - All outbound fetches go through a helper enforcing an **http/https scheme
   allowlist**, so a hostile page cannot point the scanner at `file://`.
 
+[0.9.1]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.1
 [0.9.0]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.0
