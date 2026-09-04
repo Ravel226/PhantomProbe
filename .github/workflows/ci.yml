@@ -161,7 +161,9 @@ jobs:
           sleep 1
         done
         curl -fsS -m 5 http://127.0.0.1:8080/api/stats
-        curl -fsS -m 5 http://127.0.0.1:8080/ | grep -q "PhantomProbe Dashboard"
+        # The dashboard redesign moved the name into a wordmark, so match the
+        # section heading, which is stable regardless of the masthead wording.
+        curl -fsS -m 5 http://127.0.0.1:8080/ | grep -q "CVE correlation"
         docker rm -f pp-dash
 
     - name: Build full stage
