@@ -253,6 +253,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # Initialize dashboard server first so scan progress can stream to it.
     dashboard_server = None
+    dashboard_unavailable = False
     if args.dashboard:
         try:
             from .dashboard import DashboardServer, FASTAPI_AVAILABLE
@@ -266,7 +267,13 @@ def main(argv: Optional[List[str]] = None) -> int:
             )
             print("[*] Dashboard will update with scan progress")
         else:
-            print("[!] Dashboard requires: pip install \"phantomprobe[dashboard]\"")
+            # The scan still runs and writes reports; only the dashboard is
+            # skipped. Remembered so the end-of-run summary can say so, since
+            # this line scrolls out of view during a long scan.
+            dashboard_unavailable = True
+            print("[!] Dashboard requires the optional dependencies, and the "
+                  "scan will run without it.")
+            print("    Install them with: pip install \"phantomprobe[dashboard]\"")
 
     def broadcast_progress(phase: str, message: str = ""):
         if dashboard_server:
@@ -352,6 +359,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     print(f"Total findings: {len(findings)}")
     if cve_results:
         print(f"CVE matches: {len(cve_results)}")
+    # Always state where the reports landed: the default is the current
+    # directory, and a user who expected a dashboard may not think to look.
+    print("Reports written to:")
+    print(f"  {md_filename}")
+    print(f"  {json_filename}")
+    if dashboard_unavailable:
+        print()
+        print("[!] --dashboard was requested but its dependencies are not "
+              "installed, so no dashboard was served.")
+        print("    Your findings are in the reports above. To use the "
+              "dashboard next time:")
+        print("      pip install \"phantomprobe[dashboard]\"")
     print()
 
     # Launch Dashboard (optional) - blocks until interrupted.

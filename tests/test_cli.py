@@ -150,3 +150,32 @@ class TestConsoleEncoding:
                 capturer.playwright_available = True
                 # Must return None rather than propagating the encode error.
                 assert capturer.capture("example.com") is None
+
+
+class TestDashboardUnavailable:
+    """
+    Requesting --dashboard without the optional deps must not look like a
+    silent failure: the scan still writes its reports, and the run says both
+    where they went and why no dashboard appeared. This mirrors a real user
+    report after a plain `pip install phantomprobe`.
+    """
+
+    def test_scan_completes_and_explains_the_missing_dashboard(self, tmp_path, capsys):
+        import phantomprobe.dashboard as dashboard_module
+
+        with mock.patch.object(cli.ReconEngine, "run", return_value=[]), \
+                mock.patch.object(dashboard_module, "FASTAPI_AVAILABLE", False):
+            code = cli.main([
+                "example.com", "--dashboard", "--no-browser",
+                "--output-dir", str(tmp_path),
+            ])
+
+        assert code == 0
+        # The reports are the fallback deliverable, so they must exist.
+        assert (tmp_path / "report-example.com.md").exists()
+        assert (tmp_path / "report-example.com.json").exists()
+
+        out = capsys.readouterr().out
+        # The user is told where to find them and how to get the dashboard.
+        assert "Reports written to:" in out
+        assert 'pip install "phantomprobe[dashboard]"' in out
