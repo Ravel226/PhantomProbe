@@ -4,6 +4,19 @@ All notable changes to PhantomProbe are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.2] - 2026-09-11
+
+### Fixed
+
+- **A skipped dashboard was silent.** On a plain `pip install phantomprobe`
+  without the `[dashboard]` extra, `--dashboard` correctly skipped the web UI,
+  but the only notice printed once at the start and scrolled away during the
+  scan, so the run looked like it did nothing. The scan always wrote its reports
+  to the current directory, where a user expecting a dashboard would not look.
+  The end-of-run summary now always states where the reports were written, and
+  says plainly when `--dashboard` was requested without its dependencies, with
+  the one command that installs them.
+
 ## [0.9.1] - 2026-09-04
 
 ### Fixed
@@ -90,5 +103,6 @@ against its live source before shipping.
 - All outbound fetches go through a helper enforcing an **http/https scheme
   allowlist**, so a hostile page cannot point the scanner at `file://`.
 
+[0.9.2]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.2
 [0.9.1]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.1
 [0.9.0]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.0
