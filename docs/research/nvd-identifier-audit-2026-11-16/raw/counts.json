@@ -1,0 +1,354 @@
+[
+ {
+  "tech": "redis",
+  "vendor": "redislabs",
+  "product": "redis",
+  "total": 22,
+  "oldest": "2015-06-09",
+  "error": ""
+ },
+ {
+  "tech": "iis",
+  "vendor": "microsoft",
+  "product": "internet_information_services",
+  "total": 93,
+  "oldest": "1996-02-25",
+  "error": ""
+ },
+ {
+  "tech": "node.js",
+  "vendor": "joyent",
+  "product": "node.js",
+  "total": 2,
+  "oldest": "2014-10-08",
+  "error": ""
+ },
+ {
+  "tech": "joomla",
+  "vendor": "joomla",
+  "product": "joomla\\!",
+  "total": 669,
+  "oldest": "2005-12-31",
+  "error": ""
+ },
+ {
+  "tech": "joomla",
+  "vendor": "joomla",
+  "product": "joomla",
+  "total": 215,
+  "oldest": "2005-11-23",
+  "error": ""
+ },
+ {
+  "tech": "jetty",
+  "vendor": "mortbay",
+  "product": "jetty",
+  "total": 11,
+  "oldest": "2005-11-22",
+  "error": ""
+ },
+ {
+  "tech": "jetty",
+  "vendor": "jetty",
+  "product": "jetty",
+  "total": 3,
+  "oldest": "2003-03-31",
+  "error": ""
+ },
+ {
+  "tech": "spring",
+  "vendor": "pivotal_software",
+  "product": "spring_framework",
+  "total": 10,
+  "oldest": "2014-01-26",
+  "error": ""
+ },
+ {
+  "tech": "spring",
+  "vendor": "springsource",
+  "product": "spring_framework",
+  "total": 6,
+  "oldest": "2009-04-27",
+  "error": ""
+ },
+ {
+  "tech": "next.js",
+  "vendor": "zeit",
+  "product": "next.js",
+  "total": 4,
+  "oldest": "2017-11-17",
+  "error": ""
+ },
+ {
+  "tech": "bootstrap",
+  "vendor": "twitter",
+  "product": "bootstrap",
+  "total": 0,
+  "oldest": "",
+  "error": ""
+ },
+ {
+  "tech": "angular",
+  "vendor": "angularjs",
+  "product": "angular.js",
+  "total": 1,
+  "oldest": "2024-02-10",
+  "error": ""
+ },
+ {
+  "tech": "magento",
+  "vendor": "adobe",
+  "product": "magento",
+  "total": 200,
+  "oldest": "2020-02-25",
+  "error": ""
+ },
+ {
+  "tech": "magento",
+  "vendor": "adobe",
+  "product": "commerce",
+  "total": 223,
+  "oldest": "2021-10-15",
+  "error": ""
+ },
+ {
+  "tech": "confluence",
+  "vendor": "atlassian",
+  "product": "confluence_server",
+  "total": 50,
+  "oldest": "2012-05-22",
+  "error": ""
+ },
+ {
+  "tech": "confluence",
+  "vendor": "atlassian",
+  "product": "confluence_data_center",
+  "total": 40,
+  "oldest": "2019-02-13",
+  "error": ""
+ },
+ {
+  "tech": "confluence",
+  "vendor": "atlassian",
+  "product": "confluence",
+  "total": 19,
+  "oldest": "2005-12-03",
+  "error": ""
+ },
+ {
+  "tech": "jira",
+  "vendor": "atlassian",
+  "product": "jira_server",
+  "total": 136,
+  "oldest": "2016-01-08",
+  "error": ""
+ },
+ {
+  "tech": "jira",
+  "vendor": "atlassian",
+  "product": "jira_data_center",
+  "total": 81,
+  "oldest": "2019-04-30",
+  "error": ""
+ },
+ {
+  "tech": "jira",
+  "vendor": "atlassian",
+  "product": "jira",
+  "total": 143,
+  "oldest": "2006-07-03",
+  "error": ""
+ },
+ {
+  "tech": "jenkins",
+  "vendor": "cloudbees",
+  "product": "jenkins",
+  "total": 9,
+  "oldest": "2012-03-09",
+  "error": ""
+ },
+ {
+  "tech": "elasticsearch",
+  "vendor": "elasticsearch",
+  "product": "elasticsearch",
+  "total": 4,
+  "oldest": "2014-10-10",
+  "error": ""
+ },
+ {
+  "tech": "kibana",
+  "vendor": "elasticsearch",
+  "product": "kibana",
+  "total": 3,
+  "oldest": "2017-09-29",
+  "error": ""
+ },
+ {
+  "tech": "rabbitmq",
+  "vendor": "vmware",
+  "product": "rabbitmq",
+  "total": 6,
+  "oldest": "2019-11-22",
+  "error": ""
+ },
+ {
+  "tech": "rabbitmq",
+  "vendor": "vmware",
+  "product": "rabbitmq_server",
+  "total": 0,
+  "oldest": "",
+  "error": ""
+ },
+ {
+  "tech": "rabbitmq",
+  "vendor": "broadcom",
+  "product": "rabbitmq_server",
+  "total": 79,
+  "oldest": "2015-01-27",
+  "error": ""
+ },
+ {
+  "tech": "rabbitmq",
+  "vendor": "pivotal_software",
+  "product": "rabbitmq",
+  "total": 11,
+  "oldest": "2015-01-20",
+  "error": ""
+ },
+ {
+  "tech": "traefik",
+  "vendor": "containous",
+  "product": "traefik",
+  "total": 1,
+  "oldest": "2021-02-18",
+  "error": ""
+ },
+ {
+  "tech": "varnish",
+  "vendor": "varnish-software",
+  "product": "varnish_cache",
+  "total": 7,
+  "oldest": "2017-08-04",
+  "error": ""
+ },
+ {
+  "tech": "varnish",
+  "vendor": "varnish-cache",
+  "product": "varnish",
+  "total": 3,
+  "oldest": "2013-11-01",
+  "error": ""
+ },
+ {
+  "tech": "laravel",
+  "vendor": "laravel",
+  "product": "framework",
+  "total": 9,
+  "oldest": "2019-03-28",
+  "error": ""
+ },
+ {
+  "tech": "laravel",
+  "vendor": "laravel",
+  "product": "laravel",
+  "total": 11,
+  "oldest": "2017-05-29",
+  "error": ""
+ },
+ {
+  "tech": "rails",
+  "vendor": "rubyonrails",
+  "product": "ruby_on_rails",
+  "total": 50,
+  "oldest": "2006-08-14",
+  "error": ""
+ },
+ {
+  "tech": "symfony",
+  "vendor": "symfony",
+  "product": "symfony",
+  "total": 0,
+  "oldest": "",
+  "error": ""
+ },
+ {
+  "tech": "nuxt",
+  "vendor": "nuxtjs",
+  "product": "nuxt.js",
+  "total": 1,
+  "oldest": "2019-07-11",
+  "error": ""
+ },
+ {
+  "tech": "ghost",
+  "vendor": "tryghost",
+  "product": "ghost",
+  "total": 0,
+  "oldest": "",
+  "error": ""
+ },
+ {
+  "tech": "memcached",
+  "vendor": "danga",
+  "product": "memcached",
+  "total": 0,
+  "oldest": "",
+  "error": ""
+ },
+ {
+  "tech": "vsftpd",
+  "vendor": "beasts",
+  "product": "vsftpd",
+  "total": 2,
+  "oldest": "2004-02-03",
+  "error": ""
+ },
+ {
+  "tech": "exim",
+  "vendor": "university_of_cambridge",
+  "product": "exim",
+  "total": 10,
+  "oldest": "1997-07-22",
+  "error": ""
+ },
+ {
+  "tech": "docker",
+  "vendor": "docker",
+  "product": "engine",
+  "total": 6,
+  "oldest": "2019-01-12",
+  "error": ""
+ },
+ {
+  "tech": "docker",
+  "vendor": "mobyproject",
+  "product": "moby",
+  "total": 21,
+  "oldest": "2017-11-04",
+  "error": ""
+ },
+ {
+  "tech": "docker",
+  "vendor": "docker",
+  "product": "docker",
+  "total": 55,
+  "oldest": "2014-07-11",
+  "error": ""
+ },
+ {
+  "tech": "litespeed",
+  "vendor": "litespeedtech",
+  "product": "openlitespeed",
+  "total": 12,
+  "oldest": "2017-09-20",
+  "error": ""
+ },
+ {
+  "tech": "express",
+  "vendor": "expressjs",
+  "product": "express",
+  "total": 0,
+  "oldest": "",
+  "error": ""
+ }
+]

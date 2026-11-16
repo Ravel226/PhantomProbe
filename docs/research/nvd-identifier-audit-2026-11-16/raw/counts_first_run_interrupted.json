@@ -1,0 +1,101 @@
+[
+ {
+  "tech": "nginx",
+  "vendor": "f5",
+  "product": "nginx",
+  "total": 41,
+  "error": "",
+  "oldest": "2009-09-15",
+  "oldest_id": "CVE-2009-2629",
+  "newest": "2025-02-05",
+  "newest_id": "CVE-2025-23419"
+ },
+ {
+  "tech": "nginx",
+  "vendor": "f5",
+  "product": "nginx_open_source",
+  "total": 26,
+  "error": "",
+  "oldest": "2024-02-14",
+  "oldest_id": "CVE-2024-24989",
+  "newest": "2026-07-15",
+  "newest_id": "CVE-2026-60005"
+ },
+ {
+  "tech": "nginx",
+  "vendor": "nginx",
+  "product": "nginx",
+  "total": 2,
+  "error": "",
+  "oldest": "2009-11-24",
+  "oldest_id": "CVE-2009-3896",
+  "newest": "2009-11-24",
+  "newest_id": "CVE-2009-3898"
+ },
+ {
+  "tech": "mysql",
+  "vendor": "oracle",
+  "product": "mysql",
+  "total": 1328,
+  "error": "",
+  "oldest": "1998-12-27",
+  "oldest_id": "CVE-1999-1188",
+  "newest": "2026-04-21",
+  "newest_id": "CVE-2026-34319"
+ },
+ {
+  "tech": "mysql",
+  "vendor": "mysql",
+  "product": "mysql",
+  "total": 94,
+  "error": "",
+  "oldest": "2003-09-22",
+  "oldest_id": "CVE-2003-0780",
+  "newest": "2017-10-27",
+  "newest_id": "CVE-2017-15945"
+ },
+ {
+  "tech": "mysql",
+  "vendor": "oracle",
+  "product": "mysql_server",
+  "total": 348,
+  "error": "",
+  "oldest": "2019-02-06",
+  "oldest_id": "CVE-2019-3822",
+  "newest": "2026-10-20",
+  "newest_id": "CVE-2026-101781"
+ },
+ {
+  "tech": "redis",
+  "vendor": "redis",
+  "product": "redis",
+  "total": 46,
+  "error": "",
+  "oldest": "2021-10-04",
+  "oldest_id": "CVE-2021-32626",
+  "newest": "2026-05-05",
+  "newest_id": "CVE-2026-25243"
+ },
+ {
+  "tech": "redis",
+  "vendor": "redislabs",
+  "product": "redis",
+  "total": 22,
+  "error": "",
+  "oldest": "2015-06-09",
+  "oldest_id": "CVE-2015-4335",
+  "newest": "2021-09-20",
+  "newest_id": "CVE-2020-21468"
+ },
+ {
+  "tech": "node.js",
+  "vendor": "nodejs",
+  "product": "node.js",
+  "total": 189,
+  "error": "",
+  "oldest": "2013-07-31",
+  "oldest_id": "CVE-2013-2882",
+  "newest": "2026-10-22",
+  "newest_id": "CVE-2026-111497"
+ }
+]
