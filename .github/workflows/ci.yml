@@ -8,7 +8,11 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned rather than ubuntu-latest. That label moved to Ubuntu 26.04 in
+    # October 2026, where setup-python has no build of Python 3.8 or 3.9, so
+    # both matrix entries failed before running a single test. 24.04 still
+    # carries every version listed below. Unpin once those two are dropped.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
