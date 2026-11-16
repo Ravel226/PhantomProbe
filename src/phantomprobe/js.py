@@ -69,6 +69,10 @@ class JSEngine:
         r'["\']\.(php|asp|aspx|jsp|cgi|json|xml|yaml|yml|env|conf|config|log)["\']',
     ]
 
+    # A version carried in a script path or CDN URL: jquery-3.6.0.min.js,
+    # react@18.2.0/, /jquery/3.6.0/jquery.min.js.
+    VERSIONED_ASSET = re.compile(r'[-@/_]v?\d+\.\d+')
+
     def __init__(self, target: str):
         self.target = target
         self.findings: List[Finding] = []
@@ -234,6 +238,31 @@ class JSEngine:
                 evidence=f"Path: {path}",
                 remediation="Verify path doesn't expose sensitive functionality",
                 references=["https://owasp.org/www-project-web-security-testing-guide/"],
+                discovered_at=datetime.now().isoformat(),
+                target=self.target
+            ))
+
+        # Versioned script URLs. A client-side library's version is usually
+        # visible only in the path it is served from, and that list was never
+        # recorded, so --cve had nothing to check those libraries against.
+        versioned = sorted(u for u in js_urls if self.VERSIONED_ASSET.search(u))
+        if versioned:
+            self.findings.append(Finding(
+                id="JS-ASSETS",
+                title="Versioned Script Assets",
+                description=(
+                    f"{len(versioned)} script URL(s) carry a version number. "
+                    f"These libraries are served to every visitor, so their "
+                    f"versions are public; --cve checks them against known "
+                    f"vulnerabilities."
+                ),
+                severity=Severity.INFORMATIONAL,
+                # Its own category: the CVE matcher reads these URLs for
+                # client-side libraries only (see CVEMatcher.CLIENT_SIDE_TECH).
+                category="Script Assets",
+                evidence="\n".join(f"Script: {url}" for url in versioned[:40]),
+                remediation="Keep client-side libraries on a supported release.",
+                references=["https://owasp.org/Top10/A06_2021-Vulnerable_and_Outdated_Components/"],
                 discovered_at=datetime.now().isoformat(),
                 target=self.target
             ))

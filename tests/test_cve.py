@@ -59,7 +59,7 @@ def test_api_key_is_sent_as_header(monkeypatch):
         captured["url"] = req.full_url
         raise URLError("stop here")
 
-    monkeypatch.setattr("phantomprobe.cve.safe_urlopen", fake_urlopen)
+    monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", fake_urlopen)
     m.query_nvd("cpe:2.3:a:nginx:nginx:1.0:*:*:*:*:*:*:*", "nginx", "1.0")
 
     # urllib capitalizes header names.
@@ -109,7 +109,7 @@ def test_query_uses_virtual_match_string(matcher, monkeypatch):
         captured["url"] = req.full_url
         raise URLError("stop here")
 
-    monkeypatch.setattr("phantomprobe.cve.safe_urlopen", fake_urlopen)
+    monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", fake_urlopen)
     matcher.query_nvd("cpe:2.3:a:nginx:nginx:1.0:*:*:*:*:*:*:*", "nginx", "1.0")
 
     assert "virtualMatchString=" in captured["url"]
@@ -169,7 +169,7 @@ class _FakeResponse:
 
 def test_query_nvd_parses_cvss_v31(matcher, monkeypatch):
     monkeypatch.setattr(
-        "phantomprobe.cve.safe_urlopen",
+        "phantomprobe.nvd.safe_urlopen",
         lambda req, timeout=None, context=None: _FakeResponse(_nvd_payload()),
     )
 
@@ -188,7 +188,7 @@ def test_rate_limit_error_is_reported_not_swallowed(matcher, monkeypatch, capsys
     def raise_403(req, timeout=None):
         raise HTTPError(req.full_url, 403, "Forbidden", {}, None)
 
-    monkeypatch.setattr("phantomprobe.cve.safe_urlopen", raise_403)
+    monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", raise_403)
     cves = matcher.query_nvd("cpe:2.3:a:nginx:nginx:1.0:*:*:*:*:*:*:*", "nginx", "1.0")
 
     assert cves == []
@@ -197,7 +197,7 @@ def test_rate_limit_error_is_reported_not_swallowed(matcher, monkeypatch, capsys
 
 def test_network_error_is_reported(matcher, monkeypatch, capsys):
     monkeypatch.setattr(
-        "phantomprobe.cve.safe_urlopen",
+        "phantomprobe.nvd.safe_urlopen",
         lambda req, timeout=None, context=None: (_ for _ in ()).throw(URLError("no route")),
     )
 
@@ -210,7 +210,7 @@ def test_malformed_response_is_reported(matcher, monkeypatch, capsys):
         def __init__(self):
             self._payload = b"not json"
 
-    monkeypatch.setattr("phantomprobe.cve.safe_urlopen", lambda req, timeout=None, context=None: _BadResponse())
+    monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", lambda req, timeout=None, context=None: _BadResponse())
 
     assert matcher.query_nvd("cpe:x", "nginx", "1.0") == []
     assert "Malformed NVD response" in capsys.readouterr().out
@@ -268,7 +268,7 @@ def _payload_with_metrics(metrics, configurations=None):
 
 
 def _run_query(matcher, monkeypatch, payload, cpe="cpe:2.3:a:f5:nginx:1.24.0"):
-    monkeypatch.setattr("phantomprobe.cve.safe_urlopen",
+    monkeypatch.setattr("phantomprobe.nvd.safe_urlopen",
                         lambda req, timeout=None: _FakeResponse(payload))
     monkeypatch.setattr(matcher, "_throttle", lambda: None)
     return matcher.query_nvd(cpe, "nginx", "1.24.0")
@@ -475,6 +475,7 @@ class TestExploitationEnrichment:
             return _FakeResponse({"vulnerabilities": [
                 {"cveID": "CVE-1", "knownRansomwareCampaignUse": "Known"}]})
 
+        # The exploitation feeds are fetched by cve.py, not by the NVD client.
         monkeypatch.setattr("phantomprobe.cve.safe_urlopen", fake_open)
         matcher._load_kev()
         matcher._load_kev()
@@ -494,3 +495,555 @@ class TestExploitationEnrichment:
         # 3 ids, batch of 2 -> two requests.
         assert len(seen) == 2
         assert result["CVE-X"] == (0.5, 0.9)
+
+
+# --- Regressions found by checking a known version against live NVD ----------
+
+def _paged_urlopen(total, seen):
+    """A stubbed NVD holding a number of CVEs, honouring startIndex and page size."""
+    from urllib.parse import parse_qs, urlparse
+
+    def fake(req, timeout=None):
+        query = parse_qs(urlparse(req.full_url).query)
+        start = int(query.get("startIndex", ["0"])[0])
+        size = int(query["resultsPerPage"][0])
+        seen.append(start)
+        items = [
+            {"cve": {"id": f"CVE-2024-{n:04d}", "metrics": {},
+                     "descriptions": [], "references": []}}
+            for n in range(start, min(start + size, total))
+        ]
+        return _FakeResponse({"totalResults": total, "startIndex": start,
+                              "resultsPerPage": len(items),
+                              "vulnerabilities": items})
+
+    return fake
+
+
+NGINX_CPE = "cpe:2.3:a:f5:nginx:1.24.0"
+
+
+class TestPagination:
+    """
+    The client read one page of 20 and stopped. NVD sorts oldest first, so for
+    f5:nginx that page ran from 2009 to 2014 and every later CVE was unseen.
+    """
+
+    def test_every_page_is_followed(self, matcher, monkeypatch):
+        seen = []
+        matcher.results_per_page = 2
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", _paged_urlopen(5, seen))
+
+        cves = matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0")
+
+        assert [c.cve_id for c in cves] == [f"CVE-2024-{n:04d}" for n in range(5)]
+        assert seen == [0, 2, 4]
+
+    def test_a_product_with_41_cves_is_read_whole(self, matcher, monkeypatch):
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", _paged_urlopen(41, []))
+
+        cves = matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0")
+
+        assert len(cves) == 41
+        assert cves[-1].cve_id == "CVE-2024-0040"
+
+    def test_a_cut_at_the_cap_is_announced(self, matcher, monkeypatch, capsys):
+        """Stopping early is allowed; stopping early without saying so is not."""
+        matcher.results_per_page = 2
+        monkeypatch.setattr(matcher, "MAX_RESULTS", 4)
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", _paged_urlopen(10, []))
+
+        cves = matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0")
+
+        assert len(cves) == 4
+        assert "first 4 of 10" in capsys.readouterr().out
+
+    def test_an_error_part_way_keeps_what_was_read(self, matcher, monkeypatch, capsys):
+        matcher.results_per_page = 2
+        paged = _paged_urlopen(6, [])
+
+        def fails_on_the_second_page(req, timeout=None):
+            if "startIndex=2" in req.full_url:
+                raise URLError("connection reset")
+            return paged(req, timeout)
+
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", fails_on_the_second_page)
+        cves = matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0")
+
+        assert [c.cve_id for c in cves] == ["CVE-2024-0000", "CVE-2024-0001"]
+        assert "Could not reach NVD" in capsys.readouterr().out
+
+
+class TestBusyNvd:
+    """
+    NVD answers 503 when it is busy, which happened several times in a couple
+    of dozen requests while these fixes were being checked. One bad moment
+    must not make a product look free of CVEs.
+    """
+
+    @staticmethod
+    def _error(req, code):
+        return HTTPError(req.full_url, code, "error", {}, None)
+
+    def test_a_503_is_retried(self, matcher, monkeypatch):
+        calls, pauses = {"n": 0}, []
+
+        def busy_once(req, timeout=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise self._error(req, 503)
+            return _FakeResponse(_nvd_payload())
+
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", busy_once)
+        monkeypatch.setattr(matcher, "_pause", pauses.append)
+        cves = matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0")
+
+        assert [c.cve_id for c in cves] == ["CVE-2024-0001"]
+        assert pauses == [5]
+
+    def test_a_persistent_503_is_reported_after_the_retries(
+            self, matcher, monkeypatch, capsys):
+        pauses = []
+
+        def always_busy(req, timeout=None):
+            raise self._error(req, 503)
+
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", always_busy)
+        monkeypatch.setattr(matcher, "_pause", pauses.append)
+
+        assert matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0") == []
+        assert pauses == [5, 15]
+        assert "NVD HTTP 503" in capsys.readouterr().out
+
+    def test_a_rejected_request_is_not_retried(self, matcher, monkeypatch):
+        """403 is NVD refusing the rate; waiting a few seconds does not fix it."""
+        pauses = []
+
+        def refused(req, timeout=None):
+            raise self._error(req, 403)
+
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", refused)
+        monkeypatch.setattr(matcher, "_pause", pauses.append)
+
+        assert matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0") == []
+        assert pauses == []
+
+    def test_a_read_timeout_does_not_end_the_scan(self, matcher, monkeypatch, capsys):
+        """A timeout reading the body is not a URLError and used to escape."""
+        pauses = []
+
+        def stalls(req, timeout=None):
+            raise TimeoutError("timed out")
+
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", stalls)
+        monkeypatch.setattr(matcher, "_pause", pauses.append)
+
+        assert matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0") == []
+        assert pauses == [5, 15]
+        assert "Connection to NVD failed" in capsys.readouterr().out
+
+    def test_a_stalled_read_is_retried(self, matcher, monkeypatch):
+        """
+        Seen on a live run: the second identifier for nginx timed out
+        mid-body, and its 15 CVEs were lost with only a warning to show for it.
+        """
+        import socket
+
+        calls, pauses = {"n": 0}, []
+
+        def stalls_once(req, timeout=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise socket.timeout("The read operation timed out")
+            return _FakeResponse(_nvd_payload())
+
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", stalls_once)
+        monkeypatch.setattr(matcher, "_pause", pauses.append)
+        cves = matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0")
+
+        assert [c.cve_id for c in cves] == ["CVE-2024-0001"]
+        assert pauses == [5]
+
+    def test_a_connect_timeout_is_retried(self, matcher, monkeypatch):
+        import socket
+
+        calls, pauses = {"n": 0}, []
+
+        def slow_to_connect(req, timeout=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise URLError(socket.timeout("timed out"))
+            return _FakeResponse(_nvd_payload())
+
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", slow_to_connect)
+        monkeypatch.setattr(matcher, "_pause", pauses.append)
+
+        assert len(matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0")) == 1
+        assert pauses == [5]
+
+    def test_an_unreachable_host_is_not_retried(self, matcher, monkeypatch):
+        """A failed lookup fails the same way a moment later."""
+        pauses = []
+        monkeypatch.setattr(
+            "phantomprobe.nvd.safe_urlopen",
+            lambda req, timeout=None: (_ for _ in ()).throw(URLError("no route")),
+        )
+        monkeypatch.setattr(matcher, "_pause", pauses.append)
+
+        assert matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0") == []
+        assert pauses == []
+
+
+def _cve(cve_id, score, severity="HIGH"):
+    return cve_module.CVE(cve_id, severity, score, "d", [], [], [], "", "")
+
+
+def _server_banner(evidence="Server: nginx/1.24.0"):
+    from phantomprobe.models import Finding, Severity
+
+    return Finding(
+        id="INFO-Server", title="Server header", description="",
+        severity=Severity.INFORMATIONAL, category="Information Disclosure",
+        evidence=evidence, remediation="", references=[], discovered_at="",
+        target="example.com",
+    )
+
+
+class TestSiblingIdentifiers:
+    """
+    f5:nginx returns 41 CVEs and looked healthy, yet NVD files the newer nginx
+    CVEs under f5:nginx_open_source. For nginx 1.24.0 the first identifier
+    gave 2 CVEs and the second 15 more, so the scanner showed 1 of the 10
+    scored 7.0 or higher.
+    """
+
+    def test_nginx_is_asked_for_under_both_identifiers(self):
+        assert CVEMatcher().build_cpes("nginx", "1.24.0") == [
+            "cpe:2.3:a:f5:nginx:1.24.0",
+            "cpe:2.3:a:f5:nginx_open_source:1.24.0",
+        ]
+
+    def test_a_technology_without_siblings_has_one_identifier(self):
+        assert CVEMatcher().build_cpes("php", "8.2.29") == ["cpe:2.3:a:php:php:8.2.29"]
+
+    def test_an_unknown_technology_has_none(self):
+        assert CVEMatcher().build_cpes("not-a-real-tech", "1.0") == []
+
+    def test_every_sibling_extends_a_mapped_technology(self):
+        mapping = CVEMatcher.CPE_MAPPING
+        for tech, extras in CVEMatcher.CPE_SIBLINGS.items():
+            assert tech in mapping, f"{tech} has siblings but no primary mapping"
+            primary = (mapping[tech]["vendor"], mapping[tech]["product"])
+            for extra in extras:
+                assert (extra["vendor"], extra["product"]) != primary
+
+    def test_no_identifier_is_listed_twice_for_a_technology(self):
+        """A duplicate costs a rate-limited NVD request and adds nothing."""
+        mapping = CVEMatcher.CPE_MAPPING
+        for tech, extras in CVEMatcher.CPE_SIBLINGS.items():
+            pairs = [(mapping[tech]["vendor"], mapping[tech]["product"])]
+            pairs += [(e["vendor"], e["product"]) for e in extras]
+            assert len(pairs) == len(set(pairs)), f"{tech} repeats an identifier"
+
+    def test_every_identifier_is_written_the_way_a_cpe_is(self):
+        """Lowercase, no spaces, no colons: a stray one changes the match string."""
+        for tech, extras in CVEMatcher.CPE_SIBLINGS.items():
+            for extra in extras:
+                assert set(extra) == {"vendor", "product"}, tech
+                for part in extra.values():
+                    assert part and part == part.lower(), f"{tech}: {part!r}"
+                    assert " " not in part and ":" not in part, f"{tech}: {part!r}"
+
+    def test_products_whose_primary_returned_nothing_have_a_second_identifier(self):
+        """
+        For these five the identifier in the table returned no CVEs at all for
+        a real version (Joomla 3.9.0, Confluence 7.13.0, RabbitMQ 3.8.9,
+        Docker 20.10.5, IIS 7.5), which is indistinguishable from a clean
+        target.
+        """
+        for tech in ("joomla", "confluence", "rabbitmq", "docker", "iis"):
+            assert CVEMatcher.CPE_SIBLINGS.get(tech), f"{tech} lost its sibling"
+
+    def test_mysql_is_asked_for_under_all_three_identifiers(self):
+        """
+        Checked against NVD: MySQL 8.0.30 returned 147 CVEs under oracle:mysql
+        and a further 155, none of them shared, under oracle:mysql_server.
+        """
+        assert CVEMatcher().build_cpes("mysql", "8.0.30") == [
+            "cpe:2.3:a:oracle:mysql:8.0.30",
+            "cpe:2.3:a:oracle:mysql_server:8.0.30",
+            "cpe:2.3:a:mysql:mysql:8.0.30",
+        ]
+
+    def test_joomla_is_asked_for_in_the_spelling_nvd_uses(self, matcher, monkeypatch):
+        """
+        NVD names the product joomla\\! with an escaped exclamation mark. For
+        Joomla 3.9.0 the plain spelling returned 0 CVEs and this one 125, so
+        the backslash has to survive into the request.
+        """
+        seen = []
+
+        def record(req, timeout=None):
+            seen.append(req.full_url)
+            return _FakeResponse({"vulnerabilities": []})
+
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", record)
+        matcher.query_product("joomla", "3.9.0")
+
+        assert len(seen) == 2
+        assert "joomla%3A3.9.0" in seen[0]
+        assert "joomla%5C%21%3A3.9.0" in seen[1]
+
+    def test_results_from_both_identifiers_are_merged_once(self, matcher):
+        answers = {
+            "cpe:2.3:a:f5:nginx:1.24.0": ["CVE-2023-44487", "CVE-2025-23419"],
+            # The same advisory can be filed under both.
+            "cpe:2.3:a:f5:nginx_open_source:1.24.0": ["CVE-2024-7347", "CVE-2023-44487"],
+        }
+        matcher.query_nvd = lambda cpe, tech, version=None: [
+            _cve(cve_id, 7.5) for cve_id in answers[cpe]]
+
+        found = matcher.query_product("nginx", "1.24.0")
+
+        assert [c.cve_id for c in found] == [
+            "CVE-2023-44487", "CVE-2025-23419", "CVE-2024-7347"]
+
+    def test_a_cve_known_only_to_the_second_identifier_is_reported(
+            self, matcher, monkeypatch):
+        matcher.query_nvd = lambda cpe, tech, version=None: (
+            [_cve("CVE-2026-42945", 9.2, "CRITICAL")]
+            if "nginx_open_source" in cpe else [])
+        monkeypatch.setattr(matcher, "_load_kev", lambda: {})
+        monkeypatch.setattr(matcher, "_load_epss", lambda ids: {})
+
+        matched = matcher.match_findings([_server_banner()])
+
+        assert [item["cve"].cve_id for item in matched] == ["CVE-2026-42945"]
+
+
+class TestSeverityCut:
+    """
+    The CVSS 7.0 cut ran before KEV was consulted, so an exploited CVE scoring
+    lower was gone before anything could rank it first. CVE-2020-11023, the
+    jQuery XSS, scores 6.1 to 6.9 and has been in CISA KEV since January 2025.
+    """
+
+    CVES = [
+        ("CVE-2099-0002", 6.1, "MEDIUM"),
+        ("CVE-2020-11023", 6.9, "MEDIUM"),
+        ("CVE-2099-0003", 9.8, "CRITICAL"),
+    ]
+
+    def _wire(self, matcher, monkeypatch, kev):
+        matcher.query_nvd = lambda cpe, tech, version=None: (
+            [_cve(*row) for row in self.CVES] if cpe == NGINX_CPE else [])
+        monkeypatch.setattr(matcher, "_load_kev", lambda: kev)
+        monkeypatch.setattr(matcher, "_load_epss", lambda ids: {})
+
+    def test_an_exploited_medium_is_kept_and_ranked_first(self, matcher, monkeypatch):
+        self._wire(matcher, monkeypatch, kev={"CVE-2020-11023": False})
+
+        matched = matcher.match_findings([_server_banner()])
+
+        assert [item["cve"].cve_id for item in matched] == [
+            "CVE-2020-11023", "CVE-2099-0003"]
+
+    def test_a_dormant_medium_is_still_left_out(self, matcher, monkeypatch):
+        self._wire(matcher, monkeypatch, kev={"CVE-2020-11023": False})
+
+        matched = matcher.match_findings([_server_banner()])
+
+        assert "CVE-2099-0002" not in [item["cve"].cve_id for item in matched]
+
+    def test_without_kev_data_the_score_alone_decides(self, matcher, monkeypatch):
+        """KEV failing to load must not turn every medium into a finding."""
+        self._wire(matcher, monkeypatch, kev=None)
+
+        matched = matcher.match_findings([_server_banner()])
+
+        assert [item["cve"].cve_id for item in matched] == ["CVE-2099-0003"]
+
+    def test_epss_is_asked_about_each_cve_once(self, matcher, monkeypatch):
+        asked = []
+        matcher.query_nvd = lambda cpe, tech, version=None: [_cve("CVE-2023-44487", 7.5)]
+        monkeypatch.setattr(matcher, "_load_kev", lambda: {})
+        monkeypatch.setattr(matcher, "_load_epss", lambda ids: asked.extend(ids) or {})
+
+        # nginx and php both return the same CVE.
+        matcher.match_findings([_server_banner("Server: nginx/1.24.0 PHP/8.2.29")])
+
+        assert asked == ["CVE-2023-44487"]
+
+
+class TestScriptAssets:
+    """
+    Client-side library versions show only in the URL a script is served
+    from. Those URLs were never recorded as findings, and JavaScript analysis
+    ran after CVE matching, so jquery, react and bootstrap were never checked.
+    """
+
+    PAGE = """<html><head>
+    <script src="/wp-includes/js/jquery/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.example/react@17.0.2/umd/react.production.min.js"></script>
+    <script src="/assets/bootstrap-4.3.1.min.js"></script>
+    <script src="/js/app.js"></script>
+    </head><body></body></html>"""
+
+    @staticmethod
+    def _scan(page):
+        from phantomprobe.js import JSEngine
+
+        engine = JSEngine("example.com")
+        engine.fetch_page = lambda url: page
+        engine.fetch_js = lambda url: "var a = 1;"
+        return engine.run()
+
+    @staticmethod
+    def _queried(findings):
+        matcher = CVEMatcher()
+        queried = []
+        matcher.query_nvd = lambda cpe, tech, version=None: (
+            queried.append((tech, version)) or [])
+        matcher.match_findings(findings)
+        return queried
+
+    def test_library_versions_in_script_urls_reach_the_matcher(self):
+        queried = self._queried(self._scan(self.PAGE))
+
+        assert sorted(queried) == [
+            ("bootstrap", "4.3.1"), ("jquery", "3.4.1"), ("react", "17.0.2")]
+
+    def test_only_versioned_urls_are_listed(self):
+        assets = [f for f in self._scan(self.PAGE) if f.id == "JS-ASSETS"]
+
+        assert len(assets) == 1
+        assert "jquery-3.4.1.min.js" in assets[0].evidence
+        assert "/js/app.js" not in assets[0].evidence
+
+    def test_no_versioned_scripts_means_no_asset_finding(self):
+        page = '<html><head><script src="/js/app.js"></script></head></html>'
+
+        assert [f for f in self._scan(page) if f.id == "JS-ASSETS"] == []
+
+    def test_a_script_named_like_a_server_product_is_not_correlated(self):
+        """
+        A script path names what the browser runs. "spring-1.2.0.js" is an
+        animation library, not the Spring Framework, and "bind-2.0.1.js" is
+        not a DNS server.
+        """
+        page = """<html><head>
+        <script src="/js/spring-1.2.0.js"></script>
+        <script src="/vendor/bind-2.0.1.min.js"></script>
+        <script src="/lib/redis-4.6.0.js"></script>
+        </head></html>"""
+
+        assert self._queried(self._scan(page)) == []
+
+    def test_a_server_banner_is_not_restricted_to_client_libraries(self):
+        """The restriction applies to script URLs only."""
+        assert ("nginx", "1.24.0") in self._queried([_server_banner()])
+
+
+class TestLetteredVersions:
+    """
+    OpenSSL and ProFTPD number their releases with a trailing letter, and NVD
+    compares them that way: it returned 63 CVEs for OpenSSL 1.1.1, 56 for
+    1.1.1d and 33 for 1.1.1w. Dropping the letter asked about the oldest
+    release of the line and reported fixes as open.
+    """
+
+    @pytest.mark.parametrize("text,expected", [
+        ("Server: Apache/2.4.41 (Unix) OpenSSL/1.1.1d", ("openssl", "1.1.1d")),
+        ("Server: Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips", ("openssl", "1.0.2k")),
+        ("Banner: 220 ProFTPD 1.3.5e Server ready", ("proftpd", "1.3.5e")),
+        ("OpenSSL/1.1.1W", ("openssl", "1.1.1w")),  # NVD writes it lowercase
+    ])
+    def test_a_trailing_letter_is_part_of_the_version(self, text, expected):
+        assert expected in CVEMatcher().extract_tech_version(text)
+
+    @pytest.mark.parametrize("text,expected", [
+        ("SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10", ("openssh", "8.9")),
+        ("/assets/jquery-3.6.0.min.js", ("jquery", "3.6.0")),
+        ("X-Powered-By: PHP/8.2.29-1ubuntu1", ("php", "8.2.29")),
+        ("Server: nginx/1.24.0", ("nginx", "1.24.0")),
+        ("Server: Jetty(9.4.44.v20210927)", ("jetty", "9.4.44")),
+    ])
+    def test_what_follows_other_versions_is_left_alone(self, text, expected):
+        assert expected in CVEMatcher().extract_tech_version(text)
+
+
+class TestDistributionBuilds:
+    """
+    A distribution fixes a vulnerability in the release it ships and keeps
+    the upstream version number. A match made on such a banner may already be
+    patched, so it is reported with that caution rather than as a plain hit.
+    """
+
+    @pytest.mark.parametrize("banner,expected", [
+        ("SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10", "Ubuntu"),
+        ("Server: Apache/2.4.57 (Debian)", "Debian"),
+        ("MariaDB 10.11.6 (server version string: 10.11.6-MariaDB-0+deb12u1)", "Debian"),
+        ("Server: Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips", "Red Hat family"),
+        ("Server: Apache/2.4.37 (Red Hat Enterprise Linux)", "Red Hat family"),
+        ("Server: nginx/1.24.0", None),
+        ("SSH-2.0-OpenSSH_9.6", None),
+        ("", None),
+    ])
+    def test_the_distribution_is_read_from_the_banner(self, banner, expected):
+        assert CVEMatcher.distribution_named(banner) == expected
+
+    def _match(self, matcher, monkeypatch, evidence):
+        matcher.query_nvd = lambda cpe, tech, version=None: (
+            [_cve("CVE-2099-0003", 9.8, "CRITICAL")] if cpe.startswith(
+                "cpe:2.3:a:apache:http_server") else [])
+        monkeypatch.setattr(matcher, "_load_kev", lambda: {})
+        monkeypatch.setattr(matcher, "_load_epss", lambda ids: {})
+        return matcher.match_findings([_server_banner(evidence)])
+
+    def test_a_match_on_a_distribution_build_says_so(self, matcher, monkeypatch):
+        matched = self._match(matcher, monkeypatch, "Server: Apache/2.4.57 (Debian)")
+        assert matched[0]["distribution"] == "Debian"
+
+    def test_an_upstream_banner_carries_no_caution(self, matcher, monkeypatch):
+        matched = self._match(matcher, monkeypatch, "Server: Apache/2.4.57")
+        assert matched[0]["distribution"] is None
+
+    def test_the_distribution_belongs_to_the_line_the_version_came_from(
+            self, matcher, monkeypatch):
+        """Another line mentioning a distribution must not taint this match."""
+        matched = self._match(
+            matcher, monkeypatch,
+            "Server: Apache/2.4.57\nNote: the mail host runs Ubuntu")
+        assert matched[0]["distribution"] is None
+
+    def test_the_report_states_the_caution(self, matcher, monkeypatch):
+        matched = self._match(matcher, monkeypatch, "Server: Apache/2.4.57 (Debian)")
+        report = matcher.generate_cve_report(matched)
+
+        assert "read from a Debian build, which may already carry the fix" in report
+        assert "treat a match as a lead to confirm" in report
+
+    def test_the_report_has_no_caution_line_for_an_upstream_build(
+            self, matcher, monkeypatch):
+        matched = self._match(matcher, monkeypatch, "Server: Apache/2.4.57")
+        assert "**Caution:**" not in matcher.generate_cve_report(matched)
+
+    def test_the_json_report_carries_the_distribution(
+            self, matcher, monkeypatch, tmp_path):
+        from phantomprobe import cli
+
+        matched = self._match(matcher, monkeypatch, "Server: Apache/2.4.57 (Debian)")
+        _, json_path = cli.write_reports([], matched, "example.com", str(tmp_path))
+        saved = json.loads(open(json_path, encoding="utf-8").read())
+
+        assert saved["cve_matches"][0]["distribution_build"] == "Debian"
+
+    def test_the_dashboard_marks_a_distribution_build(self):
+        from phantomprobe.dashboard import DashboardServer, cve_result_to_dict
+
+        item = {"technology": "apache", "version": "2.4.57",
+                "cve": _cve("CVE-2099-0003", 9.8, "CRITICAL"), "distribution": "Debian"}
+
+        assert cve_result_to_dict(item)["distribution"] == "Debian"
+        assert "Debian build" in DashboardServer._build_note(item)
+        assert DashboardServer._build_note({"technology": "apache"}) == ""

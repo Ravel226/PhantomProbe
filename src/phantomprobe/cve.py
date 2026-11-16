@@ -1,54 +1,29 @@
 #!/usr/bin/env python3
 """
-CVE correlation against the NVD API.
+CVE correlation: from what a scan saw to the vulnerabilities that matter.
 
-Set NVD_API_KEY to raise NVD's rate limit from 5 to 50 requests per 30s window;
-without a key the client self-throttles to stay under the anonymous limit.
+Reads versions out of banners and script URLs, asks NVD about each (nvd.py),
+adds real-world exploitation data from CISA KEV and EPSS, and ranks the result.
+The vendor:product tables it looks technologies up in are in cpe_tables.py.
 """
 
 import json
-import os
 import re
-import threading
-import time
-from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urlencode
+from urllib.parse import urlencode
 from urllib.request import Request
 
-from .http_client import safe_urlopen
-
+from . import cpe_tables
 from .constants import USER_AGENT
+from .http_client import safe_urlopen
 from .models import Finding
+from .nvd import CVE, NvdClient
 
 
-@dataclass
-class CVE:
-    """CVE vulnerability record"""
-    cve_id: str
-    severity: str
-    cvss_score: float
-    description: str
-    affected_versions: List[str]
-    fix_versions: List[str]
-    references: List[str]
-    published: str
-    modified: str
-    # Exploitation context, filled in by enrich_exploitation(). in_kev means
-    # CISA has recorded this CVE as exploited in the wild, which outranks a
-    # higher CVSS that has never been used. epss_score is the probability of
-    # exploitation in the next 30 days (0..1).
-    in_kev: bool = False
-    kev_ransomware: bool = False
-    epss_score: Optional[float] = None
-    epss_percentile: Optional[float] = None
-
-
-class CVEMatcher:
+class CVEMatcher(NvdClient):
     """Match findings to known CVEs via NVD API"""
 
-    NVD_API_BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     CVE_API_BASE = "https://cveawg.mitre.org/api/cve"
     # Free, keyless exploitation-intelligence feeds.
     KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
@@ -56,206 +31,44 @@ class CVEMatcher:
     # EPSS takes a comma-separated cve= list; keep each request's URL sane.
     EPSS_BATCH = 80
 
-    # Technology to CPE vendor/product mapping
-    CPE_MAPPING = {
-        'php': {'vendor': 'php', 'product': 'php'},
-        # NVD files modern nginx CVEs under f5, which acquired it:
-        # nginx:nginx returns 2 results where f5:nginx returns 41.
-        'nginx': {'vendor': 'f5', 'product': 'nginx'},
-        'apache': {'vendor': 'apache', 'product': 'http_server'},
-        'openssl': {'vendor': 'openssl', 'product': 'openssl'},
-        'mysql': {'vendor': 'oracle', 'product': 'mysql'},
-        'postgresql': {'vendor': 'postgresql', 'product': 'postgresql'},
-        'redis': {'vendor': 'redis', 'product': 'redis'},
-        'mongodb': {'vendor': 'mongodb', 'product': 'mongodb'},
-        'node.js': {'vendor': 'nodejs', 'product': 'node.js'},
-        # expressjs:express returns nothing; the CPE is under openjsf.
-        'express': {'vendor': 'openjsf', 'product': 'express'},
-        'django': {'vendor': 'djangoproject', 'product': 'django'},
-        'flask': {'vendor': 'palletsprojects', 'product': 'flask'},
-        'wordpress': {'vendor': 'wordpress', 'product': 'wordpress'},
-        'drupal': {'vendor': 'drupal', 'product': 'drupal'},
-        'joomla': {'vendor': 'joomla', 'product': 'joomla'},
-        'tomcat': {'vendor': 'apache', 'product': 'tomcat'},
-        'iis': {'vendor': 'microsoft', 'product': 'internet_information_server'},
-        'dotnet': {'vendor': 'microsoft', 'product': '.net_framework'},
-        'java': {'vendor': 'oracle', 'product': 'jdk'},
-        'python': {'vendor': 'python', 'product': 'python'},
-        'ruby': {'vendor': 'ruby-lang', 'product': 'ruby'},
+    # The tables live in cpe_tables.py. They stay reachable here because the
+    # audit script and the tests address them through the matcher.
+    CPE_MAPPING = cpe_tables.CPE_MAPPING
+    CPE_SIBLINGS = cpe_tables.CPE_SIBLINGS
+    CLIENT_SIDE_TECH = cpe_tables.CLIENT_SIDE_TECH
+    TECH_ALIASES = cpe_tables.TECH_ALIASES
 
-        # Everything below was confirmed against the live NVD API before
-        # being added: a vendor guessed wrong returns nothing at all, which
-        # is how expressjs:express sat here matching zero CVEs. Vue.js is
-        # deliberately absent; NVD has no CPE for it under any spelling.
-        'litespeed': {'vendor': 'litespeedtech', 'product': 'litespeed_web_server'},
-        'openresty': {'vendor': 'openresty', 'product': 'openresty'},
-        'lighttpd': {'vendor': 'lighttpd', 'product': 'lighttpd'},
-        'caddy': {'vendor': 'caddyserver', 'product': 'caddy'},
-        'haproxy': {'vendor': 'haproxy', 'product': 'haproxy'},
-        'traefik': {'vendor': 'traefik', 'product': 'traefik'},
-        'envoy': {'vendor': 'envoyproxy', 'product': 'envoy'},
-        'varnish': {'vendor': 'varnish_cache_project', 'product': 'varnish_cache'},
-        'jetty': {'vendor': 'eclipse', 'product': 'jetty'},
-        'gunicorn': {'vendor': 'gunicorn', 'product': 'gunicorn'},
-        'werkzeug': {'vendor': 'palletsprojects', 'product': 'werkzeug'},
-        'tornado': {'vendor': 'tornadoweb', 'product': 'tornado'},
-        'asp.net core': {'vendor': 'microsoft', 'product': 'asp.net_core'},
-        'laravel': {'vendor': 'laravel', 'product': 'laravel'},
-        'rails': {'vendor': 'rubyonrails', 'product': 'rails'},
-        'spring': {'vendor': 'vmware', 'product': 'spring_framework'},
-        'struts': {'vendor': 'apache', 'product': 'struts'},
-        'symfony': {'vendor': 'sensiolabs', 'product': 'symfony'},
-        'fastapi': {'vendor': 'tiangolo', 'product': 'fastapi'},
-        'next.js': {'vendor': 'vercel', 'product': 'next.js'},
-        'nuxt': {'vendor': 'nuxt', 'product': 'nuxt'},
-        'angular': {'vendor': 'angular', 'product': 'angular'},
-        'react': {'vendor': 'facebook', 'product': 'react'},
-        'jquery': {'vendor': 'jquery', 'product': 'jquery'},
-        'bootstrap': {'vendor': 'getbootstrap', 'product': 'bootstrap'},
-        'magento': {'vendor': 'magento', 'product': 'magento'},
-        'typo3': {'vendor': 'typo3', 'product': 'typo3'},
-        'ghost': {'vendor': 'ghost', 'product': 'ghost'},
-        'mediawiki': {'vendor': 'mediawiki', 'product': 'mediawiki'},
-        'moodle': {'vendor': 'moodle', 'product': 'moodle'},
-        'phpmyadmin': {'vendor': 'phpmyadmin', 'product': 'phpmyadmin'},
-        'confluence': {'vendor': 'atlassian', 'product': 'confluence'},
-        'jira': {'vendor': 'atlassian', 'product': 'jira'},
-        'jenkins': {'vendor': 'jenkins', 'product': 'jenkins'},
-        'gitlab': {'vendor': 'gitlab', 'product': 'gitlab'},
-        'grafana': {'vendor': 'grafana', 'product': 'grafana'},
-        'elasticsearch': {'vendor': 'elastic', 'product': 'elasticsearch'},
-        'kibana': {'vendor': 'elastic', 'product': 'kibana'},
-        'mariadb': {'vendor': 'mariadb', 'product': 'mariadb'},
-        'memcached': {'vendor': 'memcached', 'product': 'memcached'},
-        'rabbitmq': {'vendor': 'pivotal_software', 'product': 'rabbitmq'},
-        'openssh': {'vendor': 'openbsd', 'product': 'openssh'},
-        'proftpd': {'vendor': 'proftpd', 'product': 'proftpd'},
-        'vsftpd': {'vendor': 'vsftpd_project', 'product': 'vsftpd'},
-        'postfix': {'vendor': 'postfix', 'product': 'postfix'},
-        'exim': {'vendor': 'exim', 'product': 'exim'},
-        'dovecot': {'vendor': 'dovecot', 'product': 'dovecot'},
-        'samba': {'vendor': 'samba', 'product': 'samba'},
-        'bind': {'vendor': 'isc', 'product': 'bind'},
-        'docker': {'vendor': 'docker', 'product': 'docker'},
-        'kubernetes': {'vendor': 'kubernetes', 'product': 'kubernetes'},
-        'golang': {'vendor': 'golang', 'product': 'go'},
-        'perl': {'vendor': 'perl', 'product': 'perl'},
-    }
+    SCRIPT_ASSET_CATEGORY = 'Script Assets'
+    PORT_CATEGORY = 'Port Scan'
+    SEARCHED_CATEGORIES = frozenset({
+        'Information Disclosure', 'Technology', 'SSL/TLS',
+        'JavaScript Analysis', SCRIPT_ASSET_CATEGORY, PORT_CATEGORY,
+    })
 
-    # NVD allows 5 requests / 30s anonymously, 50 / 30s with an API key.
-    # Spacing requests is simpler than a sliding window and stays well clear.
-    ANON_REQUEST_INTERVAL = 6.5
-    KEYED_REQUEST_INTERVAL = 0.7
+    # Signs that a version string comes from a distribution's package. A
+    # distribution fixes a vulnerability by patching the release it ships and
+    # keeps the upstream version number, so "OpenSSH_8.9p1 Ubuntu-3ubuntu0.10"
+    # can be fully patched and still match every CVE filed against 8.9. A
+    # match made on such a banner is reported with that caution attached.
+    DISTRIBUTION_MARKERS = (
+        ('Ubuntu', r'ubuntu'),
+        ('Debian', r'debian|raspbian|deb\d+u\d+'),
+        ('Red Hat family', r'red ?hat|rhel|centos|rocky|almalinux|\.el\d'),
+        ('SUSE', r'suse|sles'),
+        ('Fedora', r'fedora'),
+        ('Amazon Linux', r'amzn|amazon linux'),
+        ('Alpine', r'alpine'),
+        ('FreeBSD', r'freebsd'),
+    )
 
-    def __init__(self, api_key: Optional[str] = None, results_per_page: int = 20):
+    # A CVE is reported when it scores at least this, or when CISA lists it
+    # as exploited whatever it scores.
+    MIN_CVSS = 7.0
+
+    def __init__(self, api_key: Optional[str] = None, results_per_page: int = 100):
+        super().__init__(api_key=api_key, results_per_page=results_per_page)
         self.cache: Dict[str, List[CVE]] = {}
         self._kev_cache: Optional[Dict[str, bool]] = None
-        self.session_timeout = 10
-        self.api_key = api_key or os.environ.get('NVD_API_KEY', '') or None
-        self.results_per_page = results_per_page
-        self._request_interval = (
-            self.KEYED_REQUEST_INTERVAL if self.api_key else self.ANON_REQUEST_INTERVAL
-        )
-        self._last_request_at = 0.0
-        self._throttle_lock = threading.Lock()
-
-    def _throttle(self) -> None:
-        """Space out NVD requests so we stay under the published rate limit."""
-        with self._throttle_lock:
-            elapsed = time.monotonic() - self._last_request_at
-            wait = self._request_interval - elapsed
-            if wait > 0:
-                time.sleep(wait)
-            self._last_request_at = time.monotonic()
-
-    # Spellings a banner may use, mapped onto the CPE_MAPPING keys. Without
-    # this, "node" was captured but thrown away, because the mapping key is
-    # "node.js": Node was never once correlated.
-    TECH_ALIASES = {
-        "php": "php",
-        "nginx": "nginx",
-        "apache": "apache",
-        "httpd": "apache",
-        "openssl": "openssl",
-        "mysql": "mysql",
-        "postgresql": "postgresql",
-        "postgres": "postgresql",
-        "redis": "redis",
-        "mongodb": "mongodb",
-        "tomcat": "tomcat",
-        "iis": "iis",
-        "node.js": "node.js",
-        "nodejs": "node.js",
-        "node": "node.js",
-        "express": "express",
-        "django": "django",
-        "flask": "flask",
-        "wordpress": "wordpress",
-        "drupal": "drupal",
-        "joomla": "joomla",
-        "python": "python",
-        "ruby": "ruby",
-        "java": "java",
-        "asp.net": "dotnet",
-        "dotnet": "dotnet",
-        "litespeed": "litespeed",
-        "openresty": "openresty",
-        "lighttpd": "lighttpd",
-        "caddy": "caddy",
-        "haproxy": "haproxy",
-        "traefik": "traefik",
-        "envoy": "envoy",
-        "varnish": "varnish",
-        "jetty": "jetty",
-        "gunicorn": "gunicorn",
-        "werkzeug": "werkzeug",
-        "tornado": "tornado",
-        "asp.net core": "asp.net core",
-        "kestrel": "asp.net core",
-        "laravel": "laravel",
-        "rails": "rails",
-        "spring": "spring",
-        "struts": "struts",
-        "symfony": "symfony",
-        "fastapi": "fastapi",
-        "next.js": "next.js",
-        "nextjs": "next.js",
-        "nuxt": "nuxt",
-        "nuxt.js": "nuxt",
-        "angular": "angular",
-        "react": "react",
-        "jquery": "jquery",
-        "bootstrap": "bootstrap",
-        "magento": "magento",
-        "typo3": "typo3",
-        "ghost": "ghost",
-        "mediawiki": "mediawiki",
-        "moodle": "moodle",
-        "phpmyadmin": "phpmyadmin",
-        "confluence": "confluence",
-        "jira": "jira",
-        "jenkins": "jenkins",
-        "gitlab": "gitlab",
-        "grafana": "grafana",
-        "elasticsearch": "elasticsearch",
-        "kibana": "kibana",
-        "mariadb": "mariadb",
-        "memcached": "memcached",
-        "rabbitmq": "rabbitmq",
-        "openssh": "openssh",
-        "proftpd": "proftpd",
-        "vsftpd": "vsftpd",
-        "postfix": "postfix",
-        "exim": "exim",
-        "dovecot": "dovecot",
-        "samba": "samba",
-        "bind": "bind",
-        "docker": "docker",
-        "kubernetes": "kubernetes",
-        "k8s": "kubernetes",
-        "golang": "golang",
-        "perl": "perl",
-    }
 
     # A product name followed by a version, the way a banner or an asset path
     # writes it: "nginx/1.24.0", "PHP/8.2.29", "jquery-3.6.0.min.js",
@@ -266,10 +79,17 @@ class CVEMatcher:
     # "java" matched the "java" in "/api/javascript/bundle.js" and "python"
     # matched the host "python.example.com", so a site that merely served
     # JavaScript was credited with Oracle JDK vulnerabilities.
+    #
+    # A single trailing letter is part of the version when nothing but a
+    # separator follows it: OpenSSL 1.1.1w and ProFTPD 1.3.5e are releases,
+    # and NVD compares them as such. Dropping the letter asked about the first
+    # release of the line instead, which returned 63 CVEs for OpenSSL 1.1.1
+    # where 1.1.1w has 33. The "p1" of OpenSSH_8.9p1 is not taken, because a
+    # digit follows the letter.
     _VERSION_RE = re.compile(
         r"(?<![\w.])(" + "|".join(
             sorted((re.escape(a) for a in TECH_ALIASES), key=len, reverse=True)
-        ) + r")[/@ _(-]v?(\d+(?:\.\d+)+)(?!\d)",
+        ) + r")[/@ _(-]v?(\d+(?:\.\d+)+(?:[a-z](?![a-z0-9]))?)(?!\d)",
         re.IGNORECASE,
     )
 
@@ -284,7 +104,7 @@ class CVEMatcher:
         """
         found = {}
         for match in self._VERSION_RE.finditer(evidence or ""):
-            alias, version = match.group(1).lower(), match.group(2)
+            alias, version = match.group(1).lower(), match.group(2).lower()
             tech = self.TECH_ALIASES.get(alias)
             if tech in self.CPE_MAPPING:
                 found.setdefault(tech, version)
@@ -317,124 +137,41 @@ class CVEMatcher:
             return None
 
         mapping = self.CPE_MAPPING[tech]
-        cpe = f"cpe:2.3:a:{mapping['vendor']}:{mapping['product']}"
+        return self._cpe_string(mapping['vendor'], mapping['product'], version)
+
+    @staticmethod
+    def _cpe_string(vendor: str, product: str, version: Optional[str] = None) -> str:
+        cpe = f"cpe:2.3:a:{vendor}:{product}"
         if version:
             cpe += f":{version}"
         return cpe
 
-    def query_nvd(self, cpe: str, tech: str, version: Optional[str] = None) -> List[CVE]:
-        """Query NVD API for CVEs matching CPE"""
-        cves = []
+    def build_cpes(self, tech: str, version: Optional[str] = None) -> List[str]:
+        """
+        Every match string to query for a technology.
 
-        try:
-            # cpeName= requires an exact CPE match, which almost never hits for a
-            # banner-derived version. virtualMatchString matches the whole CPE
-            # subtree, which is what banner fingerprinting can actually support.
-            url = (
-                f"{self.NVD_API_BASE}?virtualMatchString={quote(cpe)}"
-                f"&resultsPerPage={self.results_per_page}"
-            )
+        The primary mapping comes first, then any further identifiers NVD
+        files the same software under (see CPE_SIBLINGS).
+        """
+        primary = self.build_cpe(tech, version)
+        if primary is None:
+            return []
+        return [primary] + [
+            self._cpe_string(sibling['vendor'], sibling['product'], version)
+            for sibling in self.CPE_SIBLINGS.get(tech, [])
+        ]
 
-            headers = {'User-Agent': USER_AGENT}
-            # An API key raises NVD's limit from 5 to 50 requests / 30s.
-            if self.api_key:
-                headers['apiKey'] = self.api_key
-            req = Request(url, headers=headers)
+    def query_product(self, tech: str, version: Optional[str] = None) -> List[CVE]:
+        """
+        CVEs for a technology across every identifier NVD files it under.
 
-            self._throttle()
-            with safe_urlopen(req, timeout=self.session_timeout) as response:
-                data = json.loads(response.read().decode())
-
-            for item in data.get('vulnerabilities', []):
-                cve_data = item.get('cve', {})
-
-                # Extract CVE ID
-                cve_id = cve_data.get('id', '')
-
-                # Extract CVSS score and severity
-                metrics = cve_data.get('metrics', {})
-                cvss_score = 0.0
-                severity = 'UNKNOWN'
-
-                # Newest scoring first. v4.0 exists on recent CVEs and was not
-                # handled, so those scored 0.0 and were filtered out as if clean.
-                for key in ('cvssMetricV40', 'cvssMetricV31', 'cvssMetricV30'):
-                    if metrics.get(key):
-                        cvss_data = metrics[key][0].get('cvssData', {})
-                        cvss_score = cvss_data.get('baseScore', 0.0)
-                        severity = cvss_data.get('baseSeverity', 'UNKNOWN')
-                        break
-                else:
-                    if metrics.get('cvssMetricV2'):
-                        entry = metrics['cvssMetricV2'][0]
-                        cvss_score = entry.get('cvssData', {}).get('baseScore', 0.0)
-                        # v2 carries baseSeverity on the entry, not in cvssData.
-                        severity = entry.get('baseSeverity') or (
-                            'HIGH' if cvss_score >= 7.0
-                            else 'MEDIUM' if cvss_score >= 4.0 else 'LOW'
-                        )
-
-                # Extract description
-                descriptions = cve_data.get('descriptions', [])
-                description = next((d['value'] for d in descriptions if d['lang'] == 'en'), '')
-
-                # Extract affected versions
-                affected = []
-                fix_versions = []
-
-                # A single CVE often lists many products. Keep only the entries
-                # for the product we asked about, or nginx inherits the fixed
-                # versions of everything else caught by the same advisory.
-                product_prefix = ":".join(cpe.split(":")[:5]) + ":"
-                for config in cve_data.get('configurations', []):
-                    for node in config.get('nodes', []):
-                        for cpe_match in node.get('cpeMatch', []):
-                            criteria = cpe_match.get('criteria', '')
-                            if not cpe_match.get('vulnerable'):
-                                continue
-                            if not criteria.startswith(product_prefix):
-                                continue
-                            affected.append(criteria)
-                            # versionEndExcluding is the first fixed release;
-                            # versionEndIncluding is the last vulnerable one.
-                            fixed = cpe_match.get('versionEndExcluding')
-                            if fixed and fixed not in fix_versions:
-                                fix_versions.append(fixed)
-
-                # Extract references
-                references = [r.get('url', '') for r in cve_data.get('references', [])[:5]]
-
-                # Extract dates
-                published = cve_data.get('published', '')
-                modified = cve_data.get('lastModified', '')
-
-                cve = CVE(
-                    cve_id=cve_id,
-                    severity=severity,
-                    cvss_score=cvss_score,
-                    description=description[:500] if description else '',
-                    affected_versions=affected[:5],
-                    fix_versions=fix_versions[:3],
-                    references=references,
-                    published=published,
-                    modified=modified
-                )
-                cves.append(cve)
-
-        except HTTPError as e:
-            if e.code == 403:
-                print(f"    [!] NVD rejected the request for {tech} (HTTP 403). "
-                      f"Set NVD_API_KEY to raise the rate limit.")
-            elif e.code == 404:
-                print(f"    [!] No NVD entry for {tech} {version or '(any version)'}")
-            else:
-                print(f"    [!] NVD HTTP {e.code} for {tech}: {e.reason}")
-        except URLError as e:
-            print(f"    [!] Could not reach NVD for {tech}: {e.reason}")
-        except (json.JSONDecodeError, KeyError, TypeError) as e:
-            print(f"    [!] Malformed NVD response for {tech}: {e}")
-
-        return cves
+        A CVE listed under two identifiers is kept once, in the order found.
+        """
+        merged: Dict[str, CVE] = {}
+        for cpe in self.build_cpes(tech, version):
+            for cve in self.query_nvd(cpe, tech, version):
+                merged.setdefault(cve.cve_id, cve)
+        return list(merged.values())
 
     def _load_kev(self) -> Optional[Dict[str, bool]]:
         """
@@ -500,7 +237,8 @@ class CVEMatcher:
                     cve.in_kev = True
                     cve.kev_ransomware = kev[cve.cve_id]
 
-        epss = self._load_epss([c.cve_id for c in cves])
+        # One CVE can match two technologies; ask EPSS about it once.
+        epss = self._load_epss(sorted({c.cve_id for c in cves}))
         for cve in cves:
             if cve.cve_id in epss:
                 cve.epss_score, cve.epss_percentile = epss[cve.cve_id]
@@ -521,21 +259,59 @@ class CVEMatcher:
         cve = item["cve"]
         return (cve.in_kev, cve.epss_score or 0.0, cve.cvss_score)
 
+    @classmethod
+    def _is_relevant(cls, cve: CVE) -> bool:
+        """High or critical by score, or exploited in the wild at any score."""
+        return cve.cvss_score >= cls.MIN_CVSS or cve.in_kev
+
+    @classmethod
+    def distribution_named(cls, text: str) -> Optional[str]:
+        """The distribution a banner says it was packaged by, if it says so."""
+        for name, pattern in cls.DISTRIBUTION_MARKERS:
+            if re.search(pattern, text or "", re.IGNORECASE):
+                return name
+        return None
+
+    def _searchable_lines(self, finding: Finding) -> List[str]:
+        """
+        The lines of a finding's evidence worth reading for a product name.
+
+        A port finding names its service by port number ("Port 3306/MySQL"),
+        which is an assumption, not something the target said. Only the banner
+        the service actually sent is read.
+        """
+        lines = (finding.evidence or "").splitlines()
+        if finding.category == self.PORT_CATEGORY:
+            return [line for line in lines if line.startswith("Banner: ")]
+        return lines
+
     def match_findings(self, findings: List[Finding]) -> List[Dict]:
         """Match findings to CVEs and return enriched findings"""
-        matched = []
+        candidates = []
         tech_versions = {}
+        # Technology to the distribution its version string named, if any.
+        packaged_by: Dict[str, Optional[str]] = {}
 
         print("[*] Matching findings to CVE database...")
 
-        # Extract all technologies from findings
+        # Extract all technologies from findings, a line at a time so each
+        # version stays tied to the banner it was read from.
         unversioned = set()
         for finding in findings:
-            if finding.category in ('Information Disclosure', 'Technology',
-                                    'SSL/TLS', 'JavaScript Analysis'):
-                for tech, version in self.extract_tech_version(finding.evidence):
-                    tech_versions.setdefault(tech, version)
-                unversioned.update(self.extract_unversioned(finding.evidence))
+            if finding.category not in self.SEARCHED_CATEGORIES:
+                continue
+            for line in self._searchable_lines(finding):
+                versioned = self.extract_tech_version(line)
+                bare = self.extract_unversioned(line)
+                if finding.category == self.SCRIPT_ASSET_CATEGORY:
+                    versioned = [(t, v) for t, v in versioned
+                                 if t in self.CLIENT_SIDE_TECH]
+                    bare = [t for t in bare if t in self.CLIENT_SIDE_TECH]
+                for tech, version in versioned:
+                    if tech not in tech_versions:
+                        tech_versions[tech] = version
+                        packaged_by[tech] = self.distribution_named(line)
+                unversioned.update(bare)
 
         # Say what was seen but not usable, rather than quietly dropping it.
         skipped = sorted(unversioned - set(tech_versions))
@@ -553,8 +329,7 @@ class CVEMatcher:
 
         # Query CVEs for each technology
         for tech, version in tech_versions.items():
-            cpe = self.build_cpe(tech, version)
-            if not cpe:
+            if tech not in self.CPE_MAPPING:
                 continue
 
             # Check cache first
@@ -563,24 +338,27 @@ class CVEMatcher:
                 cves = self.cache[cache_key]
             else:
                 print(f"    - Querying CVEs for {tech} {version or '(any version)'}...")
-                cves = self.query_nvd(cpe, tech, version)
+                cves = self.query_product(tech, version)
                 self.cache[cache_key] = cves
 
             for cve in cves:
-                # Filter by severity
-                if cve.cvss_score >= 7.0:  # Only high/critical CVEs
-                    matched.append({
-                        'technology': tech,
-                        'version': version,
-                        'cve': cve
-                    })
+                candidates.append({
+                    'technology': tech,
+                    'version': version,
+                    'cve': cve,
+                    'distribution': packaged_by.get(tech),
+                })
 
-        # Enrich with real-world exploitation data before ranking, so an
-        # actively-exploited CVE rises above a higher-scored dormant one.
-        self.enrich_exploitation(matched)
+        # Exploitation data comes before the severity cut, because the cut
+        # depends on it. Cutting at CVSS 7.0 first threw away exploited CVEs
+        # that score lower before KEV was ever consulted: the jQuery XSS
+        # CVE-2020-11023 scores 6.1 to 6.9 and has been in KEV since 2025.
+        self.enrich_exploitation(candidates)
+        matched = [item for item in candidates if self._is_relevant(item['cve'])]
         matched.sort(key=self._priority, reverse=True)
 
-        print(f"[+] Found {len(matched)} relevant CVEs (CVSS >= 7.0)")
+        print(f"[+] Found {len(matched)} relevant CVEs (CVSS >= {self.MIN_CVSS} "
+              f"or in CISA KEV) among {len(candidates)} matching the detected versions")
         return matched
 
     def generate_cve_report(self, matched: List[Dict]) -> str:
@@ -590,6 +368,14 @@ class CVEMatcher:
 
         lines = []
         lines.append("\n## CVE Correlation\n")
+        # A version match is not a confirmed vulnerability, and the report
+        # should not read as though it were.
+        lines.append(
+            "Each match below is made on the version a service reports. A "
+            "distribution can fix a vulnerability without changing that "
+            "version, so treat a match as a lead to confirm, not as a finding."
+        )
+        lines.append("")
 
         for item in matched[:20]:  # Limit to top 20
             cve = item['cve']
@@ -600,6 +386,12 @@ class CVEMatcher:
             lines.append(f"### {cve.cve_id}{kev_tag}")
             lines.append(f"")
             lines.append(f"**Technology:** {tech} ({version})")
+            if item.get('distribution'):
+                lines.append(
+                    f"**Caution:** the version was read from a "
+                    f"{item['distribution']} build, which may already carry "
+                    f"the fix."
+                )
             lines.append(f"**CVSS Score:** {cve.cvss_score} ({cve.severity})")
             if cve.in_kev:
                 ransom = ", linked to ransomware" if cve.kev_ransomware else ""
@@ -619,4 +411,3 @@ class CVEMatcher:
             lines.append(f"")
 
         return "\n".join(lines)
-

@@ -5,7 +5,7 @@
 [![PyPI](https://img.shields.io/pypi/v/phantomprobe.svg)](https://pypi.org/project/phantomprobe/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-264%20passing-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-377%20passing-brightgreen.svg)](tests/)
 
 PhantomProbe maps a target's attack surface and reports what is actually wrong
 with it. The core runs on the Python standard library alone, so a default
@@ -96,9 +96,15 @@ Reads what the target already sends and resolves DNS. No probing.
 
 ### Phase 2: active reconnaissance (`--phase2`)
 
-- **Port scan** - common service ports, concurrently
-- **Subdomain enumeration** - common-name discovery
-- **Technology fingerprinting** - server and framework detection
+- **Port scan** - common service ports, concurrently. Where a service speaks
+  first (FTP, SSH, SMTP, POP3, IMAP and the MySQL handshake), the banner it
+  sends on connect is recorded. Nothing is sent to draw it out
+- **Subdomain enumeration** - common-name discovery. Under wildcard DNS, where
+  every name resolves, only names that answer differently from the wildcard are
+  listed, and one note says how many were held back
+- **Technology fingerprinting** - server and framework detection from response
+  headers, cookie names and CMS markup, each reported with the signal that
+  identified it
 - **Subdomain takeover** - dangling-CNAME detection against a two-signal check
   (the CNAME must point at a known service *and* the service must report the
   resource unclaimed), using the [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz)
@@ -116,8 +122,23 @@ and enriches every match with:
 - **CISA KEV** - whether the CVE is exploited in the wild, with a ransomware marker
 - **EPSS** - the probability of exploitation in the next 30 days
 
-An exploited CVE is ranked above a higher-scored dormant one. Keep the CPE table
-honest as vendors change hands:
+An exploited CVE is ranked above a higher-scored dormant one. The report keeps
+CVEs scored 7.0 or higher, plus any CVE in CISA KEV whatever its score. With
+`--js`, versions carried in script URLs (`jquery-3.6.0.min.js`) are correlated
+too, and with `--phase2` so are the versions in service banners
+(`SSH-2.0-OpenSSH_8.9p1`).
+
+A match is made on the version a service reports, which is a lead to confirm
+and not a finding. Distributions fix vulnerabilities without changing that
+version, so a match read from a banner that names one (Ubuntu, Debian, the Red
+Hat family and others) is reported with that caution attached.
+
+A pair that returns results can still be incomplete, because NVD files many
+products under more than one identifier. For 19 of the 74 products a second
+identifier returned CVEs the first did not: MySQL 8.0.30 has 147 under one and
+155 more under another, and Joomla 3.9.0 has none under one and 125 under the
+other. Every identifier a product has is queried and the results merged. Keep
+the CPE table honest as vendors change hands:
 
 ```bash
 python scripts/audit_cpe_mapping.py            # re-check every mapping against NVD
@@ -143,7 +164,8 @@ dedicated tool under a scoped engagement.
 ### Other features
 
 - **JavaScript analysis** (`--js`) - extracts API endpoints, exposed secrets
-  (API keys, tokens, AWS keys) and hidden paths from linked scripts
+  (API keys, tokens, AWS keys) and hidden paths from linked scripts, and lists
+  versioned script assets for `--cve` to check
 - **Screenshot** (`--screenshot`) - a full-page capture via headless Chromium
 - **Burp Professional** (`--burp`) - runs a Burp scan and imports its issues; see below
 
@@ -253,13 +275,16 @@ src/phantomprobe/
 ├── dns_security.py   SPF, DMARC, DKIM, CAA, DNSSEC
 ├── http_checks.py    HSTS preload, redirect chain, security.txt
 │
-├── active.py         Phase 2: ports, subdomains, fingerprinting
+├── active.py         Phase 2: subdomains, fingerprinting, orchestration
+├── ports.py          Port scan and service banners
 ├── takeover.py       Subdomain takeover (two-signal)
 ├── waf.py            WAF/CDN fingerprinting
 │
 ├── aggressive.py     Phase 3: CORS, open redirect, HPP, S3 (opt-in)
 │
-├── cve.py            NVD correlation + KEV/EPSS enrichment
+├── cve.py            CVE correlation + KEV/EPSS enrichment
+├── nvd.py            NVD API client: paging, retries, record parsing
+├── cpe_tables.py     What NVD calls each technology (data only)
 ├── js.py             JavaScript endpoint/secret discovery
 ├── screenshot.py     Playwright capture            (extra: screenshot)
 ├── burp.py           Burp REST integration         (extra: burp)
@@ -268,7 +293,7 @@ src/phantomprobe/
 └── asgi.py           Standalone ASGI entry point   (extra: dashboard)
 
 scripts/audit_cpe_mapping.py   Re-check the CVE table against live NVD
-tests/                         264 tests, network stubbed
+tests/                         377 tests, network stubbed
 ```
 
 ## Development

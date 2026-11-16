@@ -175,7 +175,7 @@ def print_summary(findings: List[Finding], cve_results: List[dict]) -> None:
     if cve_results:
         print()
         print("=" * 60)
-        print("CVE CORRELATION (HIGH/CRITICAL)")
+        print("CVE CORRELATION (HIGH/CRITICAL OR KNOWN EXPLOITED)")
         print("=" * 60)
         for item in cve_results[:10]:
             cve = item['cve']
@@ -184,6 +184,9 @@ def print_summary(findings: List[Finding], cve_results: List[dict]) -> None:
                 tags.append("KEV" + ("/ransomware" if cve.kev_ransomware else ""))
             if cve.epss_score is not None:
                 tags.append(f"EPSS {cve.epss_score:.2f}")
+            if item.get('distribution'):
+                # A distribution build may already carry the fix.
+                tags.append(f"{item['distribution']} build, confirm")
             suffix = f"  [{', '.join(tags)}]" if tags else ""
             print(f"  [{cve.severity}] {cve.cve_id} (CVSS {cve.cvss_score}) "
                   f"- {item['technology']}{suffix}")
@@ -220,6 +223,9 @@ def write_reports(findings: List[Finding], cve_results: List[dict],
                 'kev_ransomware': item['cve'].kev_ransomware,
                 'epss_score': item['cve'].epss_score,
                 'epss_percentile': item['cve'].epss_percentile,
+                # Set when the version came from a distribution's package,
+                # which may be patched without the version changing.
+                'distribution_build': item.get('distribution'),
             }
             for item in cve_results
         ]
@@ -307,6 +313,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         from .aggressive import AggressiveScanner
         findings.extend(AggressiveScanner(target).run())
 
+    # JavaScript Analysis (optional). It runs before CVE matching because the
+    # versions of client-side libraries are found here; run afterwards, as it
+    # used to be, nothing it discovered could ever be correlated.
+    if args.js:
+        broadcast_progress("JavaScript Analysis")
+        findings.extend(JSEngine(target).run())
+
     # CVE Matching (optional)
     cve_results = []
     if args.cve:
@@ -330,11 +343,6 @@ def main(argv: Optional[List[str]] = None) -> int:
                 discovered_at=datetime.now().isoformat(),
                 target=target
             ))
-
-    # JavaScript Analysis (optional)
-    if args.js:
-        broadcast_progress("JavaScript Analysis")
-        findings.extend(JSEngine(target).run())
 
     # Burp Suite Integration (optional)
     if args.burp:

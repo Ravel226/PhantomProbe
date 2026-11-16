@@ -11,6 +11,13 @@ Vendors do drift. NVD files nginx under f5 because F5 acquired it, so a mapping
 that was right when written can quietly stop matching. Re-run this now and then,
 and after adding anything to CPE_MAPPING.
 
+A count above zero proves a pair exists, not that it is complete. f5:nginx
+returned 41 and passed here while NVD was filing the newer nginx CVEs under
+f5:nginx_open_source, so nginx 1.24.0 was shown 2 CVEs out of 17. Further
+identifiers for the same software go in CPE_SIBLINGS and are checked here with
+their technology. Finding them still takes a known answer: pick a version, look
+up a CVE its vendor says affects it, and confirm the scanner returns that CVE.
+
     python scripts/audit_cpe_mapping.py                  # check the whole table
     python scripts/audit_cpe_mapping.py --tech nginx php # check a few entries
     python scripts/audit_cpe_mapping.py --check f5:nginx # try a candidate pair
@@ -158,7 +165,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         unknown = [n for n in names if n not in mapping]
         if unknown:
             parser.error(f"not in CPE_MAPPING: {', '.join(unknown)}")
-        pairs = [(n, mapping[n]["vendor"], mapping[n]["product"]) for n in names]
+        pairs = []
+        for n in names:
+            pairs.append((n, mapping[n]["vendor"], mapping[n]["product"]))
+            # A sibling that stops existing fails as quietly as a primary does.
+            for extra in CVEMatcher.CPE_SIBLINGS.get(n, []):
+                pairs.append((f"{n}+{extra['product']}",
+                              extra["vendor"], extra["product"]))
 
     seconds = len(pairs) * interval
     eta = f"{seconds / 60:.0f} min" if seconds >= 90 else f"{seconds:.0f}s"

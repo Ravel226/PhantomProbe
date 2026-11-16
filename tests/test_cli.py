@@ -179,3 +179,35 @@ class TestDashboardUnavailable:
         # The user is told where to find them and how to get the dashboard.
         assert "Reports written to:" in out
         assert 'pip install "phantomprobe[dashboard]"' in out
+
+
+class TestScanOrder:
+    """
+    Client-side library versions are discovered by JavaScript analysis. It ran
+    after CVE matching, so nothing it found could be correlated.
+    """
+
+    def test_js_findings_are_available_to_cve_matching(self, tmp_path):
+        from phantomprobe.models import Finding, Severity
+
+        marker = Finding(
+            id="JS-ASSETS", title="Versioned Script Assets", description="",
+            severity=Severity.INFORMATIONAL, category="Script Assets",
+            evidence="Script: /assets/jquery-3.4.1.min.js", remediation="",
+            references=[], discovered_at="", target="example.com",
+        )
+        seen = {}
+
+        def fake_match(self, findings):
+            seen["ids"] = [f.id for f in findings]
+            return []
+
+        with mock.patch.object(cli.ReconEngine, "run", return_value=[]), \
+                mock.patch.object(cli.JSEngine, "run", return_value=[marker]), \
+                mock.patch.object(cli.CVEMatcher, "match_findings", fake_match):
+            code = cli.main([
+                "example.com", "--js", "--cve", "--output-dir", str(tmp_path),
+            ])
+
+        assert code == 0
+        assert seen["ids"] == ["JS-ASSETS"]

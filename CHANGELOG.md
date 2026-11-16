@@ -4,6 +4,93 @@ All notable changes to PhantomProbe are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Each entry below was found by checking the scanner against a known answer, and
+confirmed afterwards against live NVD, CISA KEV and real DNS.
+
+### Added
+
+- **Service banners in phase 2.** Where a service speaks first (FTP, SSH,
+  SMTP, POP3, IMAP and the MySQL handshake), the port scan now records what it
+  sends on connect, and `--cve` correlates the version in it. Nothing is sent
+  to draw the banner out. The CPE table already listed OpenSSH, ProFTPD,
+  vsftpd, Exim, MySQL and MariaDB, but a scan only recorded that their ports
+  were open, so those entries could never match. A port number alone still
+  names no product: "Port 3306/MySQL" without a banner is not looked up.
+- **A caution on distribution builds.** A distribution fixes a vulnerability
+  in the release it ships and keeps the upstream version number, so a version
+  match can be a patched system. When the banner a version was read from names
+  a distribution, every CVE matched on it says so in the Markdown and JSON
+  reports, the console summary and the dashboard, and the CVE section of the
+  report opens by stating that a version match is a lead to confirm.
+
+### Fixed
+
+- **A lettered version lost its letter.** OpenSSL 1.1.1w and ProFTPD 1.3.5e
+  were looked up as 1.1.1 and 1.3.5, the oldest release of each line. NVD
+  compares the letter: it returned 63 CVEs for OpenSSL 1.1.1 and 33 for
+  1.1.1w, so fixed vulnerabilities were reported as open. A single trailing
+  letter is now kept; the `p1` of `OpenSSH_8.9p1` is still left out.
+
+- **Wildcard DNS filled the report with subdomains that do not exist.** Behind
+  a wildcard every name resolves, so one real scan reported all 198 wordlist
+  names, nine tenths of its findings, although phase 1 had flagged the
+  wildcard. Enumeration now learns the wildcard's answer first and lists only
+  names that answer differently, with one note accounting for the rest.
+- **CVE correlation missed most current nginx CVEs.** `f5:nginx` returns 41
+  results and passed the audit, but NVD files the newer nginx CVEs under
+  `f5:nginx_open_source`. For nginx 1.24.0 the scanner saw 2 CVEs of 17, and
+  showed 1 of the 10 scored 7.0 or higher. A technology can now carry further
+  identifiers (`CPE_SIBLINGS`), queried together and merged.
+- **The same gap affected 18 more products.** 42 candidate second identifiers
+  were looked up in NVD and 36 exist. 32 of those were asked about a real
+  version alongside the identifier in the table, and 25 returned CVEs the
+  table's identifier did not; they are now queried too, across 19 products.
+  For five products the table's identifier returned nothing at all, which
+  looks exactly like a clean target: Joomla 3.9.0 (125 CVEs under
+  `joomla:joomla\!`), Docker 20.10.5 (16), Confluence 7.13.0 (14), RabbitMQ
+  3.8.9 (8) and IIS 7.5 (3). MySQL 8.0.30 had 147 CVEs under `oracle:mysql`
+  and a further 155 under `oracle:mysql_server`, and Magento 2.4.3 had 8
+  against 126 under `adobe:magento`. Each addition carries its measurement in
+  `cpe_tables.py`, with the identifiers that were measured and left out listed
+  beside them. The measurements themselves, with the scripts that produced
+  them, are in `docs/research/nvd-identifier-audit-2026-11-16/`.
+- **An exploited CVE scoring under 7.0 was dropped before KEV was consulted.**
+  The severity cut ran first, so the promise that an exploited CVE outranks a
+  dormant one could not hold for CVE-2020-11023 (jQuery, scored 6.1 to 6.9, in
+  KEV since 2025). Exploitation data is now fetched before the cut, and a CVE in
+  KEV is kept at any score.
+- **NVD results were read as one short page.** The client took the first 20 and
+  stopped, and NVD sorts oldest first: for `f5:nginx` that page ran from 2009
+  to 2014. Pages are now followed to the end, and a cut at the cap is announced.
+- **Client-side library versions never reached CVE matching.** Script URLs were
+  not recorded as findings, and JavaScript analysis ran after correlation.
+  Versioned script assets are now reported and analysis runs first. A script URL
+  is read for client-side libraries only, so `spring-1.2.0.js` is not taken for
+  the Spring Framework.
+- **A busy NVD made a product look clean.** A 503, a 429 or a timeout returned
+  nothing for that product. They are now retried, and a timeout while reading
+  the response body no longer ends the scan.
+- **Technology fingerprinting reported words, not technologies.** Signatures
+  were substrings searched across the headers and the page text together, so
+  "java" matched any page containing "javascript", ".net" any link to a .net
+  domain, and "passenger" a travel site. One real scan credited a WordPress
+  site with Java and Node.js. Each signature now names the header, cookie or
+  markup it may be found in and matches whole words, and each finding states
+  the signal that identified it. Cookie values and request ids are kept out of
+  the evidence.
+
+### Changed
+
+- The CPE audit checks sibling identifiers alongside their technology, and its
+  documentation states what a passing count does and does not prove.
+- `cve.py` is split by responsibility into `cve.py` (correlation), `nvd.py`
+  (the NVD client) and `cpe_tables.py` (the identifier tables), each under 500
+  lines. `CVEMatcher` keeps its interface.
+- IIS is reported as `iis` rather than folded into `asp.net`, and a WordPress
+  generator tag carries its version through to CVE correlation.
+
 ## [0.9.2] - 2026-09-11
 
 ### Fixed
@@ -103,6 +190,7 @@ against its live source before shipping.
 - All outbound fetches go through a helper enforcing an **http/https scheme
   allowlist**, so a hostile page cannot point the scanner at `file://`.
 
+[Unreleased]: https://github.com/Ravel226/PhantomProbe/compare/v0.9.2...HEAD
 [0.9.2]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.2
 [0.9.1]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.1
 [0.9.0]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.0

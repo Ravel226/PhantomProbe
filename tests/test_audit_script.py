@@ -93,7 +93,32 @@ class TestRun:
 
         monkeypatch.setattr(audit_script, "count_cves", record)
         audit_script.main([])
-        assert len(seen) == len(CVEMatcher.CPE_MAPPING)
+        siblings = sum(len(v) for v in CVEMatcher.CPE_SIBLINGS.values())
+        assert len(seen) == len(CVEMatcher.CPE_MAPPING) + siblings
+
+    def test_sibling_identifiers_are_checked_with_their_technology(
+            self, monkeypatch, no_waiting):
+        """
+        f5:nginx passed this audit with 41 results while the newer nginx CVEs
+        sat under f5:nginx_open_source. The second identifier has to be
+        checked too, or it can go dead unnoticed.
+        """
+        seen = []
+
+        def record(vendor, product, key, timeout=45):
+            seen.append((vendor, product))
+            return 10, ""
+
+        monkeypatch.setattr(audit_script, "count_cves", record)
+        audit_script.main(["--tech", "nginx"])
+        assert seen == [("f5", "nginx"), ("f5", "nginx_open_source")]
+
+    def test_a_dead_sibling_fails_the_run(self, monkeypatch, no_waiting):
+        monkeypatch.setattr(
+            audit_script, "count_cves",
+            lambda vendor, product, key, timeout=45: (
+                (0, "") if product == "nginx_open_source" else (41, "")))
+        assert audit_script.main(["--tech", "nginx"]) == 1
 
     def test_candidate_pairs_need_not_be_in_the_table(self, monkeypatch, no_waiting):
         seen = []

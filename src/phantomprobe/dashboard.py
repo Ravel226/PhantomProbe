@@ -97,6 +97,7 @@ def cve_result_to_dict(item: Dict) -> Dict:
     return {
         "technology": item.get("technology"),
         "version": item.get("version"),
+        "distribution": item.get("distribution"),
         "cve": asdict(cve) if cve is not None else None,
     }
 
@@ -709,11 +710,22 @@ class DashboardServer:
                 f'<td class="col-id col-shrink" data-label="CVE">{html.escape(str(cve.cve_id))}</td>'
                 f'<td class="col-score col-shrink" data-label="CVSS">{html.escape(str(cve.cvss_score))}</td>'
                 f'<td class="col-shrink" data-label="Exploit">{self._exploit_cell(cve)}</td>'
-                f'<td class="col-cat col-shrink" data-label="Technology">{html.escape(str(item["technology"]))}</td>'
+                f'<td class="col-cat col-shrink" data-label="Technology">{html.escape(str(item["technology"]))}'
+                f'{self._build_note(item)}</td>'
                 f'<td class="col-desc">{html.escape(shown)}</td>'
                 "</tr>"
             )
         return rows
+
+    @staticmethod
+    def _build_note(item: Dict) -> str:
+        """Mark a version that came from a distribution build, which may be patched."""
+        distribution = item.get("distribution")
+        if not distribution:
+            return ""
+        name = html.escape(str(distribution))
+        return (f' <span class="epss" title="Version read from a {name} build, '
+                f'which may already carry the fix">{name} build</span>')
 
     @staticmethod
     def _exploit_cell(cve) -> str:

@@ -7,25 +7,27 @@ you are authorized to test.
 """
 
 import concurrent.futures
+import re
+import secrets
 import socket
 import ssl
 from datetime import datetime
-from typing import List
+from typing import Dict, List, Optional, Set, Tuple
 from urllib.request import Request
 
 from .http_client import safe_urlopen
 
 from .constants import USER_AGENT
 from .models import Finding, Severity
+from .ports import COMMON_PORTS, PortScanner
 
 
 class ActiveReconEngine:
     """Phase 2: Active Reconnaissance"""
 
-    COMMON_PORTS = [
-        21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 993, 995,
-        1433, 1521, 3306, 3389, 5432, 5900, 6379, 8080, 8443, 27017
-    ]
+    # The list lives with the scanner in ports.py; it stays reachable here
+    # for callers that address it through the engine.
+    COMMON_PORTS = COMMON_PORTS
 
     COMMON_SUBDOMAINS = [
         # web front doors
@@ -69,23 +71,57 @@ class ActiveReconEngine:
         'v1', 'v2', 'stats', 'analytics', 'track', 'ads', 'partner', 'partners',
     ]
 
-    TECH_SIGNATURES = {
-        'nginx': ['nginx'],
-        'apache': ['apache', 'httpd'],
-        'cloudflare': ['cloudflare', 'cf-ray'],
-        'aws': ['amazon', 'aws', 'ec2', 's3'],
-        'google': ['gstatic', 'google', 'gws'],
-        'php': ['php', 'x-powered-by: php'],
-        'asp.net': ['asp.net', 'iis', '.net'],
-        'node.js': ['express', 'node'],
-        'python': ['python', 'django', 'flask', 'gunicorn'],
-        'ruby': ['ruby', 'rails', 'passenger'],
-        'java': ['java', 'tomcat', 'jsp'],
-        'wordpress': ['wordpress', 'wp-'],
-        'drupal': ['drupal'],
-        'joomla': ['joomla'],
-        'laravel': ['laravel'],
-    }
+    # (technology, where, pattern). `where` is a response header, or "body" for
+    # markup only that technology emits. A pattern of None means the header
+    # being present is the signal. Matching is case-insensitive.
+    #
+    # Each signature names where it may be found, and a word it must match
+    # whole. The list this replaces was plain substrings searched across the
+    # headers and the page together, so "java" fired on any page containing
+    # "javascript", ".net" on any link to a .net domain, "s3" on "css3", and
+    # "passenger" on a travel site. One real scan credited a WordPress site
+    # with Java and Node.js that way.
+    TECH_SIGNATURES = [
+        ('nginx', 'server', r'\bnginx\b'),
+        # Apache-Coyote is Tomcat's connector, not httpd.
+        ('apache', 'server', r'\bapache\b(?!-coyote)'),
+        ('cloudflare', 'server', r'\bcloudflare\b'),
+        ('cloudflare', 'cf-ray', None),
+        ('aws', 'server', r'\b(amazons3|awselb|cloudfront)\b'),
+        ('aws', 'x-amz-request-id', None),
+        ('aws', 'x-amz-cf-id', None),
+        ('aws', 'x-amzn-requestid', None),
+        ('google', 'server', r'^(gws|gse|esf|ghs|sffe|google frontend)\b'),
+        ('php', 'x-powered-by', r'\bphp\b'),
+        ('php', 'set-cookie', r'\bPHPSESSID(?==)'),
+        ('asp.net', 'x-powered-by', r'\basp\.net\b'),
+        ('asp.net', 'x-aspnet-version', None),
+        ('asp.net', 'x-aspnetmvc-version', None),
+        ('asp.net', 'set-cookie', r'\bASP\.NET_SessionId(?==)'),
+        ('asp.net', 'set-cookie', r'\.AspNetCore\.[\w.]+(?==)'),
+        ('iis', 'server', r'\bmicrosoft-iis\b'),
+        ('node.js', 'x-powered-by', r'\bexpress\b'),
+        ('python', 'server',
+         r'\b(gunicorn|werkzeug|uvicorn|tornadoserver|wsgiserver|c?python)\b'),
+        ('ruby', 'server', r'\b(passenger|webrick)\b'),
+        ('ruby', 'x-powered-by', r'\bphusion passenger\b'),
+        ('java', 'server', r'\b(apache-coyote|tomcat|jetty|wildfly|jboss|glassfish)\b'),
+        ('java', 'x-powered-by', r'\b(servlet|jsp|jsf)\b'),
+        ('java', 'set-cookie', r'\bJSESSIONID(?==)'),
+        # The generator tag carries the core version, which the CVE matcher
+        # can use; the asset paths identify WordPress when the tag is removed.
+        ('wordpress', 'body',
+         r'<meta[^>]+name=["\']generator["\'][^>]+content=["\'](WordPress[^"\']*)'),
+        ('wordpress', 'body', r'/wp-(?:content|includes)/'),
+        ('wordpress', 'link', r'/wp-json/|api\.w\.org'),
+        ('drupal', 'x-generator', r'\bdrupal\b'),
+        ('drupal', 'x-drupal-cache', None),
+        ('drupal', 'body',
+         r'<meta[^>]+name=["\']generator["\'][^>]+content=["\'](Drupal[^"\']*)'),
+        ('joomla', 'body',
+         r'<meta[^>]+name=["\']generator["\'][^>]+content=["\'](Joomla[^"\']*)'),
+        ('laravel', 'set-cookie', r'\blaravel_session(?==)'),
+    ]
 
     def __init__(self, target: str):
         self.target = target
@@ -94,59 +130,8 @@ class ActiveReconEngine:
         self.found_subdomains: List[str] = []
 
     def scan_ports(self, ports: List[int] = None) -> List[Finding]:
-        """Scan common ports"""
-        findings = []
-        ports = ports or self.COMMON_PORTS
-        print(f"[*] Scanning {len(ports)} common ports...")
-
-        open_ports = []
-
-        def check_port(port):
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                    sock.settimeout(2)
-                    if sock.connect_ex((self.target, port)) == 0:
-                        return port
-            except OSError:
-                # Unreachable host, refused connection or exhausted sockets:
-                # treat as closed rather than aborting the whole sweep.
-                pass
-            return None
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-            results = executor.map(check_port, ports)
-            open_ports = [p for p in results if p is not None]
-
-        for port in open_ports:
-            service = self._identify_service(port)
-            findings.append(Finding(
-                id=f"PORT-{port}",
-                title=f"Open Port: {port}",
-                description=f"Port {port} is open ({service})",
-                severity=Severity.INFORMATIONAL,
-                category="Port Scan",
-                evidence=f"Port {port}/{service} is accepting connections",
-                remediation="N/A - Information gathering",
-                references=["https://en.wikipedia.org/wiki/Port_scanner"],
-                discovered_at=datetime.now().isoformat(),
-                target=self.target
-            ))
-
-        print(f"[+] Port scan: {len(open_ports)} open ports")
-        return findings
-
-    def _identify_service(self, port: int) -> str:
-        """Identify common service by port"""
-        services = {
-            21: 'FTP', 22: 'SSH', 23: 'Telnet', 25: 'SMTP',
-            53: 'DNS', 80: 'HTTP', 110: 'POP3', 143: 'IMAP',
-            443: 'HTTPS', 445: 'SMB', 993: 'IMAPS', 995: 'POP3S',
-            1433: 'MSSQL', 1521: 'Oracle', 3306: 'MySQL',
-            3389: 'RDP', 5432: 'PostgreSQL', 5900: 'VNC',
-            6379: 'Redis', 8080: 'HTTP-Alt', 8443: 'HTTPS-Alt',
-            27017: 'MongoDB'
-        }
-        return services.get(port, 'Unknown')
+        """Scan common ports and record the banners services volunteer (ports.py)."""
+        return PortScanner(self.target).run(ports)
 
     def _resolve_cnames(self, hosts: List[str]) -> dict:
         """CNAME target per host, resolved concurrently over DoH."""
@@ -165,31 +150,93 @@ class ActiveReconEngine:
                     results[host] = cname
         return results
 
+    # A wildcard behind round-robin DNS hands back a different subset of its
+    # addresses on each query, so several unregistered names are resolved to
+    # learn the whole answer rather than one sample of it.
+    WILDCARD_PROBES = 3
+
+    @staticmethod
+    def _addresses(host: str) -> Set[str]:
+        """Every address a name resolves to; empty when it does not resolve."""
+        try:
+            return {info[4][0] for info in socket.getaddrinfo(host, None)}
+        except socket.gaierror:
+            return set()
+
+    def _wildcard_answer(self) -> Tuple[Set[str], Optional[str]]:
+        """
+        What a name nobody registered resolves to under the target.
+
+        Returns (addresses, cname). No addresses means no wildcard, and a
+        resolving name can then be taken at face value.
+        """
+        probe = f"{secrets.token_hex(8)}.{self.target}"
+        addresses = self._addresses(probe)
+        if not addresses:
+            return set(), None
+        for _ in range(self.WILDCARD_PROBES - 1):
+            addresses |= self._addresses(f"{secrets.token_hex(8)}.{self.target}")
+        return addresses, self._resolve_cnames([probe]).get(probe)
+
+    def _wildcard_note(self, tried: int, suppressed: int, kept: int,
+                       addresses: Set[str], cname: Optional[str]) -> Finding:
+        """One finding that accounts for every name the wildcard filter held back."""
+        evidence = "Wildcard answer: " + ", ".join(sorted(addresses)[:6])
+        if cname:
+            evidence += f"\nWildcard CNAME: {cname}"
+        return Finding(
+            id="SUBDOMAIN-Wildcard",
+            title="Wildcard DNS: Subdomain Results Filtered",
+            description=(
+                f"Every name under {self.target} resolves, so a name resolving "
+                f"is not evidence that a host exists. Of {tried} names tried, "
+                f"{suppressed} returned only the wildcard's own answer and are "
+                f"not listed; {kept} answered differently and are reported. A "
+                f"real host that shares the wildcard's address cannot be told "
+                f"apart from it by DNS alone."
+            ),
+            severity=Severity.INFORMATIONAL,
+            category="Subdomain Enumeration",
+            evidence=evidence,
+            remediation="N/A - Information gathering",
+            references=["https://en.wikipedia.org/wiki/Wildcard_DNS_record"],
+            discovered_at=datetime.now().isoformat(),
+            target=self.target
+        )
+
     def enumerate_subdomains(self, wordlist: List[str] = None) -> List[Finding]:
         """Enumerate common subdomains"""
         findings = []
         wordlist = wordlist or self.COMMON_SUBDOMAINS
         print(f"[*] Enumerating {len(wordlist)} common subdomains...")
 
-        found_subdomains = []
+        # Under wildcard DNS every name resolves, so "it resolved" stops being
+        # evidence. Learn what the wildcard answers first; a candidate then
+        # counts only if its own answer differs. Without this a wildcard domain
+        # was credited with the entire wordlist: 198 of 198 names on a real
+        # scan, nine tenths of that report.
+        wildcard_ips, wildcard_cname = self._wildcard_answer()
 
         def check_subdomain(subdomain):
-            try:
-                full_domain = f"{subdomain}.{self.target}"
-                socket.getaddrinfo(full_domain, None)
-                return full_domain
-            except socket.gaierror:
-                return None
+            full_domain = f"{subdomain}.{self.target}"
+            return full_domain, self._addresses(full_domain)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-            results = executor.map(check_subdomain, wordlist)
-            found_subdomains = [s for s in results if s is not None]
+            resolved = [
+                (name, addresses)
+                for name, addresses in executor.map(check_subdomain, wordlist)
+                if addresses
+            ]
+
+        # With no wildcard the set is empty and every resolving name is kept.
+        found_subdomains = [
+            name for name, addresses in resolved if not addresses <= wildcard_ips
+        ]
 
         # Record every candidate tried, not only those that resolved: a
         # dangling CNAME to a dead service has no A record, so the takeover
         # check needs the full list to catch the NXDOMAIN takeovers.
         self.subdomain_candidates = [f"{s}.{self.target}" for s in wordlist]
-        self.found_subdomains = found_subdomains
 
         # Resolve where each hit points. A CNAME onto a third party is the
         # interesting part of a subdomain finding: it names the cloud service
@@ -197,6 +244,22 @@ class ActiveReconEngine:
         # same signal the takeover check acts on. Only the hits are resolved,
         # so the cost stays proportional to what was actually found.
         cnames = self._resolve_cnames(found_subdomains)
+
+        if wildcard_cname:
+            # The same CNAME as the wildcard means the same record answered,
+            # even when a rotating pool returned addresses not sampled above.
+            found_subdomains = [
+                s for s in found_subdomains if cnames.get(s) != wildcard_cname
+            ]
+        self.found_subdomains = found_subdomains
+
+        if wildcard_ips:
+            suppressed = len(resolved) - len(found_subdomains)
+            findings.append(self._wildcard_note(
+                len(wordlist), suppressed, len(found_subdomains),
+                wildcard_ips, wildcard_cname))
+            print(f"[*] Wildcard DNS: {suppressed} name(s) returned only the "
+                  f"wildcard's answer and are not listed")
 
         for subdomain in found_subdomains:
             cname = cnames.get(subdomain)
@@ -225,12 +288,45 @@ class ActiveReconEngine:
         print(f"[+] Subdomain enumeration: {len(found_subdomains)} found")
         return findings
 
+    def _match_signatures(self, headers, body: str) -> Dict[str, str]:
+        """
+        Technology to the signal that identified it; the first signature wins.
+
+        The signal is what goes in the report, so it says where the match was
+        found. Cookie values and request ids are left out of it: the name of a
+        session cookie is evidence, its value is somebody's session.
+        """
+        from .waf import _header_values
+
+        detected: Dict[str, str] = {}
+        for tech, where, pattern in self.TECH_SIGNATURES:
+            if tech in detected:
+                continue
+            if where == 'body':
+                match = re.search(pattern, body, re.IGNORECASE)
+                if match:
+                    shown = match.group(1) if match.groups() else match.group(0)
+                    detected[tech] = f"Markup: {shown[:120]}"
+                continue
+            for value in _header_values(headers, where):
+                if pattern is None:
+                    detected[tech] = f"{where.title()} header present"
+                    break
+                match = re.search(pattern, value, re.IGNORECASE)
+                if match:
+                    detected[tech] = (
+                        f"Cookie: {match.group(0)}" if where == 'set-cookie'
+                        else f"{where.title()}: {value[:120]}"
+                    )
+                    break
+        return detected
+
     def fingerprint_tech(self) -> List[Finding]:
         """Technology fingerprinting"""
         findings = []
         print(f"[*] Fingerprinting technologies...")
 
-        detected_tech = set()
+        detected_tech: Dict[str, str] = {}
 
         try:
             ctx = ssl.create_default_context()
@@ -241,16 +337,10 @@ class ActiveReconEngine:
             req.add_header('User-Agent', USER_AGENT)
 
             with safe_urlopen(req, context=ctx, timeout=10) as response:
-                headers_str = str(dict(response.headers)).lower()
-                content = response.read(5000).decode('utf-8', errors='ignore').lower()
-
-                combined = headers_str + content
-
-                for tech, signatures in self.TECH_SIGNATURES.items():
-                    for sig in signatures:
-                        if sig.lower() in combined:
-                            detected_tech.add(tech)
-                            break
+                # Read the raw message, not dict(): a dict keeps only the last
+                # Set-Cookie, and the cookie signatures need all of them.
+                body = response.read(32768).decode('utf-8', errors='ignore')
+                detected_tech = self._match_signatures(response.headers, body)
 
         except Exception as e:
             findings.append(Finding(
@@ -266,14 +356,14 @@ class ActiveReconEngine:
                 target=self.target
             ))
 
-        for tech in detected_tech:
+        for tech, signal in detected_tech.items():
             findings.append(Finding(
                 id=f"TECH-{tech.replace('.', '').replace(' ', '')}",
                 title=f"Technology Detected: {tech}",
                 description=f"Target appears to use {tech}",
                 severity=Severity.INFORMATIONAL,
                 category="Technology",
-                evidence=f"{tech} signature detected",
+                evidence=signal,
                 remediation="N/A - Information gathering",
                 references=[],
                 discovered_at=datetime.now().isoformat(),
@@ -329,7 +419,9 @@ class ActiveReconEngine:
         print("=" * 60)
         print(f"Total findings: {len(self.findings)}")
         print(f"  - Ports: {len([f for f in self.findings if f.category == 'Port Scan'])}")
-        print(f"  - Subdomains: {len([f for f in self.findings if f.category == 'Subdomain Enumeration'])}")
+        # Counted from the hits, not the category: a wildcard note shares the
+        # category without being a subdomain.
+        print(f"  - Subdomains: {len(self.found_subdomains)}")
         print(f"  - Technologies: {len([f for f in self.findings if f.category == 'Technology'])}")
         print(f"  - Takeover: {len([f for f in self.findings if f.category == 'Subdomain Takeover'])}")
         print()
