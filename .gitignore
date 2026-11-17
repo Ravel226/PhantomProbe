@@ -61,3 +61,6 @@ htmlcov/
 config.local.json
 *.local.toml
 
+
+# Research: the raw NVD snapshot behind a study is kept locally, not in git.
+docs/research/*/raw-feeds/

@@ -1,0 +1,1388 @@
+{
+ "summary": {
+  "products": 74,
+  "products_with_cves": 74,
+  "table_identifier_standing": {
+   "current": 32,
+   "every name deprecated": 1,
+   "not in the dictionary": 1
+  },
+  "table_identifiers_partly_deprecated": 40,
+  "products_where_single_identifier_is_incomplete": 24,
+  "products_where_0_9_3_is_still_incomplete": 7,
+  "cve_product_pairs": {
+   "single": 12558,
+   "configured": 13788,
+   "complete": 14062
+  },
+  "overall_recall_single": 0.893,
+  "overall_recall_configured": 0.9805,
+  "median_recall_single_among_incomplete": 0.807,
+  "worst_single_identifier_recall": [
+   [
+    "rabbitmq",
+    0.125,
+    11,
+    88
+   ],
+   [
+    "joomla",
+    0.1924,
+    81,
+    421
+   ],
+   [
+    "confluence",
+    0.2836,
+    19,
+    67
+   ],
+   [
+    "magento",
+    0.5225,
+    221,
+    423
+   ],
+   [
+    "laravel",
+    0.5263,
+    10,
+    19
+   ],
+   [
+    "docker",
+    0.6066,
+    37,
+    61
+   ],
+   [
+    "nginx",
+    0.6119,
+    41,
+    67
+   ],
+   [
+    "redis",
+    0.6765,
+    46,
+    68
+   ],
+   [
+    "jira",
+    0.71,
+    142,
+    200
+   ],
+   [
+    "iis",
+    0.723,
+    107,
+    148
+   ],
+   [
+    "java",
+    0.7566,
+    805,
+    1064
+   ],
+   [
+    "mysql",
+    0.7886,
+    1328,
+    1684
+   ]
+  ],
+  "second_identifiers_in_0_9_3": 25,
+  "of_which_add_cves_across_all_versions": 25,
+  "of_which_found_by": {
+   "rename": 12,
+   "vendor": 12,
+   "name": 8,
+   "none of the rules": 4
+  },
+  "new_same_software_identifiers": 9,
+  "cves_they_add": 274
+ },
+ "products": {
+  "angular": {
+   "table_identifier": "angular:angular",
+   "table_identifier_standing": "198 of 1342 names deprecated",
+   "single": 29,
+   "configured": 29,
+   "complete": 29,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "apache": {
+   "table_identifier": "apache:http_server",
+   "table_identifier_standing": "4 of 278 names deprecated",
+   "single": 351,
+   "configured": 351,
+   "complete": 351,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "asp.net core": {
+   "table_identifier": "microsoft:asp.net_core",
+   "table_identifier_standing": "9 of 263 names deprecated",
+   "single": 41,
+   "configured": 41,
+   "complete": 41,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "bind": {
+   "table_identifier": "isc:bind",
+   "table_identifier_standing": "804 of 1929 names deprecated",
+   "single": 193,
+   "configured": 193,
+   "complete": 193,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "bootstrap": {
+   "table_identifier": "getbootstrap:bootstrap",
+   "table_identifier_standing": "current",
+   "single": 7,
+   "configured": 7,
+   "complete": 7,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "caddy": {
+   "table_identifier": "caddyserver:caddy",
+   "table_identifier_standing": "current",
+   "single": 20,
+   "configured": 20,
+   "complete": 20,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "confluence": {
+   "table_identifier": "atlassian:confluence",
+   "table_identifier_standing": "every name deprecated",
+   "single": 19,
+   "configured": 67,
+   "complete": 67,
+   "recall_single": 0.2836,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "atlassian:confluence_server",
+     "cves": 49,
+     "adds": 43,
+     "found_by": [
+      "name",
+      "rename"
+     ]
+    },
+    {
+     "identifier": "atlassian:confluence_data_center",
+     "cves": 39,
+     "adds": 39,
+     "found_by": [
+      "name"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2012",
+    "2026"
+   ]
+  },
+  "django": {
+   "table_identifier": "djangoproject:django",
+   "table_identifier_standing": "current",
+   "single": 157,
+   "configured": 157,
+   "complete": 163,
+   "recall_single": 0.9632,
+   "recall_configured": 0.9632,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [
+    {
+     "identifier": "django_project:django",
+     "cves": 6,
+     "adds": 6,
+     "found_by": [
+      "rename",
+      "vendor"
+     ],
+     "why": "NVD's own rename (31 names): an older spelling of the vendor."
+    }
+   ],
+   "missed_by_single_years": [
+    "2007",
+    "2009"
+   ]
+  },
+  "docker": {
+   "table_identifier": "docker:docker",
+   "table_identifier_standing": "1 of 355 names deprecated",
+   "single": 37,
+   "configured": 61,
+   "complete": 61,
+   "recall_single": 0.6066,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "mobyproject:moby",
+     "cves": 21,
+     "adds": 20,
+     "found_by": [
+      "none of the rules"
+     ]
+    },
+    {
+     "identifier": "docker:engine",
+     "cves": 6,
+     "adds": 6,
+     "found_by": [
+      "none of the rules"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2017",
+    "2026"
+   ]
+  },
+  "dotnet": {
+   "table_identifier": "microsoft:.net_framework",
+   "table_identifier_standing": "6 of 47 names deprecated",
+   "single": 207,
+   "configured": 207,
+   "complete": 207,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "dovecot": {
+   "table_identifier": "dovecot:dovecot",
+   "table_identifier_standing": "4 of 267 names deprecated",
+   "single": 69,
+   "configured": 69,
+   "complete": 69,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "drupal": {
+   "table_identifier": "drupal:drupal",
+   "table_identifier_standing": "current",
+   "single": 279,
+   "configured": 279,
+   "complete": 279,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "elasticsearch": {
+   "table_identifier": "elastic:elasticsearch",
+   "table_identifier_standing": "9 of 526 names deprecated",
+   "single": 91,
+   "configured": 95,
+   "complete": 95,
+   "recall_single": 0.9579,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "elasticsearch:elasticsearch",
+     "cves": 4,
+     "adds": 4,
+     "found_by": [
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2014",
+    "2017"
+   ]
+  },
+  "envoy": {
+   "table_identifier": "envoyproxy:envoy",
+   "table_identifier_standing": "current",
+   "single": 127,
+   "configured": 127,
+   "complete": 127,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "exim": {
+   "table_identifier": "exim:exim",
+   "table_identifier_standing": "current",
+   "single": 70,
+   "configured": 70,
+   "complete": 70,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "express": {
+   "table_identifier": "openjsf:express",
+   "table_identifier_standing": "current",
+   "single": 5,
+   "configured": 5,
+   "complete": 5,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "fastapi": {
+   "table_identifier": "tiangolo:fastapi",
+   "table_identifier_standing": "current",
+   "single": 1,
+   "configured": 1,
+   "complete": 1,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "flask": {
+   "table_identifier": "palletsprojects:flask",
+   "table_identifier_standing": "current",
+   "single": 4,
+   "configured": 4,
+   "complete": 4,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "ghost": {
+   "table_identifier": "ghost:ghost",
+   "table_identifier_standing": "current",
+   "single": 30,
+   "configured": 30,
+   "complete": 30,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "gitlab": {
+   "table_identifier": "gitlab:gitlab",
+   "table_identifier_standing": "38 of 3402 names deprecated",
+   "single": 1507,
+   "configured": 1507,
+   "complete": 1507,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "golang": {
+   "table_identifier": "golang:go",
+   "table_identifier_standing": "6 of 377 names deprecated",
+   "single": 171,
+   "configured": 171,
+   "complete": 171,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "grafana": {
+   "table_identifier": "grafana:grafana",
+   "table_identifier_standing": "66 of 1289 names deprecated",
+   "single": 104,
+   "configured": 104,
+   "complete": 104,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "gunicorn": {
+   "table_identifier": "gunicorn:gunicorn",
+   "table_identifier_standing": "current",
+   "single": 1,
+   "configured": 1,
+   "complete": 1,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "haproxy": {
+   "table_identifier": "haproxy:haproxy",
+   "table_identifier_standing": "current",
+   "single": 36,
+   "configured": 36,
+   "complete": 36,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "iis": {
+   "table_identifier": "microsoft:internet_information_server",
+   "table_identifier_standing": "13 of 23 names deprecated",
+   "single": 107,
+   "configured": 148,
+   "complete": 148,
+   "recall_single": 0.723,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "microsoft:internet_information_services",
+     "cves": 91,
+     "adds": 41,
+     "found_by": [
+      "name",
+      "rename"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "1996",
+    "2017"
+   ]
+  },
+  "java": {
+   "table_identifier": "oracle:jdk",
+   "table_identifier_standing": "180 of 671 names deprecated",
+   "single": 805,
+   "configured": 805,
+   "complete": 1064,
+   "recall_single": 0.7566,
+   "recall_configured": 0.7566,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [
+    {
+     "identifier": "oracle:java_se",
+     "cves": 6,
+     "adds": 4,
+     "found_by": [
+      "rename"
+     ],
+     "why": "NVD's own rename: 17 java_se names are deprecated in favour of oracle:jdk."
+    },
+    {
+     "identifier": "oracle:jre",
+     "cves": 817,
+     "adds": 24,
+     "found_by": [
+      "rename"
+     ],
+     "why": "The runtime the JDK contains. A banner that says Java cannot tell them apart, and a JRE flaw affects a JDK of the same version."
+    },
+    {
+     "identifier": "sun:jdk",
+     "cves": 392,
+     "adds": 231,
+     "found_by": [
+      "vendor"
+     ],
+     "why": "The JDK under its previous owner: same software and version numbering, CVEs from 2001 to 2013."
+    }
+   ],
+   "missed_by_single_years": [
+    "2001",
+    "2022"
+   ]
+  },
+  "jenkins": {
+   "table_identifier": "jenkins:jenkins",
+   "table_identifier_standing": "848 of 2324 names deprecated",
+   "single": 294,
+   "configured": 294,
+   "complete": 295,
+   "recall_single": 0.9966,
+   "recall_configured": 0.9966,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [
+    {
+     "identifier": "cloudbees:jenkins",
+     "cves": 9,
+     "adds": 1,
+     "found_by": [
+      "rename",
+      "vendor"
+     ],
+     "why": "NVD's own rename (161 names): the earlier vendor."
+    }
+   ],
+   "missed_by_single_years": [
+    "2014",
+    "2014"
+   ]
+  },
+  "jetty": {
+   "table_identifier": "eclipse:jetty",
+   "table_identifier_standing": "166 of 733 names deprecated",
+   "single": 52,
+   "configured": 63,
+   "complete": 63,
+   "recall_single": 0.8254,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "mortbay:jetty",
+     "cves": 11,
+     "adds": 11,
+     "found_by": [
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2005",
+    "2019"
+   ]
+  },
+  "jira": {
+   "table_identifier": "atlassian:jira",
+   "table_identifier_standing": "231 of 598 names deprecated",
+   "single": 142,
+   "configured": 197,
+   "complete": 200,
+   "recall_single": 0.71,
+   "recall_configured": 0.985,
+   "queried_second_identifiers": [
+    {
+     "identifier": "atlassian:jira_server",
+     "cves": 135,
+     "adds": 53,
+     "found_by": [
+      "name",
+      "rename"
+     ]
+    },
+    {
+     "identifier": "atlassian:jira_data_center",
+     "cves": 80,
+     "adds": 35,
+     "found_by": [
+      "name"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [
+    {
+     "identifier": "atlassian:jira_software_data_center",
+     "cves": 39,
+     "adds": 3,
+     "found_by": [
+      "name"
+     ],
+     "why": "Jira Software in its Data Center packaging, numbered like jira_data_center, which is already queried."
+    }
+   ],
+   "missed_by_single_years": [
+    "2016",
+    "2026"
+   ]
+  },
+  "joomla": {
+   "table_identifier": "joomla:joomla",
+   "table_identifier_standing": "not in the dictionary",
+   "single": 81,
+   "configured": 421,
+   "complete": 421,
+   "recall_single": 0.1924,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "joomla:joomla\\!",
+     "cves": 340,
+     "adds": 340,
+     "found_by": [
+      "none of the rules"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2005",
+    "2026"
+   ]
+  },
+  "jquery": {
+   "table_identifier": "jquery:jquery",
+   "table_identifier_standing": "current",
+   "single": 11,
+   "configured": 11,
+   "complete": 11,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "kibana": {
+   "table_identifier": "elastic:kibana",
+   "table_identifier_standing": "2 of 566 names deprecated",
+   "single": 189,
+   "configured": 191,
+   "complete": 191,
+   "recall_single": 0.9895,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "elasticsearch:kibana",
+     "cves": 3,
+     "adds": 2,
+     "found_by": [
+      "rename",
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2020",
+    "2020"
+   ]
+  },
+  "kubernetes": {
+   "table_identifier": "kubernetes:kubernetes",
+   "table_identifier_standing": "179 of 1115 names deprecated",
+   "single": 56,
+   "configured": 56,
+   "complete": 56,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "laravel": {
+   "table_identifier": "laravel:laravel",
+   "table_identifier_standing": "current",
+   "single": 10,
+   "configured": 19,
+   "complete": 19,
+   "recall_single": 0.5263,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "laravel:framework",
+     "cves": 9,
+     "adds": 9,
+     "found_by": [
+      "none of the rules"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2019",
+    "2025"
+   ]
+  },
+  "lighttpd": {
+   "table_identifier": "lighttpd:lighttpd",
+   "table_identifier_standing": "current",
+   "single": 35,
+   "configured": 35,
+   "complete": 35,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "litespeed": {
+   "table_identifier": "litespeedtech:litespeed_web_server",
+   "table_identifier_standing": "current",
+   "single": 5,
+   "configured": 5,
+   "complete": 5,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "magento": {
+   "table_identifier": "magento:magento",
+   "table_identifier_standing": "5 of 241 names deprecated",
+   "single": 221,
+   "configured": 421,
+   "complete": 423,
+   "recall_single": 0.5225,
+   "recall_configured": 0.9953,
+   "queried_second_identifiers": [
+    {
+     "identifier": "adobe:magento",
+     "cves": 200,
+     "adds": 200,
+     "found_by": [
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [
+    {
+     "identifier": "magentocommerce:magento",
+     "cves": 2,
+     "adds": 2,
+     "found_by": [
+      "vendor"
+     ],
+     "why": "The earlier vendor name for the same product."
+    }
+   ],
+   "missed_by_single_years": [
+    "2012",
+    "2026"
+   ]
+  },
+  "mariadb": {
+   "table_identifier": "mariadb:mariadb",
+   "table_identifier_standing": "current",
+   "single": 430,
+   "configured": 430,
+   "complete": 430,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "mediawiki": {
+   "table_identifier": "mediawiki:mediawiki",
+   "table_identifier_standing": "current",
+   "single": 417,
+   "configured": 417,
+   "complete": 417,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "memcached": {
+   "table_identifier": "memcached:memcached",
+   "table_identifier_standing": "current",
+   "single": 21,
+   "configured": 21,
+   "complete": 21,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "mongodb": {
+   "table_identifier": "mongodb:mongodb",
+   "table_identifier_standing": "74 of 843 names deprecated",
+   "single": 189,
+   "configured": 189,
+   "complete": 189,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "moodle": {
+   "table_identifier": "moodle:moodle",
+   "table_identifier_standing": "35 of 578 names deprecated",
+   "single": 637,
+   "configured": 637,
+   "complete": 637,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "mysql": {
+   "table_identifier": "oracle:mysql",
+   "table_identifier_standing": "6 of 776 names deprecated",
+   "single": 1328,
+   "configured": 1684,
+   "complete": 1684,
+   "recall_single": 0.7886,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "oracle:mysql_server",
+     "cves": 348,
+     "adds": 347,
+     "found_by": [
+      "name"
+     ]
+    },
+    {
+     "identifier": "mysql:mysql",
+     "cves": 92,
+     "adds": 9,
+     "found_by": [
+      "rename",
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2004",
+    "2026"
+   ]
+  },
+  "next.js": {
+   "table_identifier": "vercel:next.js",
+   "table_identifier_standing": "current",
+   "single": 63,
+   "configured": 67,
+   "complete": 67,
+   "recall_single": 0.9403,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "zeit:next.js",
+     "cves": 4,
+     "adds": 4,
+     "found_by": [
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2017",
+    "2020"
+   ]
+  },
+  "nginx": {
+   "table_identifier": "f5:nginx",
+   "table_identifier_standing": "current",
+   "single": 41,
+   "configured": 67,
+   "complete": 67,
+   "recall_single": 0.6119,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "f5:nginx_open_source",
+     "cves": 26,
+     "adds": 26,
+     "found_by": [
+      "name"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2024",
+    "2026"
+   ]
+  },
+  "node.js": {
+   "table_identifier": "nodejs:node.js",
+   "table_identifier_standing": "761 of 1714 names deprecated",
+   "single": 187,
+   "configured": 187,
+   "complete": 189,
+   "recall_single": 0.9894,
+   "recall_configured": 0.9894,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [
+    {
+     "identifier": "joyent:node.js",
+     "cves": 2,
+     "adds": 2,
+     "found_by": [
+      "vendor"
+     ],
+     "why": "The earlier steward of Node.js: same software and numbering."
+    }
+   ],
+   "missed_by_single_years": [
+    "2014",
+    "2014"
+   ]
+  },
+  "nuxt": {
+   "table_identifier": "nuxt:nuxt",
+   "table_identifier_standing": "current",
+   "single": 18,
+   "configured": 18,
+   "complete": 18,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "openresty": {
+   "table_identifier": "openresty:openresty",
+   "table_identifier_standing": "1 of 191 names deprecated",
+   "single": 6,
+   "configured": 6,
+   "complete": 6,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "openssh": {
+   "table_identifier": "openbsd:openssh",
+   "table_identifier_standing": "83 of 300 names deprecated",
+   "single": 147,
+   "configured": 147,
+   "complete": 147,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "openssl": {
+   "table_identifier": "openssl:openssl",
+   "table_identifier_standing": "15 of 387 names deprecated",
+   "single": 322,
+   "configured": 322,
+   "complete": 322,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "perl": {
+   "table_identifier": "perl:perl",
+   "table_identifier_standing": "current",
+   "single": 46,
+   "configured": 46,
+   "complete": 46,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "php": {
+   "table_identifier": "php:php",
+   "table_identifier_standing": "248 of 1641 names deprecated",
+   "single": 740,
+   "configured": 740,
+   "complete": 740,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "phpmyadmin": {
+   "table_identifier": "phpmyadmin:phpmyadmin",
+   "table_identifier_standing": "6 of 391 names deprecated",
+   "single": 277,
+   "configured": 277,
+   "complete": 277,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "postfix": {
+   "table_identifier": "postfix:postfix",
+   "table_identifier_standing": "current",
+   "single": 12,
+   "configured": 12,
+   "complete": 12,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "postgresql": {
+   "table_identifier": "postgresql:postgresql",
+   "table_identifier_standing": "current",
+   "single": 203,
+   "configured": 203,
+   "complete": 203,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "proftpd": {
+   "table_identifier": "proftpd:proftpd",
+   "table_identifier_standing": "1 of 122 names deprecated",
+   "single": 33,
+   "configured": 33,
+   "complete": 33,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "python": {
+   "table_identifier": "python:python",
+   "table_identifier_standing": "89 of 651 names deprecated",
+   "single": 140,
+   "configured": 140,
+   "complete": 140,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "rabbitmq": {
+   "table_identifier": "pivotal_software:rabbitmq",
+   "table_identifier_standing": "321 of 527 names deprecated",
+   "single": 11,
+   "configured": 88,
+   "complete": 88,
+   "recall_single": 0.125,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "vmware:rabbitmq",
+     "cves": 6,
+     "adds": 6,
+     "found_by": [
+      "rename",
+      "vendor"
+     ]
+    },
+    {
+     "identifier": "broadcom:rabbitmq_server",
+     "cves": 79,
+     "adds": 73,
+     "found_by": [
+      "rename"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2015",
+    "2026"
+   ]
+  },
+  "rails": {
+   "table_identifier": "rubyonrails:rails",
+   "table_identifier_standing": "8 of 509 names deprecated",
+   "single": 118,
+   "configured": 121,
+   "complete": 121,
+   "recall_single": 0.9752,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "rubyonrails:ruby_on_rails",
+     "cves": 49,
+     "adds": 3,
+     "found_by": [
+      "name",
+      "rename"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2009",
+    "2017"
+   ]
+  },
+  "react": {
+   "table_identifier": "facebook:react",
+   "table_identifier_standing": "current",
+   "single": 6,
+   "configured": 6,
+   "complete": 6,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "redis": {
+   "table_identifier": "redis:redis",
+   "table_identifier_standing": "1 of 246 names deprecated",
+   "single": 46,
+   "configured": 68,
+   "complete": 68,
+   "recall_single": 0.6765,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "redislabs:redis",
+     "cves": 22,
+     "adds": 22,
+     "found_by": [
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2015",
+    "2021"
+   ]
+  },
+  "ruby": {
+   "table_identifier": "ruby-lang:ruby",
+   "table_identifier_standing": "current",
+   "single": 93,
+   "configured": 93,
+   "complete": 93,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "samba": {
+   "table_identifier": "samba:samba",
+   "table_identifier_standing": "23 of 720 names deprecated",
+   "single": 216,
+   "configured": 216,
+   "complete": 217,
+   "recall_single": 0.9954,
+   "recall_configured": 0.9954,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [
+    {
+     "identifier": "samba:samba_server",
+     "cves": 1,
+     "adds": 1,
+     "found_by": [
+      "name"
+     ],
+     "why": "The same server under a second product name."
+    }
+   ],
+   "missed_by_single_years": [
+    "2007",
+    "2007"
+   ]
+  },
+  "spring": {
+   "table_identifier": "vmware:spring_framework",
+   "table_identifier_standing": "1 of 360 names deprecated",
+   "single": 83,
+   "configured": 88,
+   "complete": 88,
+   "recall_single": 0.9432,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "springsource:spring_framework",
+     "cves": 5,
+     "adds": 2,
+     "found_by": [
+      "rename",
+      "vendor"
+     ]
+    },
+    {
+     "identifier": "pivotal_software:spring_framework",
+     "cves": 10,
+     "adds": 3,
+     "found_by": [
+      "rename",
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2010",
+    "2020"
+   ]
+  },
+  "struts": {
+   "table_identifier": "apache:struts",
+   "table_identifier_standing": "1 of 212 names deprecated",
+   "single": 99,
+   "configured": 99,
+   "complete": 99,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "symfony": {
+   "table_identifier": "sensiolabs:symfony",
+   "table_identifier_standing": "current",
+   "single": 89,
+   "configured": 89,
+   "complete": 89,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "tomcat": {
+   "table_identifier": "apache:tomcat",
+   "table_identifier_standing": "27 of 822 names deprecated",
+   "single": 274,
+   "configured": 274,
+   "complete": 274,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "tornado": {
+   "table_identifier": "tornadoweb:tornado",
+   "table_identifier_standing": "current",
+   "single": 10,
+   "configured": 10,
+   "complete": 10,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "traefik": {
+   "table_identifier": "traefik:traefik",
+   "table_identifier_standing": "1 of 569 names deprecated",
+   "single": 84,
+   "configured": 85,
+   "complete": 85,
+   "recall_single": 0.9882,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "containous:traefik",
+     "cves": 1,
+     "adds": 1,
+     "found_by": [
+      "rename",
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2021",
+    "2021"
+   ]
+  },
+  "typo3": {
+   "table_identifier": "typo3:typo3",
+   "table_identifier_standing": "1 of 647 names deprecated",
+   "single": 218,
+   "configured": 218,
+   "complete": 218,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "varnish": {
+   "table_identifier": "varnish_cache_project:varnish_cache",
+   "table_identifier_standing": "current",
+   "single": 14,
+   "configured": 16,
+   "complete": 16,
+   "recall_single": 0.875,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [
+    {
+     "identifier": "varnish-software:varnish_cache",
+     "cves": 7,
+     "adds": 2,
+     "found_by": [
+      "rename",
+      "vendor"
+     ]
+    }
+   ],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": [
+    "2020",
+    "2020"
+   ]
+  },
+  "vsftpd": {
+   "table_identifier": "vsftpd_project:vsftpd",
+   "table_identifier_standing": "current",
+   "single": 5,
+   "configured": 5,
+   "complete": 5,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "werkzeug": {
+   "table_identifier": "palletsprojects:werkzeug",
+   "table_identifier_standing": "current",
+   "single": 14,
+   "configured": 14,
+   "complete": 14,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  },
+  "wordpress": {
+   "table_identifier": "wordpress:wordpress",
+   "table_identifier_standing": "73 of 1336 names deprecated",
+   "single": 357,
+   "configured": 357,
+   "complete": 357,
+   "recall_single": 1.0,
+   "recall_configured": 1.0,
+   "queried_second_identifiers": [],
+   "new_same_software_identifiers": [],
+   "missed_by_single_years": []
+  }
+ }
+}

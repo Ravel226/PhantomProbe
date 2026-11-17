@@ -1,0 +1,824 @@
+{
+ "all_application_renames": {
+  "pairs": 1903,
+  "states": {
+   "old identifier returns nothing; CVEs are under the new one": 1289,
+   "split: each holds CVEs the other lacks": 372,
+   "neither identifier has CVEs": 151,
+   "old is a strict subset of new": 55,
+   "new identifier returns nothing; CVEs are still under the old one": 24,
+   "identical": 7,
+   "new is a strict subset of old": 5
+  },
+  "pairs_where_the_old_identifier_misses_cves": 1716,
+  "pairs_where_the_new_identifier_misses_cves": 401,
+  "distinct_cves_missed_using_only_old": 35685,
+  "distinct_cves_missed_using_only_new": 9417
+ },
+ "complete_renames": {
+  "pairs": 1667,
+  "states": {
+   "old identifier returns nothing; CVEs are under the new one": 1247,
+   "split: each holds CVEs the other lacks": 210,
+   "neither identifier has CVEs": 146,
+   "old is a strict subset of new": 43,
+   "new identifier returns nothing; CVEs are still under the old one": 14,
+   "identical": 5,
+   "new is a strict subset of old": 2
+  },
+  "pairs_where_the_old_identifier_misses_cves": 1500,
+  "pairs_where_the_new_identifier_misses_cves": 226,
+  "distinct_cves_missed_using_only_old": 26670,
+  "distinct_cves_missed_using_only_new": 676
+ },
+ "partial_renames": {
+  "pairs": 236,
+  "states": {
+   "split: each holds CVEs the other lacks": 162,
+   "old identifier returns nothing; CVEs are under the new one": 42,
+   "old is a strict subset of new": 12,
+   "new identifier returns nothing; CVEs are still under the old one": 10,
+   "neither identifier has CVEs": 5,
+   "new is a strict subset of old": 3,
+   "identical": 2
+  },
+  "pairs_where_the_old_identifier_misses_cves": 216,
+  "pairs_where_the_new_identifier_misses_cves": 175,
+  "distinct_cves_missed_using_only_old": 10914,
+  "distinct_cves_missed_using_only_new": 8762
+ },
+ "complete_renames_by_year": {
+  "2008": 7,
+  "2009": 6,
+  "2010": 4,
+  "2011": 2,
+  "2012": 25,
+  "2013": 7,
+  "2014": 12,
+  "2015": 8,
+  "2016": 5,
+  "2017": 9,
+  "2018": 29,
+  "2019": 82,
+  "2020": 132,
+  "2021": 419,
+  "2022": 139,
+  "2023": 209,
+  "2024": 138,
+  "2025": 278,
+  "2026": 156
+ },
+ "complete_examples_where_the_new_identifier_misses": [
+  {
+   "old": "microsoft:ie",
+   "new": "microsoft:internet_explorer",
+   "under_old": 200,
+   "under_new": 1635,
+   "missed": 57,
+   "missed_years": [
+    "1999",
+    "2007"
+   ],
+   "renamed": "2021"
+  },
+  {
+   "old": "cisco:adaptive_security_appliance",
+   "new": "cisco:adaptive_security_appliance_software",
+   "under_old": 33,
+   "under_new": 37,
+   "missed": 33,
+   "missed_years": [
+    "2009",
+    "2023"
+   ],
+   "renamed": "2022"
+  },
+  {
+   "old": "dolibarr:dolibarr",
+   "new": "dolibarr:dolibarr_erp\\/crm",
+   "under_old": 32,
+   "under_new": 111,
+   "missed": 31,
+   "missed_years": [
+    "2014",
+    "2021"
+   ],
+   "renamed": "2022"
+  },
+  {
+   "old": "asterisk:open_source",
+   "new": "sangoma:asterisk",
+   "under_old": 22,
+   "under_new": 28,
+   "missed": 19,
+   "missed_years": [
+    "2007",
+    "2013"
+   ],
+   "renamed": "2024"
+  },
+  {
+   "old": "pulsesecure:pulse_connect_secure",
+   "new": "ivanti:connect_secure",
+   "under_old": 57,
+   "under_new": 133,
+   "missed": 17,
+   "missed_years": [
+    "2016",
+    "2020"
+   ],
+   "renamed": "2024"
+  },
+  {
+   "old": "openautomationsoftware:oas_platform",
+   "new": "openautomationsoftware:open_automation_software",
+   "under_old": 16,
+   "under_new": 5,
+   "missed": 16,
+   "missed_years": [
+    "2022",
+    "2023"
+   ],
+   "renamed": "2025"
+  },
+  {
+   "old": "atlassian:confluence",
+   "new": "atlassian:confluence_server",
+   "under_old": 19,
+   "under_new": 49,
+   "missed": 13,
+   "missed_years": [
+    "2005",
+    "2019"
+   ],
+   "renamed": "2021"
+  },
+  {
+   "old": "ipswitch:ws_ftp_server",
+   "new": "progress:ipswitch_ws_ftp_server",
+   "under_old": 13,
+   "under_new": 2,
+   "missed": 13,
+   "missed_years": [
+    "1999",
+    "2019"
+   ],
+   "renamed": "2019"
+  },
+  {
+   "old": "mozilla:firefox_esr",
+   "new": "mozilla:firefox",
+   "under_old": 487,
+   "under_new": 3445,
+   "missed": 13,
+   "missed_years": [
+    "2020",
+    "2023"
+   ],
+   "renamed": "2016"
+  },
+  {
+   "old": "publify_project:publify",
+   "new": "publify:publify",
+   "under_old": 13,
+   "under_new": 2,
+   "missed": 13,
+   "missed_years": [
+    "2021",
+    "2023"
+   ],
+   "renamed": "2025"
+  },
+  {
+   "old": "sap:netweaver_abap",
+   "new": "sap:netweaver_application_server_abap",
+   "under_old": 21,
+   "under_new": 86,
+   "missed": 13,
+   "missed_years": [
+    "2012",
+    "2024"
+   ],
+   "renamed": "2022"
+  },
+  {
+   "old": "torrentflux:torrentflux",
+   "new": "torrentflux_project:torrentflux",
+   "under_old": 13,
+   "under_new": 4,
+   "missed": 13,
+   "missed_years": [
+    "2006",
+    "2009"
+   ],
+   "renamed": "2020"
+  }
+ ],
+ "complete_examples_where_the_old_identifier_misses": [
+  {
+   "old": "mozilla:firefox_esr",
+   "new": "mozilla:firefox",
+   "under_old": 487,
+   "under_new": 3445,
+   "missed": 2971,
+   "missed_years": [
+    "2003",
+    "2026"
+   ],
+   "renamed": "2016"
+  },
+  {
+   "old": "microsoft:ie",
+   "new": "microsoft:internet_explorer",
+   "under_old": 200,
+   "under_new": 1635,
+   "missed": 1492,
+   "missed_years": [
+    "1997",
+    "2021"
+   ],
+   "renamed": "2021"
+  },
+  {
+   "old": "f5:big-ip_aam",
+   "new": "f5:big-ip_application_acceleration_manager",
+   "under_old": 0,
+   "under_new": 524,
+   "missed": 524,
+   "missed_years": [
+    "2014",
+    "2026"
+   ],
+   "renamed": "2021"
+  },
+  {
+   "old": "mattermost:server",
+   "new": "mattermost:mattermost_server",
+   "under_old": 0,
+   "under_new": 506,
+   "missed": 506,
+   "missed_years": [
+    "2020",
+    "2026"
+   ],
+   "renamed": "2020"
+  },
+  {
+   "old": "oracle:peoplesoft_enterprise_people_tools",
+   "new": "oracle:peoplesoft_enterprise_peopletools",
+   "under_old": 0,
+   "under_new": 468,
+   "missed": 468,
+   "missed_years": [
+    "2007",
+    "2026"
+   ],
+   "renamed": "2026"
+  },
+  {
+   "old": "tensorflow:tensorflow",
+   "new": "google:tensorflow",
+   "under_old": 0,
+   "under_new": 431,
+   "missed": 431,
+   "missed_years": [
+    "2019",
+    "2025"
+   ],
+   "renamed": "2021"
+  },
+  {
+   "old": "mariadb_project:mariadb",
+   "new": "mariadb:mariadb",
+   "under_old": 0,
+   "under_new": 430,
+   "missed": 430,
+   "missed_years": [
+    "2005",
+    "2026"
+   ],
+   "renamed": "2020"
+  },
+  {
+   "old": "foxitsoftware:pdf_reader",
+   "new": "foxit:pdf_reader",
+   "under_old": 3,
+   "under_new": 373,
+   "missed": 373,
+   "missed_years": [
+    "2007",
+    "2026"
+   ],
+   "renamed": "2022"
+  },
+  {
+   "old": "freerdp_project:freerdp",
+   "new": "freerdp:freerdp",
+   "under_old": 0,
+   "under_new": 337,
+   "missed": 337,
+   "missed_years": [
+    "2014",
+    "2026"
+   ],
+   "renamed": "2020"
+  },
+  {
+   "old": "cloudbees:jenkins1.381",
+   "new": "jenkins:jenkins",
+   "under_old": 0,
+   "under_new": 294,
+   "missed": 294,
+   "missed_years": [
+    "2011",
+    "2026"
+   ],
+   "renamed": "2016"
+  },
+  {
+   "old": "tracker-software:pdf-xchange_editor",
+   "new": "pdf-xchange:pdf-xchange_editor",
+   "under_old": 0,
+   "under_new": 288,
+   "missed": 288,
+   "missed_years": [
+    "2018",
+    "2025"
+   ],
+   "renamed": "2024"
+  },
+  {
+   "old": "cisco:firepower_threat_defense_software",
+   "new": "cisco:secure_firewall_threat_defense",
+   "under_old": 0,
+   "under_new": 277,
+   "missed": 277,
+   "missed_years": [
+    "2017",
+    "2026"
+   ],
+   "renamed": "2026"
+  }
+ ],
+ "identifiers_absent_from_dictionary_by_year": {
+  "1988": {
+   "identifiers_used": 3,
+   "absent": 3,
+   "share": 1.0
+  },
+  "1990": {
+   "identifiers_used": 3,
+   "absent": 2,
+   "share": 0.667
+  },
+  "1991": {
+   "identifiers_used": 2,
+   "absent": 2,
+   "share": 1.0
+  },
+  "1992": {
+   "identifiers_used": 1,
+   "absent": 1,
+   "share": 1.0
+  },
+  "1993": {
+   "identifiers_used": 4,
+   "absent": 4,
+   "share": 1.0
+  },
+  "1994": {
+   "identifiers_used": 2,
+   "absent": 2,
+   "share": 1.0
+  },
+  "1995": {
+   "identifiers_used": 11,
+   "absent": 9,
+   "share": 0.818
+  },
+  "1996": {
+   "identifiers_used": 32,
+   "absent": 18,
+   "share": 0.562
+  },
+  "1997": {
+   "identifiers_used": 81,
+   "absent": 46,
+   "share": 0.568
+  },
+  "1998": {
+   "identifiers_used": 122,
+   "absent": 68,
+   "share": 0.557
+  },
+  "1999": {
+   "identifiers_used": 347,
+   "absent": 212,
+   "share": 0.611
+  },
+  "2000": {
+   "identifiers_used": 512,
+   "absent": 319,
+   "share": 0.623
+  },
+  "2001": {
+   "identifiers_used": 824,
+   "absent": 539,
+   "share": 0.654
+  },
+  "2002": {
+   "identifiers_used": 1100,
+   "absent": 729,
+   "share": 0.663
+  },
+  "2003": {
+   "identifiers_used": 850,
+   "absent": 555,
+   "share": 0.653
+  },
+  "2004": {
+   "identifiers_used": 1342,
+   "absent": 828,
+   "share": 0.617
+  },
+  "2005": {
+   "identifiers_used": 2565,
+   "absent": 1815,
+   "share": 0.708
+  },
+  "2006": {
+   "identifiers_used": 3587,
+   "absent": 2873,
+   "share": 0.801
+  },
+  "2007": {
+   "identifiers_used": 3931,
+   "absent": 2987,
+   "share": 0.76
+  },
+  "2008": {
+   "identifiers_used": 3593,
+   "absent": 2836,
+   "share": 0.789
+  },
+  "2009": {
+   "identifiers_used": 3339,
+   "absent": 2521,
+   "share": 0.755
+  },
+  "2010": {
+   "identifiers_used": 2109,
+   "absent": 1268,
+   "share": 0.601
+  },
+  "2011": {
+   "identifiers_used": 1671,
+   "absent": 790,
+   "share": 0.473
+  },
+  "2012": {
+   "identifiers_used": 2272,
+   "absent": 596,
+   "share": 0.262
+  },
+  "2013": {
+   "identifiers_used": 1676,
+   "absent": 157,
+   "share": 0.094
+  },
+  "2014": {
+   "identifiers_used": 3980,
+   "absent": 502,
+   "share": 0.126
+  },
+  "2015": {
+   "identifiers_used": 2066,
+   "absent": 306,
+   "share": 0.148
+  },
+  "2016": {
+   "identifiers_used": 1667,
+   "absent": 79,
+   "share": 0.047
+  },
+  "2017": {
+   "identifiers_used": 4184,
+   "absent": 213,
+   "share": 0.051
+  },
+  "2018": {
+   "identifiers_used": 5869,
+   "absent": 265,
+   "share": 0.045
+  },
+  "2019": {
+   "identifiers_used": 5771,
+   "absent": 98,
+   "share": 0.017
+  },
+  "2020": {
+   "identifiers_used": 5713,
+   "absent": 58,
+   "share": 0.01
+  },
+  "2021": {
+   "identifiers_used": 6862,
+   "absent": 663,
+   "share": 0.097
+  },
+  "2022": {
+   "identifiers_used": 7916,
+   "absent": 800,
+   "share": 0.101
+  },
+  "2023": {
+   "identifiers_used": 10170,
+   "absent": 1165,
+   "share": 0.115
+  },
+  "2024": {
+   "identifiers_used": 7458,
+   "absent": 878,
+   "share": 0.118
+  },
+  "2025": {
+   "identifiers_used": 6088,
+   "absent": 1085,
+   "share": 0.178
+  },
+  "2026": {
+   "identifiers_used": 5571,
+   "absent": 927,
+   "share": 0.166
+  }
+ },
+ "titles": {
+  "a:apache:struts": "Apache Software Foundation Struts",
+  "a:apache:tomcat": "Apache Software Foundation Tomcat",
+  "a:apache:tomcat_jk_web_server_connector": "Apache Software Foundation Tomcat JK Web Server Connector",
+  "a:checkpoint:express": "Checkpoint Check Point Express",
+  "a:hp:http_server": "HP HTTP Server",
+  "a:ibm:http_server": "IBM IBM HTTP Server",
+  "a:isc:bind": "ISC BIND",
+  "a:microsoft:asp.net": "Microsoft ASP.NET",
+  "a:microsoft:internet_information_server": "Microsoft IIS",
+  "a:moodle:moodle": "Moodle",
+  "a:mysql:mysql": "MySQL MySQL",
+  "a:novell:http_server": "Novell Novell-HTTP-Server",
+  "a:openbsd:openssh": "OpenBSD OpenSSH",
+  "a:openssl:openssl": "OpenSSL Project OpenSSL",
+  "a:oracle:http_server": "Oracle HTTP Server",
+  "a:php:php": "PHP PHP",
+  "a:php:php_script_index": "PHP PHP Script Index",
+  "a:php:php_fi": "PHP PHP_FI",
+  "a:postgresql:postgresql": "PostgreSQL",
+  "a:redhat:openssl": "Red Hat openssl",
+  "a:samba:samba": "Samba Samba",
+  "a:samba:samba_server": "Samba Samba Server",
+  "a:sun:jdk": "Sun JDK",
+  "a:apache:http_server": "Apache Software Foundation Apache 1.2",
+  "a:atlassian:jira": "Atlassian JIRA 3.6.2_156",
+  "a:drupal:drupal": "Drupal 4.6.10",
+  "a:lighttpd:lighttpd": "lighttpd 1.3.16",
+  "a:mediawiki:mediawiki": "MediaWiki 1.1.0",
+  "a:microsoft:.net_framework": "Microsoft .NET Framework 1.1 2003 sp2",
+  "a:typo3:typo3": "TYPO3 3.8.1",
+  "a:wordpress:wordpress": "WordPress 0.71",
+  "a:microsoft:iis": "Microsoft IIS 4.0",
+  "a:openssh:openssh": "OpenBSD OpenSSH",
+  "a:ruby-lang:ruby": "Ruby-lang Ruby",
+  "a:phpmyadmin:phpmyadmin": "phpMYAdmin 2.11.1.1",
+  "a:perl:perl": "Perl 5.8.8",
+  "a:postfix:postfix": "postfix 2.6",
+  "a:microsoft:internet_information_services": "Microsoft Internet Information Services (IIS) 5.0",
+  "a:proftpd:proftpd": "ProFTPD 1.3.1",
+  "a:python:python": "Python Python 2.4.3",
+  "a:mortbay:jetty": "Mortbay Jetty 3.0",
+  "a:morbtay:jetty": "Mortbay Jetty 6.1.0",
+  "a:igor_sysoev:nginx": "Nginx 0.1.27",
+  "a:joomla:joomla\\!": "Joomla!",
+  "a:djangoproject:django": "Django Project Django 1.0",
+  "a:dovecot:dovecot": "Dovecot 1.2.0",
+  "a:oracle:jre": "Oracle Java Runtime Environment (JRE) 1.6.0 Update 19",
+  "a:exim:exim": "University of Cambridge Exim 4.10",
+  "a:litespeedtech:litespeed_web_server": "LiteSpeed Technologies LiteSpeed Web Server 4.0.14",
+  "a:oracle:mysql": "Oracle MySQL 6.0",
+  "a:cloudbees:jenkins": "CloudBees Jenkins 1.438",
+  "a:cloudbees:jenkins1.381": "CloudBees Jenkins 1.381",
+  "a:oracle:jdk": "Oracle JDK 1.6.0 Update 22",
+  "a:atlassian:confluence": "Atlassian Confluence 4.1.9",
+  "a:tornadoweb:tornado": "Tornado Web Server Tornado 2.2.1",
+  "a:haproxy:haproxy": "HAProxy 1.4.20",
+  "a:sensiolabs:symfony": "SensioLabs Symfony 1.4.17",
+  "a:ibm:jdk": "IBM Jdk 1.4.2",
+  "a:joyent:node.js": "Joyent Node.js 0.6.1",
+  "a:mariadb:mariadb": "MariaDB 5.1.61",
+  "a:rubyonrails:ruby_on_rails": "Ruby on Rails  0.10.0",
+  "a:rubyonrails:rails": "Ruby on Rails Rails 1.2.4",
+  "a:oracle:mysql_connector\\/odbc": "Oracle Mysql Connector/odbc 5.1.8",
+  "a:oracle:mysql_connector_c": "Oracle Mysql Connector C 1.1.0",
+  "a:oracle:mysql_connector_j": "Oracle Mysql Connector J 5.1.15.0",
+  "a:oracle:mysql_connector_net": "Oracle Mysql Connector Net 6.3.6",
+  "a:oracle:mysql_documents": "Oracle Mysql Documents 5.5.11",
+  "a:oracle:mysql_examples_and_samples": "Oracle Mysql Examples And Samples 5.5.11",
+  "a:oracle:mysql_installer": "Oracle Mysql Installer 1.0.11.0",
+  "a:oracle:mysql_workbench_ce": "Oracle Mysql Workbench Ce 5.2.26",
+  "a:jquery:jquery": "jQuery 1.8.1",
+  "a:postgresql:postgresql_jdbc_driver": "PostgreSQL JDBC Driver 8.1",
+  "a:magentocommerce:magento": "Magentocommerce Magento 1.5",
+  "a:mongodb:mongodb": "MongoDB 2.4.0",
+  "a:isc:dnsco_bind": "ISC DNSco BIND 9.9.3-S1",
+  "a:varnish-cache:varnish": "Varnish-Cache Varnish 3.0.4",
+  "a:memcached:memcached": "Memcached 1.4.16",
+  "a:springsource:spring_framework": "SpringSource Spring Framework 3.2.4",
+  "a:gitlab:gitlab": "GitLab 6.0",
+  "a:docker:docker": "Docker 1.0.0",
+  "a:elasticsearch:elasticsearch": "Elasticsearch 1.2.0",
+  "a:nginx:nginx": "Nginx 1.0.0",
+  "a:express:express": "express EXPRESS (aka com.gpshopper.express.android) for android 2.5.3",
+  "a:jquery:jquery_ui": "jQuery UI for jQuery 1.10.0 release candidate 1",
+  "a:nodejs:node.js": "nodejs Node.js 0.10.18",
+  "a:pivotal_software:rabbitmq_management": "Pivotal Software RabbitMQ Management 3.4.2",
+  "a:pivotal_software:rabbitmq": "Pivotal Software RabbitMQ 3.3.5",
+  "a:pivotal_software:spring_framework": "Pivotal Software Spring Framework 4.1.0",
+  "a:redhat:docker": "Redhat Docker 1.5.0-27",
+  "a:apache:tomcat_connectors": "Apache Software Foundation Tomcat Connectors 1.2.40",
+  "a:magento:magento": "Magento Magento Community Edition 1.9.1.0",
+  "a:pivotal_software:redis": "Piviotal Software Redis 2.8.0",
+  "a:elasticsearch:kibana": "Elasticsearch Kibana 4.1.2",
+  "a:atlassian:jira_core": "Atlassian JIRA Core 7.0.3",
+  "a:atlassian:jira_service_desk": "Atlassian JIRA Service Desk 3.0.3",
+  "a:google:kubernetes": "Google Kubernetes",
+  "a:oracle:mysql_enterprise_monitor": "Oracle MySQL Enterprise Monitor 3.0.25",
+  "a:golang:go": "Golang Go 1.6",
+  "a:jenkins:jenkins": "Jenkins 1.371",
+  "a:kubernetes:kubernetes": "Kubernetes",
+  "a:hp:jdk": "HP JDK 7.0.08",
+  "a:python:python_priority_library": "Python Priority Library 1.0.0",
+  "a:ruby-lang:openssl": "Ruby-lang OpenSSL 2.3.1",
+  "a:oracle:mysql_connector\\/c": "Oracle MySQL Connector/C 6.1.2",
+  "a:eclipse:jetty": "Eclipse Jetty 9.3.0 Maintenance 2",
+  "a:apache_software_foundation:tomcat": "Apache Software Foundation Tomcat 4.1.4",
+  "a:atlassian:jira_integration_for_hipchat": "Atlassian JIRA Integration For Hipchat 6.26.0",
+  "a:oracle:mysql_workbench": "Oracle MySQL Workbench 6.3.8",
+  "a:expressjs:express": "expressjs Express 3.10.5",
+  "a:palletsprojects:werkzeug": "The Pallets Projects Werkzeug 0.1",
+  "a:oracle:mysql_connector\\/net": "Oracle MySQL Connector/Net 6.9.0",
+  "a:oracle:mysql_connector\\/j": "Oracle MySQL Connector/J 5.1.8",
+  "a:microsoft:asp.net_core": "Microsoft ASP.NET Core 1.0",
+  "a:apache:tomcat_jk_connector": "Apache Software Foundation Tomcat JK Connector 1.2.0",
+  "a:apache:tomcat_native": "Apache Software Foundation Tomcat Native 1.1.11",
+  "a:mysql_project:mysql": "MySQL Project MySQL 2.0.0 Alpha 9",
+  "a:mysqljs:mysql": "MySqlJS MySQL 2.0.0 Alpha 7 for Node.js",
+  "a:angularjs:angular.js": "AngularJS",
+  "a:zeit:next.js": "ZEIT Next.js 1.0.0",
+  "a:mariadb_project:mariadb": "mariadb Project mariadb for Node.js",
+  "a:django_project:django": "Django Project Django 1.10.7",
+  "a:redislabs:redis": "Redis Labs Redis 2.8.0",
+  "a:microsoft:.net_framework_developer_pack": "Microsoft .NET Framework Developer Pack 4.7.2",
+  "a:mobyproject:moby": "Docker Moby 0.0.3",
+  "a:microsoft:.net_core": "Microsoft .NET Core 2.1",
+  "a:elastic:elasticsearch": "Elastic Elasticsearch 0.4.0",
+  "a:wordpress:wordpress_mu": "WordPress MU 1.1",
+  "a:elastic:elasticsearch_x-pack": "Elastic Elasticsearch X-pack 5.0.0",
+  "a:elastic:kibana_x-pack": "Elastic Kibana X-pack 5.0.0",
+  "a:facebook:react": "Facebook React 0.3.0",
+  "a:caddy_project:caddy": "Caddy Project Caddy 2.1.4 Alpha TYPO3",
+  "a:laravel:framework": "Laravel Framework 4.0.0",
+  "a:jenkins:kubernetes": "Jenkins Kubernetes 0.1 for Jenkins",
+  "a:jenkins:gitlab": "Jenkins GitLab 1.0.6 for Jenkins",
+  "a:grafana:grafana": "Grafana 4.6.0",
+  "a:envoyproxy:envoy": "Envoyproxy Envoy 1.0.0",
+  "a:getbootstrap:bootstrap": "Getbootstrap Bootstrap 1.0.0",
+  "a:oracle:mysql_cluster": "Oracle MySQL Cluster 7.2.27",
+  "a:docker:engine": "Docker Engine 0.0.3",
+  "a:containous:traefik": "Containous Traefik 1.0",
+  "a:laravel:laravel": "Laravel 3.0.0",
+  "a:oracle:mysql_enterprise_backup": "Oracle MySQL Enterprise Backup 3.11.0",
+  "a:vsftpd_project:vsftpd": "vsftpd Project vsftpd 2.3.5",
+  "a:voxpupuli:rabbitmq": "Vox Populi RabbitMQ 1.0.0 for Puppet",
+  "a:jenkins:docker": "Jenkins Docker 0.1 for Jenkins",
+  "a:palletsprojects:flask": "Palletsprojects Flask 1.0",
+  "a:caddyserver:caddy": "Caddyserver Caddy 0.5.0",
+  "a:openresty:openresty": "OpenResty 0.8.54.3",
+  "a:gunicorn:gunicorn": "Gunicorn 0.2",
+  "a:openssl_project:openssl": "OpenSSL Project OpenSSL 0.0.2",
+  "a:ghost:ghost": "Ghost for WordPress",
+  "a:enphase:envoy": "Enphase Envoy 3.0.0",
+  "a:atlassian:jira_service_desk_server": "Atlassian Jira Service Desk Server -",
+  "a:atlassian:questions_for_confluence": "Atlassian Questions for Confluence 1.0.197",
+  "a:docker:docker_enterprise": "Docker Enterprise 2.0.0",
+  "a:jenkins:jira": "Jenkins JIRA 1.0 for Jenkins",
+  "a:oracle:mysql_connectors": "Oracle MySQL Connectors 2.1.0",
+  "a:http_server_project:http_server": "Http Server Project Http Server 1.0.12 for Node.js",
+  "a:cncf:envoy": "CNCF Envoy 1.13.0",
+  "a:f5:nginx_controller": "F5 NGINX Controller",
+  "a:anynines:elasticsearch": "Anynines Elasticsearch - for Pivotal Cloud Foundry",
+  "a:anynines:mongodb": "Anynines Mongodb - for Pivotal Cloud Foundry",
+  "a:anynines:mysql": "Anynines Mysql - for Pivotal Cloud Foundry",
+  "a:anynines:postgresql": "Anynines Postgresql - for Pivotal Cloud Foundry",
+  "a:anynines:rabbitmq": "Anynines Rabbitmq - for Pivotal Cloud Foundry",
+  "a:anynines:redis": "Anynines Redis - for Pivotal Cloud Foundry",
+  "a:atlassian:jira_software_data_center": "Atlassian Jira Software Data Center 8.4.0",
+  "a:adobe:magento": "Adobe Magento 2.3.4",
+  "a:varnish-cache:varnish_cache": "Varnish Cache 0.9",
+  "a:mongodb:mongodb_enterprise_kubernetes_operator": "MongoDB Enterprise Kubernetes Operator 0.2",
+  "a:akka:http_server": "Akka HTTP Server 10.0.5",
+  "a:golang:net": "Golang Net 2018-07-02",
+  "a:docker:docker_desktop": "Docker Desktop 2.1.0.1",
+  "a:elastic:kibana_reporting": "Elastic Kibana Reporting 2.4.0",
+  "a:netgate:haproxy": "Netgate HAProxy 0.01 for pfSense",
+  "a:elastic:kibana": "Elastic Kibana 3.0.0",
+  "a:jenkins:mongodb": "Jenkins MongoDB 1.0 for Jenkins",
+  "a:atlassian:jira_server_and_data_center": "Atlassian Jira Server and Data Center 8.5.8",
+  "a:oracle:mysql_server": "Oracle MySQL Server 5.7.26",
+  "a:openmage:magento": "Openmage Magento 19.4.0 Lts Edition",
+  "a:vercel:next.js": "Vercel Next.js 9.5.0 for Node.js",
+  "a:atlassian:jira_comment": "Atlassian JIRA Comment 2.0.2",
+  "a:atlassian:jira_create": "Atlassian Jira Create 1.0.0",
+  "a:drupal:drupal_docker_images": "Drupal Docker Images 8.3.0-fpm-alpine",
+  "a:oracle:mysql_connector\\/python": "Oracle MySQL Connector/Python 2.0.0",
+  "a:treck:http_server": "Treck HTTP Server 6.0.1.68",
+  "a:microsoft:.net": "Microsoft .NET 5.0",
+  "a:redis.js:redis": "Redis.js Redis for Node.js",
+  "a:vmware:rabbitmq": "VMware RabbitMQ 3.8.7",
+  "a:vmware:spring_framework": "VMware Spring Framework 4.3.30",
+  "a:synology:docker": "Synology Docker 18.09.0-0515",
+  "a:fastapi_project:fastapi": "FastAPI Project FastAPI 0.1.11",
+  "a:oracle:javase": "Oracle Java SE 8u291",
+  "a:oracle:java_se": "Oracle Java SE 7u301",
+  "a:traefik:traefik": "Traefik Labs Traefik 1.0",
+  "a:openjsf:express": "OpenJS Foundation Express 1.0.9 for Node.js",
+  "a:redis:redis": "Redis 6.2.6",
+  "a:f5:nginx": "F5 NGINX 0.1.0",
+  "a:f5:nginx_modsecurity_waf": "F5 NGINX ModSecurity WAF R24",
+  "a:atlassian:confluence_server": "Atlassian Confluence Server",
+  "a:atlassian:confluence_data_center": "Atlassian Confluence Data Center",
+  "a:redis:redis_enterprise": "Redis Enterprise 6.0",
+  "a:atlassian:jira_service_management_server_and_data_center": "Atlassian Jira Service Management Server And Data Center 4.21.0",
+  "a:f5:nginx_controller_api_management": "F5 NGINX Controller API Management 3.18.0",
+  "a:varnish-software:varnich_cache": "Varnish-software Varnich Cache 4.1 Lts Edition",
+  "a:atlassian:jira_server_for_slack": "Atlassian Jira Server for Slack 2.0.21",
+  "a:atlassian:automation_for_jira": "Atlassian Automation For Jira 7.4.0",
+  "a:atlassian:jira_service_management": "Atlassian Jira Service Management 4.21.0 Server Edition",
+  "a:atlassian:jira_server": "Atlassian Jira Server 7.7.1",
+  "a:atlassian:jira_data_center": "Atlassian Jira Data Center 7.13.16",
+  "a:php:memcached": "PHP 2.2.0",
+  "a:golang:ssh": "Golang SSH 0.0.0-20220314234659-1baeb1ce4c0b",
+  "a:f5:nginx_ingress_controller": "F5 NGINX Ingress Controller 2.2.0",
+  "a:angularjs:angular": "Angularjs Angular 1.7.0 for Node.js",
+  "a:f5:nginx_service_mesh": "F5 NGINX Service Mesh 1.3.0",
+  "a:angular:angular": "Angular Angular 11.1.0 Next 0 for Node.js",
+  "a:gitlab:gitlab_runner": "Gitlab Runner 14.3.4",
+  "a:rubyonrails:rails_html_sanitizers": "Rubyonrails Rails HTML Sanitizers 1.4.3 for Rails",
+  "a:oracle:mysql_shell": "Oracle Mysql Shell 8.0.28",
+  "a:varnish_cache_project:varnish_cache": "Varnish Cache Project Varnish Cache 0.9",
+  "a:varnish-software:varnish_cache_plus": "Varnish Software Varnish Cache Plus 6.0.0 R0",
+  "a:varnish-software:varnish_cache": "Varnish Software Varnish Cache 6.0.0 LTS Edition",
+  "a:atlassian:jira_align": "Atlassian JIRA Align 10.109.2",
+  "a:f5:nginx_plus": "F5 NGINX Plus R22",
+  "a:nuxt:nuxt": "Nuxt 3.2.2",
+  "a:docmosis:tornado": "Docmosis Tornado 1.0",
+  "a:f5:nginx_instance_manager": "F5 NGINX Instance Manager 2.0.0",
+  "a:f5:nginx_agent": "F5 NGINX Agent 2.0.0",
+  "a:f5:nginx_api_connectivity_manager": "F5 NGINX API Connectivity Manager 1.0.0",
+  "a:f5:nginx_security_monitoring": "F5 NGINX Security Monitoring 1.0.0",
+  "a:tdengine:grafana": "TDengine Grafana 2.0.0 for TDengine",
+  "a:oracle:graalvm_for_jdk": "Oracle GraalVM for JDK 17.0.8",
+  "a:vmware:spring": "VMware Spring for Apache Kafka 3.0.11 for Apache Kafka",
+  "a:dart:http_server": "Dart HTTP Server 0.9.6",
+  "a:python:cpython": "Python Cpython 3.12.0 Alpha 7",
+  "a:ecies:go": "ECIES go 2.0.8",
+  "a:gofiber:django": "Fiber Django (Django template engine) 3.1.9 for Go",
+  "a:tiangolo:fastapi": "Tiangolo FastAPI 0.1.16",
+  "a:madebytribe:caddy": "Tribe Interactive Caddy 1.9.8 for WordPress",
+  "a:f5:nginx_open_source": "F5 NGNIX Open Source 1.5.13",
+  "a:broadcom:rabbitmq_server": "Broadcom RabbitMQ Server",
+  "a:f5:nginx_openid_connect": "F5 NGINX OpenID Connect 2024-10-24 for NGINX Plus",
+  "a:microsoft:python": "Microsoft Python 0.0.3 for Visual Studio Code",
+  "a:oracle:mysql_enterprise_firewall": "Oracle MySQL Enterprise Firewall 8.0.40",
+  "a:oracle:mysql_client": "Oracle MySQL Client 8.0.0 ",
+  "a:sfackler:openssl": "sfackler OpenSSL 0.10.55 for Rust",
+  "a:f5:nginx_unit": "F5 NGINX Unit 0.3",
+  "a:apache:struts_extras": "Apache Software Foundation Struts Extras 2.0",
+  "a:angularjs:angularjs": "AngularJS 1.7.0",
+  "a:haproxy:haproxy_enterprise": "HAProxy Enterprise 2.4R1 1.0.0-253.271",
+  "a:go:go": "Go 0.52.1  for Visual Studio Code",
+  "a:f5:nginx_gateway_fabric": "F5 NGINX Gateway Fabric 1.2.0",
+  "a:traefik:traefik_enterprise": "Traefik Labs Traefik Enterprise 2.0.0",
+  "a:auth0:symfony": "Auth0 Symfony 5.6.0",
+  "a:angular:angular_cli": "Angular CLI 0.0.13 for Node.js",
+  "a:open-xchange:dovecot": "Open-xchange Dovecot 2.3.10.1 Pro Edition",
+  "a:mattermost:confluence": "Mattermost Confluence 1.0.0 for Mattermost",
+  "a:kanopi:next.js": "Kanopi Studios Next.js 1.6.4 for Drupal",
+  "a:oracle:mysql_router": "Oracle MySQL Router 8.4.0",
+  "a:f5:nginx_waf": "F5 Nginx Waf 5.9.0",
+  "a:f5:nginx_dos": "F5 Nginx Dos 4.3.0",
+  "a:angular:angular_language_service": "Angular Language Service 0.0.10 for Visual Studio Code",
+  "a:grafana:grafana_operator": "Grafana Operator 1.0.0",
+  "a:microsoft:asp.net_core_odata": "Microsoft ASP.NET Core OData 9.5.0",
+  "a:docker:docker_sandboxes": "Docker Sandboxes (sbx) 0.16.0",
+  "a:mongodb:laravel_mongodb": "MongoDB Laravel MongoDB 3.6.5",
+  "a:mongodb:mongodb_client_encryption": "MongoDB Client Encryption 1.2.0 for Node.js"
+ }
+}

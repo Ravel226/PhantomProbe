@@ -1,0 +1,63 @@
+{
+ "note": "Single-rater judgement, made by the AI assistant that ran the study, from each candidate's NVD title, its CVE years and its rename links. 'same' means the same software with the same version numbering, safe to query alongside the table's identifier. 'related' means a neighbouring edition, generation or fork that a banner cannot tell apart or that is numbered differently; it is not counted as the same software. Every reviewed candidate not listed here was judged a different product (a plugin, driver, companion tool, or another vendor's product that shares the name). A paper should have a second rater repeat this.",
+ "same": {
+  "java": {
+   "a:sun:jdk": "The JDK under its previous owner: same software and version numbering, CVEs from 2001 to 2013.",
+   "a:oracle:jre": "The runtime the JDK contains. A banner that says Java cannot tell them apart, and a JRE flaw affects a JDK of the same version.",
+   "a:oracle:java_se": "NVD's own rename: 17 java_se names are deprecated in favour of oracle:jdk."
+  },
+  "django": {
+   "a:django_project:django": "NVD's own rename (31 names): an older spelling of the vendor."
+  },
+  "jenkins": {
+   "a:cloudbees:jenkins": "NVD's own rename (161 names): the earlier vendor."
+  },
+  "magento": {
+   "a:magentocommerce:magento": "The earlier vendor name for the same product."
+  },
+  "node.js": {
+   "a:joyent:node.js": "The earlier steward of Node.js: same software and numbering."
+  },
+  "samba": {
+   "a:samba:samba_server": "The same server under a second product name."
+  },
+  "jira": {
+   "a:atlassian:jira_software_data_center": "Jira Software in its Data Center packaging, numbered like jira_data_center, which is already queried."
+  }
+ },
+ "related": {
+  "nginx": {
+   "a:f5:nginx_plus": "The commercial edition, with its own R-numbered releases."
+  },
+  "angular": {
+   "a:angularjs:angularjs": "AngularJS 1.x, the previous generation. It needs a rule on the version (below 2), not a blanket second identifier.",
+   "a:angularjs:angular.js": "AngularJS 1.x under a second spelling."
+  },
+  "dotnet": {
+   "a:microsoft:.net": "The successor product line (.NET 5 and later), numbered differently from .NET Framework.",
+   "a:microsoft:.net_core": ".NET Core, a separate line with its own numbering."
+  },
+  "docker": {
+   "a:redhat:docker": "Red Hat's packaging of Docker."
+  },
+  "mysql": {
+   "a:oracle:mysql_cluster": "MySQL Cluster, a separate product built on MySQL."
+  },
+  "wordpress": {
+   "a:wordpress:wordpress_mu": "The multi-user fork that was merged into WordPress 3.0."
+  },
+  "rabbitmq": {
+   "a:pivotal_software:rabbitmq_management": "The management plugin shipped with the broker."
+  },
+  "magento": {
+   "a:openmage:magento": "The community fork of Magento 1."
+  },
+  "apache": {
+   "a:oracle:http_server": "Oracle's product built on Apache httpd, with its own numbering.",
+   "a:ibm:http_server": "IBM's product built on Apache httpd, with its own numbering."
+  },
+  "php": {
+   "a:php:php_fi": "PHP/FI, the 1997 ancestor."
+  }
+ }
+}

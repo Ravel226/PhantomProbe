@@ -1,0 +1,35 @@
+{
+ "feed": {
+  "resultsPerPage": 139956,
+  "startIndex": 1,
+  "totalResults": 1873730,
+  "format": "NVD_CPE",
+  "version": "2.0",
+  "timestamp": "2026-11-13T23:50:01.2782759"
+ },
+ "chunks": 18,
+ "cpe_names": 1873730,
+ "deprecated_names": 102546,
+ "deprecated_names_without_replacement": 5,
+ "identifiers_by_part": {
+  "a": 50549,
+  "h": 60476,
+  "o": 43484
+ },
+ "identifiers_with_every_name_deprecated": {
+  "a": 1765,
+  "h": 886,
+  "o": 589
+ },
+ "rename_edges": 4688,
+ "rename_edges_by_kind": {
+  "part": 118,
+  "part+product": 101,
+  "part+vendor": 5,
+  "part+vendor+product": 4,
+  "product": 2296,
+  "vendor": 1903,
+  "vendor+product": 261
+ },
+ "identifiers_with_an_outgoing_edge": 3495
+}

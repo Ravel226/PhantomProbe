@@ -1,0 +1,2757 @@
+{
+ "angular": {
+  "table_identifier": "a:angular:angular",
+  "in_dictionary": true,
+  "names": 1342,
+  "deprecated_names": 198,
+  "candidates": [
+   {
+    "identifier": "a:angular:angular_cli",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1092,
+    "deprecated_names": 0,
+    "first_created": "2026-04-28",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:angular:angular_language_service",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 485,
+    "deprecated_names": 0,
+    "first_created": "2026-06-26",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:angularjs:angular",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 15,
+    "deprecated_names": 15,
+    "first_created": "2022-05-06",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:angularjs:angular.js",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 209,
+    "deprecated_names": 208,
+    "first_created": "2018-07-17",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:angularjs:angularjs",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 832,
+    "deprecated_names": 4,
+    "first_created": "2025-11-20",
+    "direct_rename_edge": "a:angular:angular -> a:angularjs:angularjs (198 names)"
+   }
+  ]
+ },
+ "apache": {
+  "table_identifier": "a:apache:http_server",
+  "in_dictionary": true,
+  "names": 278,
+  "deprecated_names": 4,
+  "candidates": [
+   {
+    "identifier": "a:akka:http_server",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 52,
+    "deprecated_names": 0,
+    "first_created": "2020-05-18",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:dart:http_server",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2023-11-01",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:hp:http_server",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 5,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:http_server_project:http_server",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2019-12-31",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:ibm:http_server",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 77,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:novell:http_server",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:http_server",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 40,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": "a:apache:http_server -> a:oracle:http_server (3 names)"
+   },
+   {
+    "identifier": "a:treck:http_server",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2021-02-22",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "asp.net core": {
+  "table_identifier": "a:microsoft:asp.net_core",
+  "in_dictionary": true,
+  "names": 263,
+  "deprecated_names": 9,
+  "candidates": [
+   {
+    "identifier": "a:microsoft:asp.net",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 4,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:microsoft:asp.net_core_odata",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 96,
+    "deprecated_names": 0,
+    "first_created": "2026-07-16",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "bind": {
+  "table_identifier": "a:isc:bind",
+  "in_dictionary": true,
+  "names": 1929,
+  "deprecated_names": 804,
+  "candidates": [
+   {
+    "identifier": "a:isc:dnsco_bind",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 4,
+    "deprecated_names": 0,
+    "first_created": "2013-07-29",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "bootstrap": {
+  "table_identifier": "a:getbootstrap:bootstrap",
+  "in_dictionary": true,
+  "names": 93,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "caddy": {
+  "table_identifier": "a:caddyserver:caddy",
+  "in_dictionary": true,
+  "names": 142,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:caddy_project:caddy",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 64,
+    "deprecated_names": 0,
+    "first_created": "2019-03-12",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:madebytribe:caddy",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 33,
+    "deprecated_names": 0,
+    "first_created": "2024-07-25",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "confluence": {
+  "table_identifier": "a:atlassian:confluence",
+  "in_dictionary": true,
+  "names": 414,
+  "deprecated_names": 414,
+  "candidates": [
+   {
+    "identifier": "a:atlassian:confluence_data_center",
+    "rules": [
+     "name",
+     "pilot"
+    ],
+    "in_dictionary": true,
+    "names": 602,
+    "deprecated_names": 0,
+    "first_created": "2021-12-13",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:confluence_server",
+    "rules": [
+     "name",
+     "pilot",
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 501,
+    "deprecated_names": 0,
+    "first_created": "2021-12-13",
+    "direct_rename_edge": "a:atlassian:confluence -> a:atlassian:confluence_server (396 names)"
+   },
+   {
+    "identifier": "a:atlassian:questions_for_confluence",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 47,
+    "deprecated_names": 0,
+    "first_created": "2019-09-26",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:mattermost:confluence",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 20,
+    "deprecated_names": 0,
+    "first_created": "2026-05-21",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "django": {
+  "table_identifier": "a:djangoproject:django",
+  "in_dictionary": true,
+  "names": 446,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:django_project:django",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 31,
+    "deprecated_names": 31,
+    "first_created": "2018-08-01",
+    "direct_rename_edge": "a:django_project:django -> a:djangoproject:django (31 names)"
+   },
+   {
+    "identifier": "a:gofiber:django",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 62,
+    "deprecated_names": 0,
+    "first_created": "2024-01-18",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "docker": {
+  "table_identifier": "a:docker:docker",
+  "in_dictionary": true,
+  "names": 355,
+  "deprecated_names": 1,
+  "candidates": [
+   {
+    "identifier": "a:docker:docker_desktop",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 143,
+    "deprecated_names": 0,
+    "first_created": "2020-06-09",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:docker:docker_enterprise",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2019-10-09",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:docker:docker_sandboxes",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 63,
+    "deprecated_names": 0,
+    "first_created": "2026-08-06",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:docker:engine",
+    "rules": [
+     "pilot"
+    ],
+    "in_dictionary": true,
+    "names": 333,
+    "deprecated_names": 0,
+    "first_created": "2019-06-03",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:jenkins:docker",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 47,
+    "deprecated_names": 0,
+    "first_created": "2019-07-12",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:mobyproject:moby",
+    "rules": [
+     "pilot"
+    ],
+    "in_dictionary": true,
+    "names": 492,
+    "deprecated_names": 0,
+    "first_created": "2018-10-29",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:redhat:docker",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2015-04-07",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:synology:docker",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2021-06-07",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "dotnet": {
+  "table_identifier": "a:microsoft:.net_framework",
+  "in_dictionary": true,
+  "names": 47,
+  "deprecated_names": 6,
+  "candidates": [
+   {
+    "identifier": "a:microsoft:.net",
+    "rules": [
+     "name",
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 215,
+    "deprecated_names": 17,
+    "first_created": "2021-02-26",
+    "direct_rename_edge": "a:microsoft:.net -> a:microsoft:.net_framework (14 names)"
+   },
+   {
+    "identifier": "a:microsoft:.net_core",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 204,
+    "deprecated_names": 70,
+    "first_created": "2018-10-31",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:microsoft:.net_framework_developer_pack",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2018-09-07",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "dovecot": {
+  "table_identifier": "a:dovecot:dovecot",
+  "in_dictionary": true,
+  "names": 267,
+  "deprecated_names": 4,
+  "candidates": [
+   {
+    "identifier": "a:open-xchange:dovecot",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 40,
+    "deprecated_names": 0,
+    "first_created": "2026-05-15",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "drupal": {
+  "table_identifier": "a:drupal:drupal",
+  "in_dictionary": true,
+  "names": 729,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:drupal:drupal_docker_images",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 4,
+    "deprecated_names": 0,
+    "first_created": "2020-12-17",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "elasticsearch": {
+  "table_identifier": "a:elastic:elasticsearch",
+  "in_dictionary": true,
+  "names": 526,
+  "deprecated_names": 9,
+  "candidates": [
+   {
+    "identifier": "a:anynines:elasticsearch",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 12,
+    "deprecated_names": 0,
+    "first_created": "2020-03-31",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:elastic:elasticsearch_x-pack",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 49,
+    "deprecated_names": 0,
+    "first_created": "2018-11-21",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:elasticsearch:elasticsearch",
+    "rules": [
+     "pilot",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 11,
+    "deprecated_names": 0,
+    "first_created": "2014-07-29",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "envoy": {
+  "table_identifier": "a:envoyproxy:envoy",
+  "in_dictionary": true,
+  "names": 303,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:cncf:envoy",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 1,
+    "first_created": "2020-03-05",
+    "direct_rename_edge": "a:cncf:envoy -> a:envoyproxy:envoy (1 names)"
+   },
+   {
+    "identifier": "a:enphase:envoy",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 6,
+    "deprecated_names": 0,
+    "first_created": "2019-09-19",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "exim": {
+  "table_identifier": "a:exim:exim",
+  "in_dictionary": true,
+  "names": 186,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "express": {
+  "table_identifier": "a:openjsf:express",
+  "in_dictionary": true,
+  "names": 295,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:checkpoint:express",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:express:express",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2014-11-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:expressjs:express",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 15,
+    "deprecated_names": 15,
+    "first_created": "2017-08-19",
+    "direct_rename_edge": "a:expressjs:express -> a:openjsf:express (15 names)"
+   }
+  ]
+ },
+ "fastapi": {
+  "table_identifier": "a:tiangolo:fastapi",
+  "in_dictionary": true,
+  "names": 181,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:fastapi_project:fastapi",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 108,
+    "deprecated_names": 108,
+    "first_created": "2021-06-16",
+    "direct_rename_edge": "a:fastapi_project:fastapi -> a:tiangolo:fastapi (108 names)"
+   }
+  ]
+ },
+ "flask": {
+  "table_identifier": "a:palletsprojects:flask",
+  "in_dictionary": true,
+  "names": 62,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "ghost": {
+  "table_identifier": "a:ghost:ghost",
+  "in_dictionary": true,
+  "names": 899,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "gitlab": {
+  "table_identifier": "a:gitlab:gitlab",
+  "in_dictionary": true,
+  "names": 3402,
+  "deprecated_names": 38,
+  "candidates": [
+   {
+    "identifier": "a:gitlab:gitlab_runner",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2022-06-09",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:jenkins:gitlab",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 122,
+    "deprecated_names": 0,
+    "first_created": "2019-04-22",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "golang": {
+  "table_identifier": "a:golang:go",
+  "in_dictionary": true,
+  "names": 377,
+  "deprecated_names": 6,
+  "candidates": [
+   {
+    "identifier": "a:ecies:go",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 12,
+    "deprecated_names": 0,
+    "first_created": "2023-12-07",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:go:go",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 216,
+    "deprecated_names": 0,
+    "first_created": "2026-01-06",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:golang:net",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 65,
+    "deprecated_names": 0,
+    "first_created": "2020-06-02",
+    "direct_rename_edge": "a:golang:go -> a:golang:net (3 names)"
+   },
+   {
+    "identifier": "a:golang:ssh",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 12,
+    "deprecated_names": 0,
+    "first_created": "2022-04-19",
+    "direct_rename_edge": "a:golang:go -> a:golang:ssh (1 names)"
+   }
+  ]
+ },
+ "grafana": {
+  "table_identifier": "a:grafana:grafana",
+  "in_dictionary": true,
+  "names": 1289,
+  "deprecated_names": 66,
+  "candidates": [
+   {
+    "identifier": "a:grafana:grafana_operator",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 97,
+    "deprecated_names": 0,
+    "first_created": "2026-06-29",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:tdengine:grafana",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 24,
+    "deprecated_names": 0,
+    "first_created": "2023-06-13",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "gunicorn": {
+  "table_identifier": "a:gunicorn:gunicorn",
+  "in_dictionary": true,
+  "names": 74,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "haproxy": {
+  "table_identifier": "a:haproxy:haproxy",
+  "in_dictionary": true,
+  "names": 696,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:haproxy:haproxy_enterprise",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 314,
+    "deprecated_names": 0,
+    "first_created": "2025-12-19",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:netgate:haproxy",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 19,
+    "deprecated_names": 0,
+    "first_created": "2020-08-11",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "iis": {
+  "table_identifier": "a:microsoft:internet_information_server",
+  "in_dictionary": true,
+  "names": 23,
+  "deprecated_names": 13,
+  "candidates": [
+   {
+    "identifier": "a:microsoft:iis",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 13,
+    "deprecated_names": 12,
+    "first_created": "2007-09-12",
+    "direct_rename_edge": "a:microsoft:iis -> a:microsoft:internet_information_server (11 names)"
+   },
+   {
+    "identifier": "a:microsoft:internet_information_services",
+    "rules": [
+     "name",
+     "pilot",
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 13,
+    "deprecated_names": 0,
+    "first_created": "2008-12-24",
+    "direct_rename_edge": "a:microsoft:internet_information_server -> a:microsoft:internet_information_services (13 names)"
+   }
+  ]
+ },
+ "java": {
+  "table_identifier": "a:oracle:jdk",
+  "in_dictionary": true,
+  "names": 671,
+  "deprecated_names": 180,
+  "candidates": [
+   {
+    "identifier": "a:hp:jdk",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2016-11-08",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:ibm:jdk",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2012-06-21",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:graalvm_for_jdk",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 30,
+    "deprecated_names": 0,
+    "first_created": "2023-07-27",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:java_se",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 18,
+    "deprecated_names": 17,
+    "first_created": "2021-07-22",
+    "direct_rename_edge": "a:oracle:java_se -> a:oracle:jdk (17 names)"
+   },
+   {
+    "identifier": "a:oracle:javase",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 4,
+    "deprecated_names": 4,
+    "first_created": "2021-07-22",
+    "direct_rename_edge": "a:oracle:javase -> a:oracle:jdk (4 names)"
+   },
+   {
+    "identifier": "a:oracle:jre",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 525,
+    "deprecated_names": 128,
+    "first_created": "2010-04-02",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:sun:jdk",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 220,
+    "deprecated_names": 10,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "jenkins": {
+  "table_identifier": "a:jenkins:jenkins",
+  "in_dictionary": true,
+  "names": 2324,
+  "deprecated_names": 848,
+  "candidates": [
+   {
+    "identifier": "a:cloudbees:jenkins",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 196,
+    "deprecated_names": 161,
+    "first_created": "2011-12-01",
+    "direct_rename_edge": "a:cloudbees:jenkins -> a:jenkins:jenkins (161 names)"
+   },
+   {
+    "identifier": "a:cloudbees:jenkins1.381",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 1,
+    "first_created": "2011-12-01",
+    "direct_rename_edge": "a:cloudbees:jenkins1.381 -> a:jenkins:jenkins (1 names)"
+   }
+  ]
+ },
+ "jetty": {
+  "table_identifier": "a:eclipse:jetty",
+  "in_dictionary": true,
+  "names": 733,
+  "deprecated_names": 166,
+  "candidates": [
+   {
+    "identifier": "a:morbtay:jetty",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 1,
+    "first_created": "2009-04-24",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:mortbay:jetty",
+    "rules": [
+     "pilot",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 573,
+    "deprecated_names": 0,
+    "first_created": "2009-04-24",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "jira": {
+  "table_identifier": "a:atlassian:jira",
+  "in_dictionary": true,
+  "names": 598,
+  "deprecated_names": 231,
+  "candidates": [
+   {
+    "identifier": "a:atlassian:automation_for_jira",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 55,
+    "deprecated_names": 0,
+    "first_created": "2022-02-22",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_align",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 66,
+    "deprecated_names": 0,
+    "first_created": "2022-10-14",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_comment",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2020-12-15",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_core",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2016-01-13",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_create",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 5,
+    "deprecated_names": 0,
+    "first_created": "2020-12-15",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_data_center",
+    "rules": [
+     "name",
+     "pilot"
+    ],
+    "in_dictionary": true,
+    "names": 393,
+    "deprecated_names": 0,
+    "first_created": "2022-03-28",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_integration_for_hipchat",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 13,
+    "deprecated_names": 0,
+    "first_created": "2017-05-24",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_server",
+    "rules": [
+     "name",
+     "pilot",
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 309,
+    "deprecated_names": 0,
+    "first_created": "2022-03-25",
+    "direct_rename_edge": "a:atlassian:jira -> a:atlassian:jira_server (230 names)"
+   },
+   {
+    "identifier": "a:atlassian:jira_server_and_data_center",
+    "rules": [
+     "name",
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 12,
+    "deprecated_names": 12,
+    "first_created": "2020-10-13",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_server_for_slack",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 28,
+    "deprecated_names": 0,
+    "first_created": "2022-02-08",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_service_desk",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 398,
+    "deprecated_names": 0,
+    "first_created": "2016-01-13",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_service_desk_server",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 124,
+    "deprecated_names": 123,
+    "first_created": "2019-09-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_service_management",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 315,
+    "deprecated_names": 4,
+    "first_created": "2022-03-04",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_service_management_server_and_data_center",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 1,
+    "first_created": "2022-01-13",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:atlassian:jira_software_data_center",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 203,
+    "deprecated_names": 202,
+    "first_created": "2020-04-01",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:jenkins:jira",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 90,
+    "deprecated_names": 0,
+    "first_created": "2019-10-23",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "joomla": {
+  "table_identifier": "a:joomla:joomla",
+  "in_dictionary": false,
+  "names": 0,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:joomla:joomla\\!",
+    "rules": [
+     "pilot"
+    ],
+    "in_dictionary": true,
+    "names": 703,
+    "deprecated_names": 67,
+    "first_created": "2009-05-20",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "jquery": {
+  "table_identifier": "a:jquery:jquery",
+  "in_dictionary": true,
+  "names": 294,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:jquery:jquery_ui",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 93,
+    "deprecated_names": 93,
+    "first_created": "2014-11-24",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "kibana": {
+  "table_identifier": "a:elastic:kibana",
+  "in_dictionary": true,
+  "names": 566,
+  "deprecated_names": 2,
+  "candidates": [
+   {
+    "identifier": "a:elastic:kibana_reporting",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2020-07-30",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:elastic:kibana_x-pack",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 43,
+    "deprecated_names": 0,
+    "first_created": "2018-11-21",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:elasticsearch:kibana",
+    "rules": [
+     "pilot",
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 328,
+    "deprecated_names": 328,
+    "first_created": "2015-12-08",
+    "direct_rename_edge": "a:elasticsearch:kibana -> a:elastic:kibana (328 names)"
+   }
+  ]
+ },
+ "kubernetes": {
+  "table_identifier": "a:kubernetes:kubernetes",
+  "in_dictionary": true,
+  "names": 1115,
+  "deprecated_names": 179,
+  "candidates": [
+   {
+    "identifier": "a:google:kubernetes",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 1,
+    "first_created": "2016-02-25",
+    "direct_rename_edge": "a:google:kubernetes -> a:kubernetes:kubernetes (1 names)"
+   },
+   {
+    "identifier": "a:jenkins:kubernetes",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 82,
+    "deprecated_names": 0,
+    "first_created": "2019-04-16",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "laravel": {
+  "table_identifier": "a:laravel:laravel",
+  "in_dictionary": true,
+  "names": 761,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:laravel:framework",
+    "rules": [
+     "pilot"
+    ],
+    "in_dictionary": true,
+    "names": 1153,
+    "deprecated_names": 0,
+    "first_created": "2019-03-18",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "lighttpd": {
+  "table_identifier": "a:lighttpd:lighttpd",
+  "in_dictionary": true,
+  "names": 96,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "litespeed": {
+  "table_identifier": "a:litespeedtech:litespeed_web_server",
+  "in_dictionary": true,
+  "names": 78,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "magento": {
+  "table_identifier": "a:magento:magento",
+  "in_dictionary": true,
+  "names": 241,
+  "deprecated_names": 5,
+  "candidates": [
+   {
+    "identifier": "a:adobe:magento",
+    "rules": [
+     "pilot",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 104,
+    "deprecated_names": 1,
+    "first_created": "2020-04-02",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:magentocommerce:magento",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 16,
+    "deprecated_names": 0,
+    "first_created": "2012-11-06",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:openmage:magento",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 128,
+    "deprecated_names": 0,
+    "first_created": "2020-12-02",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "mariadb": {
+  "table_identifier": "a:mariadb:mariadb",
+  "in_dictionary": true,
+  "names": 541,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:mariadb_project:mariadb",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 4,
+    "deprecated_names": 4,
+    "first_created": "2018-07-26",
+    "direct_rename_edge": "a:mariadb_project:mariadb -> a:mariadb:mariadb (4 names)"
+   }
+  ]
+ },
+ "mediawiki": {
+  "table_identifier": "a:mediawiki:mediawiki",
+  "in_dictionary": true,
+  "names": 476,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "memcached": {
+  "table_identifier": "a:memcached:memcached",
+  "in_dictionary": true,
+  "names": 80,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:php:memcached",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 16,
+    "deprecated_names": 0,
+    "first_created": "2022-04-15",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "mongodb": {
+  "table_identifier": "a:mongodb:mongodb",
+  "in_dictionary": true,
+  "names": 843,
+  "deprecated_names": 74,
+  "candidates": [
+   {
+    "identifier": "a:anynines:mongodb",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 13,
+    "deprecated_names": 0,
+    "first_created": "2020-03-31",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:jenkins:mongodb",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 4,
+    "deprecated_names": 0,
+    "first_created": "2020-09-21",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:mongodb:laravel_mongodb",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 173,
+    "deprecated_names": 0,
+    "first_created": "2026-09-14",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:mongodb:mongodb_client_encryption",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 60,
+    "deprecated_names": 0,
+    "first_created": "2026-09-17",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:mongodb:mongodb_enterprise_kubernetes_operator",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 27,
+    "deprecated_names": 0,
+    "first_created": "2020-04-13",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "moodle": {
+  "table_identifier": "a:moodle:moodle",
+  "in_dictionary": true,
+  "names": 578,
+  "deprecated_names": 35,
+  "candidates": []
+ },
+ "mysql": {
+  "table_identifier": "a:oracle:mysql",
+  "in_dictionary": true,
+  "names": 776,
+  "deprecated_names": 6,
+  "candidates": [
+   {
+    "identifier": "a:anynines:mysql",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 6,
+    "deprecated_names": 0,
+    "first_created": "2020-03-31",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:mysql:mysql",
+    "rules": [
+     "pilot",
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 415,
+    "deprecated_names": 414,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": "a:mysql:mysql -> a:oracle:mysql (350 names)"
+   },
+   {
+    "identifier": "a:mysql_project:mysql",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 69,
+    "deprecated_names": 0,
+    "first_created": "2018-06-29",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:mysqljs:mysql",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 60,
+    "deprecated_names": 0,
+    "first_created": "2018-06-29",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_client",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 6,
+    "deprecated_names": 0,
+    "first_created": "2025-07-09",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_cluster",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 129,
+    "deprecated_names": 0,
+    "first_created": "2019-05-15",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_connector\\/c",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 3,
+    "deprecated_names": 0,
+    "first_created": "2017-04-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_connector\\/j",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 161,
+    "deprecated_names": 0,
+    "first_created": "2018-01-19",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_connector\\/net",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 229,
+    "deprecated_names": 0,
+    "first_created": "2018-01-19",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_connector\\/odbc",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 49,
+    "deprecated_names": 0,
+    "first_created": "2012-07-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_connector\\/python",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 58,
+    "deprecated_names": 0,
+    "first_created": "2021-01-27",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_connector_c",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2012-07-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_connector_j",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2012-07-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_connector_net",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 3,
+    "deprecated_names": 0,
+    "first_created": "2012-07-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_connectors",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 9,
+    "deprecated_names": 0,
+    "first_created": "2019-12-09",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_documents",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2012-07-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_enterprise_backup",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 22,
+    "deprecated_names": 0,
+    "first_created": "2019-06-11",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_enterprise_firewall",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 5,
+    "deprecated_names": 0,
+    "first_created": "2025-07-09",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_enterprise_monitor",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 84,
+    "deprecated_names": 0,
+    "first_created": "2016-04-21",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_examples_and_samples",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2012-07-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_installer",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 4,
+    "deprecated_names": 0,
+    "first_created": "2012-07-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_router",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 19,
+    "deprecated_names": 0,
+    "first_created": "2026-06-18",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_server",
+    "rules": [
+     "name",
+     "pilot"
+    ],
+    "in_dictionary": true,
+    "names": 63,
+    "deprecated_names": 0,
+    "first_created": "2020-10-14",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_shell",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 160,
+    "deprecated_names": 2,
+    "first_created": "2022-07-21",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_workbench",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 24,
+    "deprecated_names": 0,
+    "first_created": "2017-05-25",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:oracle:mysql_workbench_ce",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 5,
+    "deprecated_names": 0,
+    "first_created": "2012-07-10",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "next.js": {
+  "table_identifier": "a:vercel:next.js",
+  "in_dictionary": true,
+  "names": 3725,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:kanopi:next.js",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 32,
+    "deprecated_names": 0,
+    "first_created": "2026-05-21",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:zeit:next.js",
+    "rules": [
+     "pilot",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 199,
+    "deprecated_names": 0,
+    "first_created": "2018-07-17",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "nginx": {
+  "table_identifier": "a:f5:nginx",
+  "in_dictionary": true,
+  "names": 582,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:f5:nginx_agent",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 50,
+    "deprecated_names": 0,
+    "first_created": "2023-04-04",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_api_connectivity_manager",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 3,
+    "deprecated_names": 0,
+    "first_created": "2023-05-09",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_controller",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 32,
+    "deprecated_names": 0,
+    "first_created": "2020-03-30",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_controller_api_management",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 3,
+    "deprecated_names": 0,
+    "first_created": "2022-01-31",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_dos",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 2,
+    "first_created": "2026-06-25",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_gateway_fabric",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 40,
+    "deprecated_names": 0,
+    "first_created": "2026-02-11",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_ingress_controller",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 209,
+    "deprecated_names": 102,
+    "first_created": "2022-04-29",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_instance_manager",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 43,
+    "deprecated_names": 0,
+    "first_created": "2023-04-04",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_modsecurity_waf",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2021-12-09",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_open_source",
+    "rules": [
+     "name",
+     "pilot"
+    ],
+    "in_dictionary": true,
+    "names": 504,
+    "deprecated_names": 0,
+    "first_created": "2024-08-29",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_openid_connect",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2025-04-22",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_plus",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 129,
+    "deprecated_names": 62,
+    "first_created": "2022-10-22",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_security_monitoring",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 3,
+    "deprecated_names": 0,
+    "first_created": "2023-05-09",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_service_mesh",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 14,
+    "deprecated_names": 0,
+    "first_created": "2022-05-12",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_unit",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 48,
+    "deprecated_names": 0,
+    "first_created": "2025-08-12",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:f5:nginx_waf",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2026-06-25",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:igor_sysoev:nginx",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 383,
+    "deprecated_names": 383,
+    "first_created": "2009-05-12",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:nginx:nginx",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 543,
+    "deprecated_names": 543,
+    "first_created": "2014-08-28",
+    "direct_rename_edge": "a:nginx:nginx -> a:f5:nginx (543 names)"
+   }
+  ]
+ },
+ "node.js": {
+  "table_identifier": "a:nodejs:node.js",
+  "in_dictionary": true,
+  "names": 1714,
+  "deprecated_names": 761,
+  "candidates": [
+   {
+    "identifier": "a:joyent:node.js",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 2,
+    "deprecated_names": 0,
+    "first_created": "2012-06-21",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "nuxt": {
+  "table_identifier": "a:nuxt:nuxt",
+  "in_dictionary": true,
+  "names": 302,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "openresty": {
+  "table_identifier": "a:openresty:openresty",
+  "in_dictionary": true,
+  "names": 191,
+  "deprecated_names": 1,
+  "candidates": []
+ },
+ "openssh": {
+  "table_identifier": "a:openbsd:openssh",
+  "in_dictionary": true,
+  "names": 300,
+  "deprecated_names": 83,
+  "candidates": [
+   {
+    "identifier": "a:openssh:openssh",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 3,
+    "deprecated_names": 3,
+    "first_created": "2007-09-13",
+    "direct_rename_edge": "a:openssh:openssh -> a:openbsd:openssh (3 names)"
+   }
+  ]
+ },
+ "openssl": {
+  "table_identifier": "a:openssl:openssl",
+  "in_dictionary": true,
+  "names": 387,
+  "deprecated_names": 15,
+  "candidates": [
+   {
+    "identifier": "a:openssl_project:openssl",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 138,
+    "deprecated_names": 138,
+    "first_created": "2019-09-04",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:redhat:openssl",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 4,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:ruby-lang:openssl",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 23,
+    "deprecated_names": 0,
+    "first_created": "2017-02-02",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:sfackler:openssl",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 174,
+    "deprecated_names": 0,
+    "first_created": "2025-07-30",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "perl": {
+  "table_identifier": "a:perl:perl",
+  "in_dictionary": true,
+  "names": 614,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "php": {
+  "table_identifier": "a:php:php",
+  "in_dictionary": true,
+  "names": 1641,
+  "deprecated_names": 248,
+  "candidates": [
+   {
+    "identifier": "a:php:php_fi",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:php:php_script_index",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "phpmyadmin": {
+  "table_identifier": "a:phpmyadmin:phpmyadmin",
+  "in_dictionary": true,
+  "names": 391,
+  "deprecated_names": 6,
+  "candidates": []
+ },
+ "postfix": {
+  "table_identifier": "a:postfix:postfix",
+  "in_dictionary": true,
+  "names": 403,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "postgresql": {
+  "table_identifier": "a:postgresql:postgresql",
+  "in_dictionary": true,
+  "names": 600,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:anynines:postgresql",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 10,
+    "deprecated_names": 0,
+    "first_created": "2020-03-31",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:postgresql:postgresql_jdbc_driver",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 178,
+    "deprecated_names": 0,
+    "first_created": "2012-10-08",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "proftpd": {
+  "table_identifier": "a:proftpd:proftpd",
+  "in_dictionary": true,
+  "names": 122,
+  "deprecated_names": 1,
+  "candidates": []
+ },
+ "python": {
+  "table_identifier": "a:python:python",
+  "in_dictionary": true,
+  "names": 651,
+  "deprecated_names": 89,
+  "candidates": [
+   {
+    "identifier": "a:microsoft:python",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 349,
+    "deprecated_names": 0,
+    "first_created": "2025-07-08",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:python:cpython",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 1,
+    "first_created": "2023-12-01",
+    "direct_rename_edge": "a:python:cpython -> a:python:python (1 names)"
+   },
+   {
+    "identifier": "a:python:python_priority_library",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 3,
+    "deprecated_names": 0,
+    "first_created": "2017-01-27",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "rabbitmq": {
+  "table_identifier": "a:pivotal_software:rabbitmq",
+  "in_dictionary": true,
+  "names": 527,
+  "deprecated_names": 321,
+  "candidates": [
+   {
+    "identifier": "a:anynines:rabbitmq",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 7,
+    "deprecated_names": 0,
+    "first_created": "2020-03-31",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:broadcom:rabbitmq_server",
+    "rules": [
+     "pilot",
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 603,
+    "deprecated_names": 0,
+    "first_created": "2025-04-01",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:pivotal_software:rabbitmq_management",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2015-01-20",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:vmware:rabbitmq",
+    "rules": [
+     "pilot",
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 389,
+    "deprecated_names": 384,
+    "first_created": "2021-05-24",
+    "direct_rename_edge": "a:pivotal_software:rabbitmq -> a:vmware:rabbitmq (308 names)"
+   },
+   {
+    "identifier": "a:voxpupuli:rabbitmq",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 41,
+    "deprecated_names": 0,
+    "first_created": "2019-07-11",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "rails": {
+  "table_identifier": "a:rubyonrails:rails",
+  "in_dictionary": true,
+  "names": 509,
+  "deprecated_names": 8,
+  "candidates": [
+   {
+    "identifier": "a:rubyonrails:rails_html_sanitizers",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 14,
+    "deprecated_names": 0,
+    "first_created": "2022-07-05",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:rubyonrails:ruby_on_rails",
+    "rules": [
+     "name",
+     "pilot",
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 268,
+    "deprecated_names": 257,
+    "first_created": "2012-07-06",
+    "direct_rename_edge": "a:rubyonrails:ruby_on_rails -> a:rubyonrails:rails (253 names)"
+   }
+  ]
+ },
+ "react": {
+  "table_identifier": "a:facebook:react",
+  "in_dictionary": true,
+  "names": 150,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "redis": {
+  "table_identifier": "a:redis:redis",
+  "in_dictionary": true,
+  "names": 246,
+  "deprecated_names": 1,
+  "candidates": [
+   {
+    "identifier": "a:anynines:redis",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 9,
+    "deprecated_names": 0,
+    "first_created": "2020-03-31",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:pivotal_software:redis",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 27,
+    "deprecated_names": 27,
+    "first_created": "2015-06-10",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:redis.js:redis",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 78,
+    "deprecated_names": 0,
+    "first_created": "2021-04-30",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:redis:redis_enterprise",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2021-12-15",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:redislabs:redis",
+    "rules": [
+     "pilot",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 260,
+    "deprecated_names": 5,
+    "first_created": "2018-08-07",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "ruby": {
+  "table_identifier": "a:ruby-lang:ruby",
+  "in_dictionary": true,
+  "names": 1106,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "samba": {
+  "table_identifier": "a:samba:samba",
+  "in_dictionary": true,
+  "names": 720,
+  "deprecated_names": 23,
+  "candidates": [
+   {
+    "identifier": "a:samba:samba_server",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 1,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "spring": {
+  "table_identifier": "a:vmware:spring_framework",
+  "in_dictionary": true,
+  "names": 360,
+  "deprecated_names": 1,
+  "candidates": [
+   {
+    "identifier": "a:pivotal_software:spring_framework",
+    "rules": [
+     "pilot",
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 212,
+    "deprecated_names": 212,
+    "first_created": "2015-03-11",
+    "direct_rename_edge": "a:pivotal_software:spring_framework -> a:vmware:spring_framework (204 names)"
+   },
+   {
+    "identifier": "a:springsource:spring_framework",
+    "rules": [
+     "pilot",
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 14,
+    "deprecated_names": 14,
+    "first_created": "2014-01-24",
+    "direct_rename_edge": "a:springsource:spring_framework -> a:vmware:spring_framework (14 names)"
+   },
+   {
+    "identifier": "a:vmware:spring",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 228,
+    "deprecated_names": 228,
+    "first_created": "2023-08-29",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "struts": {
+  "table_identifier": "a:apache:struts",
+  "in_dictionary": true,
+  "names": 212,
+  "deprecated_names": 1,
+  "candidates": [
+   {
+    "identifier": "a:apache:struts_extras",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 3,
+    "deprecated_names": 0,
+    "first_created": "2025-08-19",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "symfony": {
+  "table_identifier": "a:sensiolabs:symfony",
+  "in_dictionary": true,
+  "names": 879,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:auth0:symfony",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 48,
+    "deprecated_names": 0,
+    "first_created": "2026-03-12",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "tomcat": {
+  "table_identifier": "a:apache:tomcat",
+  "in_dictionary": true,
+  "names": 822,
+  "deprecated_names": 27,
+  "candidates": [
+   {
+    "identifier": "a:apache:tomcat_connectors",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 46,
+    "deprecated_names": 0,
+    "first_created": "2015-04-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:apache:tomcat_jk_connector",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 16,
+    "deprecated_names": 0,
+    "first_created": "2018-04-12",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:apache:tomcat_jk_web_server_connector",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 4,
+    "deprecated_names": 0,
+    "first_created": "2007-08-23",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:apache:tomcat_native",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 91,
+    "deprecated_names": 0,
+    "first_created": "2018-06-14",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:apache_software_foundation:tomcat",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 21,
+    "deprecated_names": 20,
+    "first_created": "2017-05-02",
+    "direct_rename_edge": "a:apache_software_foundation:tomcat -> a:apache:tomcat (20 names)"
+   }
+  ]
+ },
+ "tornado": {
+  "table_identifier": "a:tornadoweb:tornado",
+  "in_dictionary": true,
+  "names": 82,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:docmosis:tornado",
+    "rules": [
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 34,
+    "deprecated_names": 0,
+    "first_created": "2023-03-07",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "traefik": {
+  "table_identifier": "a:traefik:traefik",
+  "in_dictionary": true,
+  "names": 569,
+  "deprecated_names": 1,
+  "candidates": [
+   {
+    "identifier": "a:containous:traefik",
+    "rules": [
+     "pilot",
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 288,
+    "deprecated_names": 288,
+    "first_created": "2019-06-04",
+    "direct_rename_edge": "a:containous:traefik -> a:traefik:traefik (288 names)"
+   },
+   {
+    "identifier": "a:traefik:traefik_enterprise",
+    "rules": [
+     "name",
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 196,
+    "deprecated_names": 0,
+    "first_created": "2026-03-06",
+    "direct_rename_edge": "a:traefik:traefik -> a:traefik:traefik_enterprise (1 names)"
+   }
+  ]
+ },
+ "typo3": {
+  "table_identifier": "a:typo3:typo3",
+  "in_dictionary": true,
+  "names": 647,
+  "deprecated_names": 1,
+  "candidates": []
+ },
+ "varnish": {
+  "table_identifier": "a:varnish_cache_project:varnish_cache",
+  "in_dictionary": true,
+  "names": 105,
+  "deprecated_names": 0,
+  "candidates": [
+   {
+    "identifier": "a:varnish-cache:varnish",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 106,
+    "deprecated_names": 106,
+    "first_created": "2013-11-01",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:varnish-cache:varnish_cache",
+    "rules": [
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 122,
+    "deprecated_names": 122,
+    "first_created": "2020-04-13",
+    "direct_rename_edge": "a:varnish-cache:varnish_cache -> a:varnish_cache_project:varnish_cache (83 names)"
+   },
+   {
+    "identifier": "a:varnish-software:varnich_cache",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 134,
+    "deprecated_names": 134,
+    "first_created": "2022-02-07",
+    "direct_rename_edge": "a:varnish-software:varnich_cache -> a:varnish_cache_project:varnish_cache (87 names)"
+   },
+   {
+    "identifier": "a:varnish-software:varnish_cache",
+    "rules": [
+     "pilot",
+     "rename",
+     "vendor"
+    ],
+    "in_dictionary": true,
+    "names": 37,
+    "deprecated_names": 0,
+    "first_created": "2022-08-02",
+    "direct_rename_edge": ""
+   },
+   {
+    "identifier": "a:varnish-software:varnish_cache_plus",
+    "rules": [
+     "rename"
+    ],
+    "in_dictionary": true,
+    "names": 99,
+    "deprecated_names": 0,
+    "first_created": "2022-08-02",
+    "direct_rename_edge": ""
+   }
+  ]
+ },
+ "vsftpd": {
+  "table_identifier": "a:vsftpd_project:vsftpd",
+  "in_dictionary": true,
+  "names": 42,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "werkzeug": {
+  "table_identifier": "a:palletsprojects:werkzeug",
+  "in_dictionary": true,
+  "names": 103,
+  "deprecated_names": 0,
+  "candidates": []
+ },
+ "wordpress": {
+  "table_identifier": "a:wordpress:wordpress",
+  "in_dictionary": true,
+  "names": 1336,
+  "deprecated_names": 73,
+  "candidates": [
+   {
+    "identifier": "a:wordpress:wordpress_mu",
+    "rules": [
+     "name"
+    ],
+    "in_dictionary": true,
+    "names": 30,
+    "deprecated_names": 0,
+    "first_created": "2018-11-19",
+    "direct_rename_edge": ""
+   }
+  ]
+ }
+}

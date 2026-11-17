@@ -1,0 +1,905 @@
+{
+ "meta": {
+  "title": "How much of NVD does a lookup under one vendor:product identifier miss?",
+  "run": "2026-11-17",
+  "sources": {
+   "dictionary": {
+    "url": "https://nvd.nist.gov/feeds/json/cpe/2.0/nvdcpe-2.0.tar.gz",
+    "feed_timestamp": "2026-11-13T23:50:01.2782759",
+    "sha256_of_unpacked_files_joined": "b662bff41dd57cd678b5ddf597e08f896162740746fad81d39101bbbf9191000",
+    "verified": "the 18 unpacked files, joined in order, hash to the value in NVD's .meta file"
+   },
+   "cves": {
+    "url": "https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-<year>.json.gz, 2002 to 2026",
+    "newest_feed_modified": "2026-11-16T03:01:31-05:00",
+    "verified": "25 of 25 files match the sha256 in NVD's .meta files"
+   },
+   "raw_files": [
+    {
+     "file": "nvdcpe-2.0.tar.gz",
+     "bytes": 85043253,
+     "sha256": "c8b287b9300753c1cf217d685264140f7868faf97ece6b1a1b04e45d8a15cbe5"
+    },
+    {
+     "file": "nvdcve-2.0-2002.json.gz",
+     "bytes": 2192985,
+     "sha256": "f15e1ded843f02f6d506b61270d21e9afd092e19c93c4a611e34c8ebab9024a6"
+    },
+    {
+     "file": "nvdcve-2.0-2003.json.gz",
+     "bytes": 728836,
+     "sha256": "d23483e89b1406872b1406546d060905fdc2fe483e05c5288160a493704925c1"
+    },
+    {
+     "file": "nvdcve-2.0-2004.json.gz",
+     "bytes": 1490093,
+     "sha256": "4138b42d5e581c0c8d1bb1eadd3da24fba586d63854d3e21f5916ffbb611ba30"
+    },
+    {
+     "file": "nvdcve-2.0-2005.json.gz",
+     "bytes": 2172806,
+     "sha256": "380190361c509d26704ce988756bf64281abf055920e11a98158d31b18516331"
+    },
+    {
+     "file": "nvdcve-2.0-2006.json.gz",
+     "bytes": 3500860,
+     "sha256": "f2c2eba3599283ed0a927161ee8f5b15ae395636b7fb5632e66e32ca8106f09c"
+    },
+    {
+     "file": "nvdcve-2.0-2007.json.gz",
+     "bytes": 3605971,
+     "sha256": "7eea8dc7f0a12ec0570f671fbdeb3acb727bee489abcd8522c4120c415da072e"
+    },
+    {
+     "file": "nvdcve-2.0-2008.json.gz",
+     "bytes": 4185616,
+     "sha256": "ae226cd881378a652f929d48de546b1e369623faf874dee9b71ec05b54f2333e"
+    },
+    {
+     "file": "nvdcve-2.0-2009.json.gz",
+     "bytes": 4529503,
+     "sha256": "14fa2f01392bc72ba38ea191523957f953a13a5894b0169bad56093a0579e2db"
+    },
+    {
+     "file": "nvdcve-2.0-2010.json.gz",
+     "bytes": 4360428,
+     "sha256": "d1c40098cc77ad2743be219154145d2f04806bcfa0627aa49f4dc24bba32182e"
+    },
+    {
+     "file": "nvdcve-2.0-2011.json.gz",
+     "bytes": 4277047,
+     "sha256": "f8587e96ea183fab1bc47c2d0b3b2c3719ee4825837b9d3d46a3733c686cebfc"
+    },
+    {
+     "file": "nvdcve-2.0-2012.json.gz",
+     "bytes": 4872258,
+     "sha256": "1a953835bbfa9ff1c0f14861db5be03415725572b6a9d891f7e77548e6eead6d"
+    },
+    {
+     "file": "nvdcve-2.0-2013.json.gz",
+     "bytes": 5803555,
+     "sha256": "203ae3680e5c8e4f4b5ac63b0106705cc062493b90e509b5577852de5f908f24"
+    },
+    {
+     "file": "nvdcve-2.0-2014.json.gz",
+     "bytes": 4551974,
+     "sha256": "0ac663f2d98cea9e213b0ad5b2e2dca0cc6db62adc93d976e3fcad02e6ab22b3"
+    },
+    {
+     "file": "nvdcve-2.0-2015.json.gz",
+     "bytes": 4214209,
+     "sha256": "73be074c3d89ba0cea66e753e454df8eab3775fe028c3f8c2a8d240171a94db3"
+    },
+    {
+     "file": "nvdcve-2.0-2016.json.gz",
+     "bytes": 5171553,
+     "sha256": "a2d2aef7ca030198a14e9d1f7a145f563118270855cdf281db4ebd9e6226da16"
+    },
+    {
+     "file": "nvdcve-2.0-2017.json.gz",
+     "bytes": 7709784,
+     "sha256": "56d542f78ef8b4f605dfc6d77be6c1ce3cb40400769a787515b46eb9283bde31"
+    },
+    {
+     "file": "nvdcve-2.0-2018.json.gz",
+     "bytes": 8273750,
+     "sha256": "be2ad2a915d9e0770a98bb2c58cfc43a3abf17e40626d3320752a0175b6db1d8"
+    },
+    {
+     "file": "nvdcve-2.0-2019.json.gz",
+     "bytes": 10200293,
+     "sha256": "5bc4a539622b3353488500f2be43f622954c3f75aa8e96207d8422f79b19c48f"
+    },
+    {
+     "file": "nvdcve-2.0-2020.json.gz",
+     "bytes": 14017159,
+     "sha256": "731ea3d6dad72a015685942a1261c22d96133bfac899ca8e284fe959d350f868"
+    },
+    {
+     "file": "nvdcve-2.0-2021.json.gz",
+     "bytes": 16869841,
+     "sha256": "e46fd5178c5eab4c96282ca851826ed7932cd557568152e0b4b5efb71b27ffc5"
+    },
+    {
+     "file": "nvdcve-2.0-2022.json.gz",
+     "bytes": 18462251,
+     "sha256": "e3858d3a7593f1e43f68e4e055a7b8df30d9201f308e07b2fe2db46b43b37305"
+    },
+    {
+     "file": "nvdcve-2.0-2023.json.gz",
+     "bytes": 20327461,
+     "sha256": "8037a4f361279339fd3698d75fa2788c5d203b10a339648a5dbf9d4453b30165"
+    },
+    {
+     "file": "nvdcve-2.0-2024.json.gz",
+     "bytes": 25173750,
+     "sha256": "49e840f62c661b61cb0565ccba8bfad5c5fc2633202979ac447439bb4516a92d"
+    },
+    {
+     "file": "nvdcve-2.0-2025.json.gz",
+     "bytes": 25909056,
+     "sha256": "c09f702512424db232edef06210c6dda3d8a2d6b3441683cc63c9d316f07afa5"
+    },
+    {
+     "file": "nvdcve-2.0-2026.json.gz",
+     "bytes": 46548568,
+     "sha256": "9ca2c5ee028eb32aface0607a153e2aca0546dfc2c925b9ca15a39bd02789d9d"
+    }
+   ],
+   "raw_files_location": "raw-feeds/ beside this file, kept out of git. NVD overwrites its feeds daily, so this is the only copy of the snapshot the numbers rest on."
+  },
+  "scanner_table": "src/phantomprobe/cpe_tables.py at commit 18175f55f8 (release 0.9.3): 74 products, 25 second identifiers",
+  "method": [
+   "1_dict_aggregate.py reduces the dictionary to one row per part:vendor:product and to a rename map: an edge from identifier A to identifier B wherever a CPE name under A is deprecated in favour of a name under B.",
+   "2_cve_index.py reads every CVE that is not rejected and records the identifiers of its match criteria marked vulnerable. A CVE is 'filed under' an identifier when it appears there.",
+   "4_measure.py and 5_refine.py compare, for every pair of application identifiers a rename links, the CVEs filed under each. A rename is 'complete' when every name under the old identifier is deprecated and all point at one new identifier.",
+   "3_table_candidates.py proposes, for each product in the scanner's table, other identifiers by three rules: a rename link (any number of hops), the same product name under another vendor, and a related product name under the same vendor.",
+   "data/classification.json records which proposals were judged the same software. 6_table_recall.py then compares three sets per product: the table's identifier alone, the identifiers 0.9.3 queries, and the complete same-software set."
+  ],
+  "caveats": [
+   "All counts are version-independent: they say an identifier holds a CVE, not that any particular version is affected.",
+   "81617 of the 406711 CVEs kept have no identifier at all yet. No identifier-based lookup can find them, and they are outside every figure here.",
+   "A rename edge is drawn from name-level deprecations. 236 of the 1,903 application pairs are partial (some names moved, not the product), so the headline figures use the 1,667 complete renames.",
+   "Whether a proposed identifier is the same software is a single-rater judgement made by the AI assistant that ran the study. A paper needs a second rater.",
+   "The three rules miss real cases: 4 of the 25 second identifiers the scanner already queries are found by none of them. The complete set is therefore a lower bound on what a single identifier misses.",
+   "Only application identifiers were analysed for renames, not hardware or operating systems.",
+   "The table-level figures describe one scanner's 74 products. The dictionary-wide figures do not depend on it."
+  ],
+  "files": {
+   "data/identifiers.tsv.gz": "every identifier in the dictionary with its name counts",
+   "data/rename_edges.json": "the rename map",
+   "data/cve_identifiers.tsv.gz": "every kept CVE with its identifiers",
+   "data/cve_feed_checks.json": "size and sha256 of each yearly CVE file against NVD",
+   "data/measure.json": "per-pair and per-candidate counts",
+   "data/refine.json": "complete and partial renames, timeline, titles",
+   "data/table_candidates.json": "what each rule proposed for each product",
+   "data/classification.json": "the same-software judgements and their reasons",
+   "data/table_recall.json": "per-product completeness",
+   "scripts/": "the six scripts in the order they were run"
+  }
+ },
+ "corpus": {
+  "cves_kept": 406711,
+  "rejected_skipped": 19172,
+  "kept_with_no_identifier": 81617,
+  "identifiers_used_by_cves": 122404,
+  "dictionary_names": 1873730,
+  "dictionary_names_deprecated": 102546,
+  "dictionary_identifiers_by_part": {
+   "a": 50549,
+   "h": 60476,
+   "o": 43484
+  }
+ },
+ "renames_recorded_by_nvd": {
+  "application_pairs": 1903,
+  "complete": {
+   "pairs": 1667,
+   "states": {
+    "old identifier returns nothing; CVEs are under the new one": 1247,
+    "split: each holds CVEs the other lacks": 210,
+    "neither identifier has CVEs": 146,
+    "old is a strict subset of new": 43,
+    "new identifier returns nothing; CVEs are still under the old one": 14,
+    "identical": 5,
+    "new is a strict subset of old": 2
+   },
+   "pairs_where_the_old_identifier_misses_cves": 1500,
+   "pairs_where_the_new_identifier_misses_cves": 226,
+   "distinct_cves_missed_using_only_old": 26670,
+   "distinct_cves_missed_using_only_new": 676
+  },
+  "partial": {
+   "pairs": 236,
+   "states": {
+    "split: each holds CVEs the other lacks": 162,
+    "old identifier returns nothing; CVEs are under the new one": 42,
+    "old is a strict subset of new": 12,
+    "new identifier returns nothing; CVEs are still under the old one": 10,
+    "neither identifier has CVEs": 5,
+    "new is a strict subset of old": 3,
+    "identical": 2
+   },
+   "pairs_where_the_old_identifier_misses_cves": 216,
+   "pairs_where_the_new_identifier_misses_cves": 175,
+   "distinct_cves_missed_using_only_old": 10914,
+   "distinct_cves_missed_using_only_new": 8762
+  },
+  "complete_by_year": {
+   "2008": 7,
+   "2009": 6,
+   "2010": 4,
+   "2011": 2,
+   "2012": 25,
+   "2013": 7,
+   "2014": 12,
+   "2015": 8,
+   "2016": 5,
+   "2017": 9,
+   "2018": 29,
+   "2019": 82,
+   "2020": 132,
+   "2021": 419,
+   "2022": 139,
+   "2023": 209,
+   "2024": 138,
+   "2025": 278,
+   "2026": 156
+  },
+  "largest_where_the_old_identifier_misses": [
+   {
+    "old": "mozilla:firefox_esr",
+    "new": "mozilla:firefox",
+    "under_old": 487,
+    "under_new": 3445,
+    "missed": 2971,
+    "missed_years": [
+     "2003",
+     "2026"
+    ],
+    "renamed": "2016"
+   },
+   {
+    "old": "microsoft:ie",
+    "new": "microsoft:internet_explorer",
+    "under_old": 200,
+    "under_new": 1635,
+    "missed": 1492,
+    "missed_years": [
+     "1997",
+     "2021"
+    ],
+    "renamed": "2021"
+   },
+   {
+    "old": "f5:big-ip_aam",
+    "new": "f5:big-ip_application_acceleration_manager",
+    "under_old": 0,
+    "under_new": 524,
+    "missed": 524,
+    "missed_years": [
+     "2014",
+     "2026"
+    ],
+    "renamed": "2021"
+   },
+   {
+    "old": "mattermost:server",
+    "new": "mattermost:mattermost_server",
+    "under_old": 0,
+    "under_new": 506,
+    "missed": 506,
+    "missed_years": [
+     "2020",
+     "2026"
+    ],
+    "renamed": "2020"
+   },
+   {
+    "old": "oracle:peoplesoft_enterprise_people_tools",
+    "new": "oracle:peoplesoft_enterprise_peopletools",
+    "under_old": 0,
+    "under_new": 468,
+    "missed": 468,
+    "missed_years": [
+     "2007",
+     "2026"
+    ],
+    "renamed": "2026"
+   },
+   {
+    "old": "tensorflow:tensorflow",
+    "new": "google:tensorflow",
+    "under_old": 0,
+    "under_new": 431,
+    "missed": 431,
+    "missed_years": [
+     "2019",
+     "2025"
+    ],
+    "renamed": "2021"
+   },
+   {
+    "old": "mariadb_project:mariadb",
+    "new": "mariadb:mariadb",
+    "under_old": 0,
+    "under_new": 430,
+    "missed": 430,
+    "missed_years": [
+     "2005",
+     "2026"
+    ],
+    "renamed": "2020"
+   },
+   {
+    "old": "foxitsoftware:pdf_reader",
+    "new": "foxit:pdf_reader",
+    "under_old": 3,
+    "under_new": 373,
+    "missed": 373,
+    "missed_years": [
+     "2007",
+     "2026"
+    ],
+    "renamed": "2022"
+   },
+   {
+    "old": "freerdp_project:freerdp",
+    "new": "freerdp:freerdp",
+    "under_old": 0,
+    "under_new": 337,
+    "missed": 337,
+    "missed_years": [
+     "2014",
+     "2026"
+    ],
+    "renamed": "2020"
+   },
+   {
+    "old": "cloudbees:jenkins1.381",
+    "new": "jenkins:jenkins",
+    "under_old": 0,
+    "under_new": 294,
+    "missed": 294,
+    "missed_years": [
+     "2011",
+     "2026"
+    ],
+    "renamed": "2016"
+   },
+   {
+    "old": "tracker-software:pdf-xchange_editor",
+    "new": "pdf-xchange:pdf-xchange_editor",
+    "under_old": 0,
+    "under_new": 288,
+    "missed": 288,
+    "missed_years": [
+     "2018",
+     "2025"
+    ],
+    "renamed": "2024"
+   },
+   {
+    "old": "cisco:firepower_threat_defense_software",
+    "new": "cisco:secure_firewall_threat_defense",
+    "under_old": 0,
+    "under_new": 277,
+    "missed": 277,
+    "missed_years": [
+     "2017",
+     "2026"
+    ],
+    "renamed": "2026"
+   }
+  ],
+  "largest_where_the_new_identifier_misses": [
+   {
+    "old": "microsoft:ie",
+    "new": "microsoft:internet_explorer",
+    "under_old": 200,
+    "under_new": 1635,
+    "missed": 57,
+    "missed_years": [
+     "1999",
+     "2007"
+    ],
+    "renamed": "2021"
+   },
+   {
+    "old": "cisco:adaptive_security_appliance",
+    "new": "cisco:adaptive_security_appliance_software",
+    "under_old": 33,
+    "under_new": 37,
+    "missed": 33,
+    "missed_years": [
+     "2009",
+     "2023"
+    ],
+    "renamed": "2022"
+   },
+   {
+    "old": "dolibarr:dolibarr",
+    "new": "dolibarr:dolibarr_erp\\/crm",
+    "under_old": 32,
+    "under_new": 111,
+    "missed": 31,
+    "missed_years": [
+     "2014",
+     "2021"
+    ],
+    "renamed": "2022"
+   },
+   {
+    "old": "asterisk:open_source",
+    "new": "sangoma:asterisk",
+    "under_old": 22,
+    "under_new": 28,
+    "missed": 19,
+    "missed_years": [
+     "2007",
+     "2013"
+    ],
+    "renamed": "2024"
+   },
+   {
+    "old": "pulsesecure:pulse_connect_secure",
+    "new": "ivanti:connect_secure",
+    "under_old": 57,
+    "under_new": 133,
+    "missed": 17,
+    "missed_years": [
+     "2016",
+     "2020"
+    ],
+    "renamed": "2024"
+   },
+   {
+    "old": "openautomationsoftware:oas_platform",
+    "new": "openautomationsoftware:open_automation_software",
+    "under_old": 16,
+    "under_new": 5,
+    "missed": 16,
+    "missed_years": [
+     "2022",
+     "2023"
+    ],
+    "renamed": "2025"
+   },
+   {
+    "old": "atlassian:confluence",
+    "new": "atlassian:confluence_server",
+    "under_old": 19,
+    "under_new": 49,
+    "missed": 13,
+    "missed_years": [
+     "2005",
+     "2019"
+    ],
+    "renamed": "2021"
+   },
+   {
+    "old": "ipswitch:ws_ftp_server",
+    "new": "progress:ipswitch_ws_ftp_server",
+    "under_old": 13,
+    "under_new": 2,
+    "missed": 13,
+    "missed_years": [
+     "1999",
+     "2019"
+    ],
+    "renamed": "2019"
+   },
+   {
+    "old": "mozilla:firefox_esr",
+    "new": "mozilla:firefox",
+    "under_old": 487,
+    "under_new": 3445,
+    "missed": 13,
+    "missed_years": [
+     "2020",
+     "2023"
+    ],
+    "renamed": "2016"
+   },
+   {
+    "old": "publify_project:publify",
+    "new": "publify:publify",
+    "under_old": 13,
+    "under_new": 2,
+    "missed": 13,
+    "missed_years": [
+     "2021",
+     "2023"
+    ],
+    "renamed": "2025"
+   },
+   {
+    "old": "sap:netweaver_abap",
+    "new": "sap:netweaver_application_server_abap",
+    "under_old": 21,
+    "under_new": 86,
+    "missed": 13,
+    "missed_years": [
+     "2012",
+     "2024"
+    ],
+    "renamed": "2022"
+   },
+   {
+    "old": "torrentflux:torrentflux",
+    "new": "torrentflux_project:torrentflux",
+    "under_old": 13,
+    "under_new": 4,
+    "missed": 13,
+    "missed_years": [
+     "2006",
+     "2009"
+    ],
+    "renamed": "2020"
+   }
+  ]
+ },
+ "identifiers_cves_use_that_the_dictionary_lacks": {
+  "application_identifiers_used_by_cves": 65876,
+  "of_which_absent_from_the_dictionary": 22444,
+  "cves_touching_an_absent_identifier": 36094,
+  "by_year": {
+   "1988": {
+    "identifiers_used": 3,
+    "absent": 3,
+    "share": 1.0
+   },
+   "1990": {
+    "identifiers_used": 3,
+    "absent": 2,
+    "share": 0.667
+   },
+   "1991": {
+    "identifiers_used": 2,
+    "absent": 2,
+    "share": 1.0
+   },
+   "1992": {
+    "identifiers_used": 1,
+    "absent": 1,
+    "share": 1.0
+   },
+   "1993": {
+    "identifiers_used": 4,
+    "absent": 4,
+    "share": 1.0
+   },
+   "1994": {
+    "identifiers_used": 2,
+    "absent": 2,
+    "share": 1.0
+   },
+   "1995": {
+    "identifiers_used": 11,
+    "absent": 9,
+    "share": 0.818
+   },
+   "1996": {
+    "identifiers_used": 32,
+    "absent": 18,
+    "share": 0.562
+   },
+   "1997": {
+    "identifiers_used": 81,
+    "absent": 46,
+    "share": 0.568
+   },
+   "1998": {
+    "identifiers_used": 122,
+    "absent": 68,
+    "share": 0.557
+   },
+   "1999": {
+    "identifiers_used": 347,
+    "absent": 212,
+    "share": 0.611
+   },
+   "2000": {
+    "identifiers_used": 512,
+    "absent": 319,
+    "share": 0.623
+   },
+   "2001": {
+    "identifiers_used": 824,
+    "absent": 539,
+    "share": 0.654
+   },
+   "2002": {
+    "identifiers_used": 1100,
+    "absent": 729,
+    "share": 0.663
+   },
+   "2003": {
+    "identifiers_used": 850,
+    "absent": 555,
+    "share": 0.653
+   },
+   "2004": {
+    "identifiers_used": 1342,
+    "absent": 828,
+    "share": 0.617
+   },
+   "2005": {
+    "identifiers_used": 2565,
+    "absent": 1815,
+    "share": 0.708
+   },
+   "2006": {
+    "identifiers_used": 3587,
+    "absent": 2873,
+    "share": 0.801
+   },
+   "2007": {
+    "identifiers_used": 3931,
+    "absent": 2987,
+    "share": 0.76
+   },
+   "2008": {
+    "identifiers_used": 3593,
+    "absent": 2836,
+    "share": 0.789
+   },
+   "2009": {
+    "identifiers_used": 3339,
+    "absent": 2521,
+    "share": 0.755
+   },
+   "2010": {
+    "identifiers_used": 2109,
+    "absent": 1268,
+    "share": 0.601
+   },
+   "2011": {
+    "identifiers_used": 1671,
+    "absent": 790,
+    "share": 0.473
+   },
+   "2012": {
+    "identifiers_used": 2272,
+    "absent": 596,
+    "share": 0.262
+   },
+   "2013": {
+    "identifiers_used": 1676,
+    "absent": 157,
+    "share": 0.094
+   },
+   "2014": {
+    "identifiers_used": 3980,
+    "absent": 502,
+    "share": 0.126
+   },
+   "2015": {
+    "identifiers_used": 2066,
+    "absent": 306,
+    "share": 0.148
+   },
+   "2016": {
+    "identifiers_used": 1667,
+    "absent": 79,
+    "share": 0.047
+   },
+   "2017": {
+    "identifiers_used": 4184,
+    "absent": 213,
+    "share": 0.051
+   },
+   "2018": {
+    "identifiers_used": 5869,
+    "absent": 265,
+    "share": 0.045
+   },
+   "2019": {
+    "identifiers_used": 5771,
+    "absent": 98,
+    "share": 0.017
+   },
+   "2020": {
+    "identifiers_used": 5713,
+    "absent": 58,
+    "share": 0.01
+   },
+   "2021": {
+    "identifiers_used": 6862,
+    "absent": 663,
+    "share": 0.097
+   },
+   "2022": {
+    "identifiers_used": 7916,
+    "absent": 800,
+    "share": 0.101
+   },
+   "2023": {
+    "identifiers_used": 10170,
+    "absent": 1165,
+    "share": 0.115
+   },
+   "2024": {
+    "identifiers_used": 7458,
+    "absent": 878,
+    "share": 0.118
+   },
+   "2025": {
+    "identifiers_used": 6088,
+    "absent": 1085,
+    "share": 0.178
+   },
+   "2026": {
+    "identifiers_used": 5571,
+    "absent": 927,
+    "share": 0.166
+   }
+  },
+  "largest": [
+   {
+    "identifier": "a:microsoft:microsoft_365",
+    "cves": 393
+   },
+   {
+    "identifier": "a:ethereal_group:ethereal",
+    "cves": 105
+   },
+   {
+    "identifier": "a:francisco_burzi:php-nuke",
+    "cves": 94
+   },
+   {
+    "identifier": "a:phpbb_group:phpbb",
+    "cves": 81
+   },
+   {
+    "identifier": "a:joomla:joomla",
+    "cves": 81
+   },
+   {
+    "identifier": "a:clam_anti-virus:clamav",
+    "cves": 60
+   },
+   {
+    "identifier": "a:mybulletinboard:mybulletinboard",
+    "cves": 60
+   },
+   {
+    "identifier": "a:tor:tor",
+    "cves": 57
+   },
+   {
+    "identifier": "a:oracle:oracle9i",
+    "cves": 52
+   },
+   {
+    "identifier": "a:jelsoft:vbulletin",
+    "cves": 51
+   },
+   {
+    "identifier": "a:redhat:hardened_images",
+    "cves": 50
+   },
+   {
+    "identifier": "a:printerlogic:vasion_print",
+    "cves": 49
+   },
+   {
+    "identifier": "a:oracle:oracle8i",
+    "cves": 46
+   },
+   {
+    "identifier": "a:oracle:peoplesoft_and_jdedwards_product_suite",
+    "cves": 44
+   },
+   {
+    "identifier": "a:mantis:mantis",
+    "cves": 43
+   }
+  ]
+ },
+ "scanner_table": {
+  "products": 74,
+  "products_with_cves": 74,
+  "table_identifier_standing": {
+   "current": 32,
+   "every name deprecated": 1,
+   "not in the dictionary": 1
+  },
+  "table_identifiers_partly_deprecated": 40,
+  "products_where_single_identifier_is_incomplete": 24,
+  "products_where_0_9_3_is_still_incomplete": 7,
+  "cve_product_pairs": {
+   "single": 12558,
+   "configured": 13788,
+   "complete": 14062
+  },
+  "overall_recall_single": 0.893,
+  "overall_recall_configured": 0.9805,
+  "median_recall_single_among_incomplete": 0.807,
+  "worst_single_identifier_recall": [
+   [
+    "rabbitmq",
+    0.125,
+    11,
+    88
+   ],
+   [
+    "joomla",
+    0.1924,
+    81,
+    421
+   ],
+   [
+    "confluence",
+    0.2836,
+    19,
+    67
+   ],
+   [
+    "magento",
+    0.5225,
+    221,
+    423
+   ],
+   [
+    "laravel",
+    0.5263,
+    10,
+    19
+   ],
+   [
+    "docker",
+    0.6066,
+    37,
+    61
+   ],
+   [
+    "nginx",
+    0.6119,
+    41,
+    67
+   ],
+   [
+    "redis",
+    0.6765,
+    46,
+    68
+   ],
+   [
+    "jira",
+    0.71,
+    142,
+    200
+   ],
+   [
+    "iis",
+    0.723,
+    107,
+    148
+   ],
+   [
+    "java",
+    0.7566,
+    805,
+    1064
+   ],
+   [
+    "mysql",
+    0.7886,
+    1328,
+    1684
+   ]
+  ],
+  "second_identifiers_in_0_9_3": 25,
+  "of_which_add_cves_across_all_versions": 25,
+  "of_which_found_by": {
+   "rename": 12,
+   "vendor": 12,
+   "name": 8,
+   "none of the rules": 4
+  },
+  "new_same_software_identifiers": 9,
+  "cves_they_add": 274
+ }
+}
