@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-11-17
+
 ### Fixed
 
 - **CVE correlation still missed CVEs filed under other identifiers, for nine
@@ -246,7 +248,8 @@ against its live source before shipping.
 - All outbound fetches go through a helper enforcing an **http/https scheme
   allowlist**, so a hostile page cannot point the scanner at `file://`.
 
-[Unreleased]: https://github.com/Ravel226/PhantomProbe/compare/v0.9.3...HEAD
+[Unreleased]: https://github.com/Ravel226/PhantomProbe/compare/v0.9.4...HEAD
+[0.9.4]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.4
 [0.9.3]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.3
 [0.9.2]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.2
 [0.9.1]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.1
