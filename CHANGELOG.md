@@ -4,6 +4,18 @@ All notable changes to PhantomProbe are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Playwright is bounded, and the Docker image pins it.** The dependency had
+  no upper limit, which is how a new release stopped the full image from
+  building. The `screenshot` and `all` extras now require `playwright<2`, and
+  the full image installs one tested release (`PLAYWRIGHT_VERSION` in the
+  Dockerfile, 1.65.2). Raising that pin is deliberate and is checked by the
+  Docker job in CI. It should be raised regularly, because it also carries the
+  browser's security fixes.
+
 ## [0.9.3] - 2026-11-17
 
 Each entry below was found by checking the scanner against a known answer, and
@@ -197,6 +209,7 @@ against its live source before shipping.
 - All outbound fetches go through a helper enforcing an **http/https scheme
   allowlist**, so a hostile page cannot point the scanner at `file://`.
 
+[Unreleased]: https://github.com/Ravel226/PhantomProbe/compare/v0.9.3...HEAD
 [0.9.3]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.3
 [0.9.2]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.2
 [0.9.1]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.1

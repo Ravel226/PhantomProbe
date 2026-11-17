@@ -39,14 +39,17 @@ dependencies = []
 [project.optional-dependencies]
 # Interactive dashboard. uvicorn needs websockets to serve the live-update WS.
 dashboard = ["fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0"]
-# Full-page screenshots.
-screenshot = ["playwright>=1.40.0"]
+# Full-page screenshots. Bounded below the next major release, where the API
+# may change. Minor releases stay open so a pip user keeps getting the
+# browser's security fixes; the Docker image, whose system libraries have to
+# match the release exactly, pins one tested version in the Dockerfile.
+screenshot = ["playwright>=1.40.0,<2"]
 # Burp Professional REST integration (HTTP only, no websockets).
 burp = ["requests>=2.25.0"]
 # Everything a user-facing feature can need.
 all = [
     "fastapi>=0.100.0", "uvicorn>=0.23.0", "websockets>=11.0",
-    "playwright>=1.40.0", "requests>=2.25.0",
+    "playwright>=1.40.0,<2", "requests>=2.25.0",
 ]
 # Contributor tooling. See also requirements-dev.txt.
 dev = [

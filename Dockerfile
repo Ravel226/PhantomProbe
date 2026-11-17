@@ -92,8 +92,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-# The "all" extra already pulls in playwright and requests.
-RUN pip install --no-cache-dir -e ".[all]" \
+# The Playwright release this image is built and tested with. The library
+# list above has to match what that release's Node driver and Chromium link
+# against, so a newer one is taken on purpose: raise this, and the Docker job
+# in CI builds the image and takes a screenshot to prove the list still fits.
+# Raise it regularly, because it also carries the browser's security fixes.
+ARG PLAYWRIGHT_VERSION=1.65.2
+
+# The "all" extra already pulls in playwright and requests; the pin narrows
+# it to the tested release.
+RUN pip install --no-cache-dir -e ".[all]" "playwright==${PLAYWRIGHT_VERSION}" \
     && playwright install chromium \
     && chmod -R a+rX "$PLAYWRIGHT_BROWSERS_PATH"
 
