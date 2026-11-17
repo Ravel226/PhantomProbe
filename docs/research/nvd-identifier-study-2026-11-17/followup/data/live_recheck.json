@@ -1,0 +1,182 @@
+[
+ {
+  "tech": "java",
+  "version": "1.6.0",
+  "current": 459,
+  "current_by_identifier": {
+   "cpe:2.3:a:oracle:jdk:1.6.0": 459
+  },
+  "new": [
+   {
+    "identifier": "sun:jdk",
+    "returned": 352,
+    "not_in_current": 196,
+    "not_in_any_before": 196,
+    "of_which_7_or_higher": 123,
+    "added": [
+     [
+      "CVE-2007-2788",
+      6.8
+     ],
+     [
+      "CVE-2007-2789",
+      4.3
+     ],
+     [
+      "CVE-2007-3698",
+      7.8
+     ],
+     [
+      "CVE-2007-3716",
+      9.3
+     ],
+     [
+      "CVE-2007-3922",
+      6.8
+     ],
+     [
+      "CVE-2007-5232",
+      4.0
+     ],
+     [
+      "CVE-2007-5237",
+      7.1
+     ],
+     [
+      "CVE-2007-5238",
+      2.6
+     ],
+     [
+      "CVE-2007-5239",
+      4.0
+     ],
+     [
+      "CVE-2007-5240",
+      5.0
+     ],
+     [
+      "CVE-2007-5273",
+      2.6
+     ],
+     [
+      "CVE-2007-5274",
+      2.6
+     ]
+    ]
+   },
+   {
+    "identifier": "oracle:jre",
+    "returned": 469,
+    "not_in_current": 13,
+    "not_in_any_before": 13,
+    "of_which_7_or_higher": 9,
+    "added": [
+     [
+      "CVE-2010-0840",
+      9.8
+     ],
+     [
+      "CVE-2011-3563",
+      6.4
+     ],
+     [
+      "CVE-2012-0497",
+      10.0
+     ],
+     [
+      "CVE-2012-0498",
+      10.0
+     ],
+     [
+      "CVE-2012-0499",
+      10.0
+     ],
+     [
+      "CVE-2012-0500",
+      10.0
+     ],
+     [
+      "CVE-2012-0501",
+      5.0
+     ],
+     [
+      "CVE-2012-0502",
+      6.4
+     ],
+     [
+      "CVE-2012-0503",
+      7.5
+     ],
+     [
+      "CVE-2012-0505",
+      7.5
+     ],
+     [
+      "CVE-2012-0506",
+      4.3
+     ],
+     [
+      "CVE-2012-0507",
+      9.8
+     ]
+    ]
+   },
+   {
+    "identifier": "oracle:java_se",
+    "returned": 0,
+    "not_in_current": 0,
+    "not_in_any_before": 0,
+    "of_which_7_or_higher": 0,
+    "added": []
+   }
+  ],
+  "with_new": 668
+ },
+ {
+  "tech": "node.js",
+  "version": "0.8.3",
+  "current": 28,
+  "current_by_identifier": {
+   "cpe:2.3:a:nodejs:node.js:0.8.3": 28
+  },
+  "new": [
+   {
+    "identifier": "joyent:node.js",
+    "returned": 2,
+    "not_in_current": 2,
+    "not_in_any_before": 2,
+    "of_which_7_or_higher": 2,
+    "added": [
+     [
+      "CVE-2014-6394",
+      7.5
+     ],
+     [
+      "CVE-2014-7192",
+      10.0
+     ]
+    ]
+   }
+  ],
+  "with_new": 30
+ },
+ {
+  "tech": "samba",
+  "version": "3.0.25",
+  "current": 65,
+  "current_by_identifier": {
+   "cpe:2.3:a:samba:samba:3.0.25": 65
+  },
+  "new": [
+   {
+    "identifier": "samba:samba_server",
+    "returned": 0,
+    "not_in_current": 0,
+    "not_in_any_before": 0,
+    "of_which_7_or_higher": 0,
+    "added": []
+   }
+  ],
+  "with_new": 65
+ }
+]

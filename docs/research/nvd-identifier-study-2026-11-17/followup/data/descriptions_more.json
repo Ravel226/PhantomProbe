@@ -1,0 +1,18 @@
+{
+ "CVE-1999-0971": "Buffer overflow in Exim allows local users to gain root privileges via a long :include: option in a .forward file.",
+ "CVE-2001-0690": "Format string vulnerability in exim (3.22-10 in Red Hat, 3.12 in Debian and 3.16 in Conectiva) in batched SMTP mode allows a remote attacker to execute arbitrary code via format strings in SMTP mail headers.",
+ "CVE-2001-0889": "Exim 3.22 and earlier, in some configurations, does not properly verify the local part of an address when redirecting the address to a pipe, which could allow remote attackers to execute arbitrary commands via shell metacharacters.",
+ "CVE-2002-0274": "Exim 3.34 and earlier may allow local users to gain privileges via a buffer overflow in long -C (configuration file) and other command line arguments.",
+ "CVE-2002-1381": "Format string vulnerability in daemon.c for Exim 4.x through 4.10, and 3.x through 3.36, allows exim administrative users to execute arbitrary code by modifying the pid_file_path value.",
+ "CVE-2002-1533": "Cross-site scripting (XSS) vulnerability in Jetty JSP servlet engine allows remote attackers to insert arbitrary HTML or script via an HTTP request to a .jsp file whose name contains the malicious script and some encoded linefeed characters (%0a).",
+ "CVE-2003-0743": "Heap-based buffer overflow in smtp_in.c for Exim 3 (exim3) before 3.36 and Exim 4 (exim4) before 4.21 may allow remote attackers to execute arbitrary code via an invalid (1) HELO or (2) EHLO argument with a large number of spaces followed by a NULL character and a newline, which is not properly trimmed before the \"(no argument given)\" string is appended to the buffer.",
+ "CVE-2004-0042": "vsftpd 1.1.3 generates different error messages depending on whether or not a valid username exists, which allows remote attackers to identify valid usernames.",
+ "CVE-2004-0399": "Stack-based buffer overflow in Exim 3.35, and other versions before 4, when the sender_verify option is true, allows remote attackers to cause a denial of service and possibly execute arbitrary code during sender verification.",
+ "CVE-2004-0400": "Stack-based buffer overflow in Exim 4 before 4.33, when the headers_check_syntax option is enabled, allows remote attackers to cause a denial of service and possibly execute arbitrary code during the header check.",
+ "CVE-2004-2259": "vsftpd before 1.2.2, when under heavy load, allows attackers to cause a denial of service (crash) via a SIGCHLD signal during a malloc or free call, which is not re-entrant.",
+ "CVE-2005-0021": "Multiple buffer overflows in Exim before 4.43 may allow attackers to execute arbitrary code via (1) an IPv6 address with more than 8 components, as demonstrated using the -be command line option, which triggers an overflow in the host_aton function, or (2) the -bh command line option or dnsdb PTR lookup, which triggers an overflow in the dns_build_reverse function.",
+ "CVE-2005-0022": "Buffer overflow in the spa_base64_to_bits function in Exim before 4.43, as originally obtained from Samba code, and as called by the auth_spa_client function, may allow attackers to execute arbitrary code during SPA authentication.",
+ "CVE-2006-2758": "Directory traversal vulnerability in jetty 6.0.x (jetty6) beta16 allows remote attackers to read arbitrary files via a %2e%2e%5c (encoded ../) in the URL.  NOTE: this might be the same issue as CVE-2005-3747.",
+ "CVE-2006-2759": "jetty 6.0.x (jetty6) beta16 allows remote attackers to read arbitrary script source code via a capital P in the .jsp extension, and probably other mixed case manipulations.",
+ "CVE-2019-13506": "@nuxt/devalue before 1.2.3, as used in Nuxt.js before 2.6.2, mishandles object keys, leading to XSS."
+}

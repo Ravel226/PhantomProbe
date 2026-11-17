@@ -108,11 +108,14 @@ CPE_MAPPING = {
 # entry is queried alongside the primary mapping and merged by CVE id.
 #
 # An identifier is listed only when it names the same software and, asked
-# about a real version, returned CVEs the primary did not. Each comment
-# records that check: the version asked about, how many CVEs the primary
-# returned, and how many more only this identifier returned (NVD,
-# 2026-11-16). Identifiers that exist but added nothing are left out, as
-# are those naming a different edition with its own version numbering.
+# about a real version, returned CVEs the primary did not, and those CVEs
+# are flaws in that software rather than in something filed against it.
+# Each comment records that check: the version asked about, how many CVEs
+# the primary returned, and how many more only this identifier returned
+# (NVD, 2026-11-16, and 2026-11-17 for the identifiers that the systematic
+# study in docs/research/nvd-identifier-study-2026-11-17 led to).
+# Identifiers that exist but added nothing are left out, as are those
+# naming a different edition with its own version numbering.
 CPE_SIBLINGS = {
     # 1.24.0: 2, +15
     'nginx': [{'vendor': 'f5', 'product': 'nginx_open_source'}],
@@ -126,8 +129,13 @@ CPE_SIBLINGS = {
     # 3.9.0: 0, +125. NVD spells the product with its exclamation mark, and
     # the plain spelling returned nothing at all for this version.
     'joomla': [{'vendor': 'joomla', 'product': 'joomla\\!'}],
-    # 6.1.26: 12, +2
-    'jetty': [{'vendor': 'mortbay', 'product': 'jetty'}],
+    # 6.1.26: 12, +2 under mortbay, nothing under jetty:jetty. 6.0: 14, +5
+    # under mortbay and +1 under jetty:jetty, which only CVE records use:
+    # NVD's product dictionary lacks it.
+    'jetty': [
+        {'vendor': 'mortbay', 'product': 'jetty'},
+        {'vendor': 'jetty', 'product': 'jetty'},
+    ],
     # 3.0.0: 32, +3 under springsource. 4.0.0: 34, +4 under pivotal_software.
     'spring': [
         {'vendor': 'springsource', 'product': 'spring_framework'},
@@ -135,18 +143,25 @@ CPE_SIBLINGS = {
     ],
     # 9.3.0: 5, +1
     'next.js': [{'vendor': 'zeit', 'product': 'next.js'}],
-    # 2.4.3: 8, +126. Adobe Commerce is a separate edition and is left out.
-    'magento': [{'vendor': 'adobe', 'product': 'magento'}],
+    # 2.4.3: 8, +126 under adobe. 1.6.2: 101, +107 under adobe and +2 under
+    # magentocommerce, an earlier vendor name. Adobe Commerce is a separate
+    # edition and is left out.
+    'magento': [
+        {'vendor': 'adobe', 'product': 'magento'},
+        {'vendor': 'magentocommerce', 'product': 'magento'},
+    ],
     # 7.13.0: 0, +14 across the two (13 each, 12 shared). The plain product
     # name returned nothing for this version.
     'confluence': [
         {'vendor': 'atlassian', 'product': 'confluence_server'},
         {'vendor': 'atlassian', 'product': 'confluence_data_center'},
     ],
-    # 8.13.0: 20, +45 across the two (43 and 37, 35 shared).
+    # 8.13.0: 20, +45 across jira_server and jira_data_center (43 and 37, 35
+    # shared), and +3 under jira_software_data_center.
     'jira': [
         {'vendor': 'atlassian', 'product': 'jira_server'},
         {'vendor': 'atlassian', 'product': 'jira_data_center'},
+        {'vendor': 'atlassian', 'product': 'jira_software_data_center'},
     ],
     # 6.0: 12, +7. 7.5: 0, +3.
     'iis': [{'vendor': 'microsoft', 'product': 'internet_information_services'}],
@@ -174,18 +189,43 @@ CPE_SIBLINGS = {
         {'vendor': 'mobyproject', 'product': 'moby'},
         {'vendor': 'docker', 'product': 'engine'},
     ],
+    # 1.6.0: 459, +196 under sun:jdk and +13 under oracle:jre. 1.7.0: 569,
+    # +51 and +52 under the same two. 11.0.14: 4, +2 under oracle:java_se,
+    # which numbers Java 7 and 8 as 7u331 and 8u321 and so matches no 1.7.0
+    # or 1.8.0 that a banner gives.
+    'java': [
+        {'vendor': 'sun', 'product': 'jdk'},
+        {'vendor': 'oracle', 'product': 'jre'},
+        {'vendor': 'oracle', 'product': 'java_se'},
+    ],
+    # 0.95: 33, +4
+    'django': [{'vendor': 'django_project', 'product': 'django'}],
+    # 1.509: 267, +1. 1.609 added nothing.
+    'jenkins': [{'vendor': 'cloudbees', 'product': 'jenkins'}],
+    # 4.20: 56, +4, three of them scored 7.0 or higher. 4.69 added nothing:
+    # these are Exim 3 and early Exim 4 flaws. Only CVE records use this
+    # identifier; NVD's product dictionary lacks it.
+    'exim': [{'vendor': 'university_of_cambridge', 'product': 'exim'}],
+    # 1.2.1: 3, +1. 2.3.4 added nothing. The dictionary lacks this one too.
+    'vsftpd': [{'vendor': 'beasts', 'product': 'vsftpd'}],
+    # 2.6.1: 3, +1. 2.15.0 added nothing.
+    'nuxt': [{'vendor': 'nuxtjs', 'product': 'nuxt.js'}],
 }
 
 # Measured the same way and left out, so nobody has to measure them again
-# without a reason. Added nothing at the version tested: joyent:node.js
-# (0.10.40), jetty:jetty (6.1.26), cloudbees:jenkins (1.609),
-# varnish-cache:varnish (6.0.0), nuxtjs:nuxt.js (2.15.0), beasts:vsftpd
-# (2.3.4), university_of_cambridge:exim (4.69). A different edition or
-# product that a banner cannot tell apart: adobe:commerce,
-# litespeedtech:openlitespeed, angularjs:angular.js. Exists but was not
-# tested against a version: nginx:nginx (2 CVEs, both from 2009). Not in NVD
-# at all: twitter:bootstrap, vmware:rabbitmq_server, symfony:symfony,
-# tryghost:ghost, danga:memcached, expressjs:express.
+# without a reason. Hold nothing the identifiers above lack, at any version
+# (NVD's CVE records of 2026-11-17): nginx:nginx, varnish-cache:varnish.
+# Add only CVEs that are not flaws in the product: joyent:node.js, whose two
+# are npm packages filed against Node.js versions (CVE-2014-6394 in send,
+# CVE-2014-7192 in syntax-error), so Node.js 0.8.3 would be reported with a
+# 7.5 and a 10.0 it does not have; and samba:samba_server, whose one is
+# Apple's Samba on Mac OS X (CVE-2007-2407) and which returned nothing for
+# Samba 3.0.25 or 4.20.0. A different edition or product that a banner
+# cannot tell apart: adobe:commerce, litespeedtech:openlitespeed,
+# angularjs:angular.js, and the others the study lists as related
+# (data/classification.json). No CVE is filed under: twitter:bootstrap,
+# vmware:rabbitmq_server, symfony:symfony, tryghost:ghost, danga:memcached,
+# expressjs:express.
 
 # Technologies a script URL can reveal. A script path names what the
 # browser runs, never what the server runs, so "/js/spring-1.2.0.js" must

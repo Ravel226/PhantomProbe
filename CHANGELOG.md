@@ -6,6 +6,43 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- **CVE correlation still missed CVEs filed under other identifiers, for nine
+  products.** A search of NVD's whole product dictionary and every CVE record
+  (`docs/research/nvd-identifier-study-2026-11-17`) found 9 more identifiers
+  for software in the table, and checking those turned up 4 more that its
+  rules missed. 11 are now queried, each checked against live NVD at a real
+  version. Java 1.6.0 had 459 CVEs under `oracle:jdk` and 196 more under
+  `sun:jdk`, 123 of them scored 7.0 or higher. Exim 4.20 had 56 under
+  `exim:exim` and 4 more under `university_of_cambridge:exim`, three of them
+  7.0 or higher. The others are `oracle:jre` and `oracle:java_se` (Java),
+  `django_project:django`, `cloudbees:jenkins`,
+  `atlassian:jira_software_data_center`, `magentocommerce:magento`,
+  `jetty:jetty`, `beasts:vsftpd` and `nuxtjs:nuxt.js`. Three of them appear
+  only in CVE records and not in the product dictionary, so no search of the
+  dictionary finds them. Java is now asked about under four identifiers,
+  which makes its lookup slower without an NVD API key.
+- **Two of the identifiers the study proposed are left out, because what
+  they add is not a flaw in the product.** `joyent:node.js` holds two npm
+  packages filed against Node.js versions, and would have reported Node.js
+  0.8.3 with a 7.5 and a 10.0 it does not have. `samba:samba_server` holds
+  one CVE, which is Apple's Samba on Mac OS X. The table now states this as
+  a rule, and a test keeps both out. The checks behind both entries are in
+  `docs/research/nvd-identifier-study-2026-11-17/followup/`.
+- **The CPE audit could pass a dead identifier.** It kept each verdict under a
+  label made of the technology and the product name, so where NVD files one
+  product under two vendors with the same product name (Spring, and now Jetty
+  and Magento), the second verdict overwrote the first. The label now names
+  the vendor too. Run against live NVD after this change, all 110 identifiers
+  in the table returned CVEs.
+- **A gateway error from NVD made a product look clean.** NVD's 502 and 504
+  answers were not retried, unlike 503, 429 and timeouts, so the identifier
+  asked about returned nothing for that scan. One of 27 requests got a 502
+  while the identifiers above were being checked. Both are now retried with
+  the same pauses, and the CPE audit retries them too instead of leaving the
+  pair unchecked.
+
 ### Changed
 
 - **Playwright is bounded, and the Docker image pins it.** The dependency had

@@ -1,0 +1,400 @@
+{
+ "meta": {
+  "title": "Checking the study's same-software identifiers before the scanner queries them",
+  "run": "2026-11-17",
+  "follows": "../results.json. Its data/classification.json judged 9 identifiers to be the same software as products in the scanner's table. This checks each against the CVEs it adds and against live NVD, before any was added.",
+  "scanner_table_checked": "src/phantomprobe/cpe_tables.py at commit 5904796 (the 0.9.3 table): 74 products, 19 with second identifiers, 25 second identifiers. The scripts read the table from src/, so running them against a later commit compares against the identifiers added as a result of this check.",
+  "method": [
+   "scripts/1_extra_cves.py lists, from the study's NVD snapshot (../raw-feeds/), the CVEs each identifier holds that the table's identifiers lack, with the versions NVD files them under.",
+   "scripts/2_describe.py reads the NVD description of each of those CVEs, to judge whether it is a flaw in the product itself or in something filed against it.",
+   "scripts/3_live_check.py asks the live NVD CVE API what the scanner would ask: the unpadded CPE at one version, first under the table's identifiers and then under each new one, and counts what each new one returns beyond them.",
+   "The four identifiers no rule of the study proposed were found by rechecking, against the snapshot, the identifiers the 2026-11-16 pilot had measured at one version and left out as adding nothing.",
+   "scripts/4_version_gap.py explains, from the snapshot, why oracle:jre added more CVEs at Java 1.7.0 than it adds across all versions."
+  ],
+  "commands": [
+   "python -I 1_extra_cves.py <study dir> <src dir> extra_cves.json",
+   "python -I 2_describe.py <study dir>/raw-feeds extra_cves.json descriptions.json",
+   "python -I 3_live_check.py <project dir> live_check.json",
+   "python -I 3_live_check.py <project dir> live_recheck.json '[[\"java\",\"1.6.0\",[\"sun:jdk\",\"oracle:jre\",\"oracle:java_se\"]],[\"node.js\",\"0.8.3\",[\"joyent:node.js\"]],[\"samba\",\"3.0.25\",[\"samba:samba_server\"]]]'",
+   "python -I 1_extra_cves.py <study dir> <src dir> extra_more.json '{\"jetty\":[\"a:jetty:jetty\"],\"nuxt\":[\"a:nuxtjs:nuxt.js\"],\"vsftpd\":[\"a:beasts:vsftpd\"],\"exim\":[\"a:university_of_cambridge:exim\"]}'",
+   "python -I 2_describe.py <study dir>/raw-feeds extra_more.json descriptions_more.json",
+   "python -I 3_live_check.py <project dir> live_more.json '[[\"exim\",\"4.20\",[\"university_of_cambridge:exim\"]],[\"vsftpd\",\"1.2.1\",[\"beasts:vsftpd\"]],[\"jetty\",\"6.0\",[\"jetty:jetty\"]],[\"nuxt\",\"2.6.1\",[\"nuxtjs:nuxt.js\"]]]'",
+   "python -I 4_version_gap.py <study dir>/raw-feeds 1.7.0 2002 2026 version_gap.json"
+  ],
+  "caveats": [
+   "Whether a CVE is a flaw in the product was judged from its NVD description by one rater, the AI assistant that ran the check.",
+   "Snapshot counts are version-independent. Live counts are for one version and depend on NVD on the day.",
+   "The first live run met one HTTP 502 from NVD during the Java 1.6.0 queries. A rerun of Java 1.6.0 (data/live_recheck.json) returned the same counts for all four identifiers. The scanner does not retry a 502.",
+   "Only the identifiers named here were rechecked. Of the rest the pilot left out, nginx:nginx and varnish-cache:varnish hold nothing the table's identifiers lack at any version."
+  ],
+  "files": {
+   "data/extra_cves.json": "the study's 9 identifiers: extra CVEs with versions",
+   "data/descriptions.json": "their NVD descriptions",
+   "data/extra_more.json": "the same for the 4 identifiers the rules missed",
+   "data/descriptions_more.json": "their NVD descriptions",
+   "data/live_check.json": "live NVD at one version per product",
+   "data/live_recheck.json": "Java 1.6.0 again, Node.js 0.8.3, Samba 3.0.25",
+   "data/live_more.json": "live NVD for the 4 identifiers the rules missed",
+   "data/version_gap.json": "the Java 1.7.0 gap between oracle:jre and oracle:jdk",
+   "scripts/": "the scripts as run, numbered in order; extra_cves_stream.py holds the feed readers 2 and 4 share"
+  }
+ },
+ "the_study_list": {
+  "identifiers": 9,
+  "extra_cves_any_version": 274,
+  "of_which_not_flaws_in_the_product": 5,
+  "added": 7,
+  "per_identifier": [
+   {
+    "identifier": "oracle:java_se",
+    "product": "java",
+    "extra_cves_any_version": 4,
+    "extra_scored_7_or_higher": 1,
+    "not_flaws_in_the_product": {
+     "CVE-2021-21349": "XStream, a third-party Java library, filed under java_se 7u321 and 8u311",
+     "CVE-2021-41041": "Eclipse OpenJ9, another JVM, filed under java_se 8 and 11"
+    },
+    "live": [
+     {
+      "version": "1.6.0",
+      "table_identifiers_returned": 459,
+      "returned": 0,
+      "added": 0,
+      "added_7_or_higher": 0
+     },
+     {
+      "version": "1.7.0",
+      "table_identifiers_returned": 569,
+      "returned": 0,
+      "added": 0,
+      "added_7_or_higher": 0
+     },
+     {
+      "version": "11.0.14",
+      "table_identifiers_returned": 4,
+      "returned": 2,
+      "added": 2,
+      "added_7_or_higher": 0
+     }
+    ],
+    "decision": "added: its two Java SE flaws are reached at 11.0.14; the two that are not Java SE flaws sit under version strings (7u321, 8u311, 8, 11) that the scanner never sends, since it reads dotted versions only"
+   },
+   {
+    "identifier": "oracle:jre",
+    "product": "java",
+    "extra_cves_any_version": 24,
+    "extra_scored_7_or_higher": 13,
+    "not_flaws_in_the_product": {},
+    "live": [
+     {
+      "version": "1.6.0",
+      "table_identifiers_returned": 459,
+      "returned": 469,
+      "added": 13,
+      "added_7_or_higher": 9
+     },
+     {
+      "version": "1.7.0",
+      "table_identifiers_returned": 569,
+      "returned": 613,
+      "added": 52,
+      "added_7_or_higher": 26
+     },
+     {
+      "version": "11.0.14",
+      "table_identifiers_returned": 4,
+      "returned": 2,
+      "added": 0,
+      "added_7_or_higher": 0
+     }
+    ],
+    "decision": "added"
+   },
+   {
+    "identifier": "sun:jdk",
+    "product": "java",
+    "extra_cves_any_version": 231,
+    "extra_scored_7_or_higher": 139,
+    "not_flaws_in_the_product": {},
+    "live": [
+     {
+      "version": "1.6.0",
+      "table_identifiers_returned": 459,
+      "returned": 352,
+      "added": 196,
+      "added_7_or_higher": 123
+     },
+     {
+      "version": "1.7.0",
+      "table_identifiers_returned": 569,
+      "returned": 51,
+      "added": 51,
+      "added_7_or_higher": 32
+     },
+     {
+      "version": "11.0.14",
+      "table_identifiers_returned": 4,
+      "returned": 0,
+      "added": 0,
+      "added_7_or_higher": 0
+     }
+    ],
+    "decision": "added"
+   },
+   {
+    "identifier": "django_project:django",
+    "product": "django",
+    "extra_cves_any_version": 6,
+    "extra_scored_7_or_higher": 1,
+    "not_flaws_in_the_product": {},
+    "live": [
+     {
+      "version": "0.95",
+      "table_identifiers_returned": 33,
+      "returned": 4,
+      "added": 4,
+      "added_7_or_higher": 1
+     }
+    ],
+    "decision": "added"
+   },
+   {
+    "identifier": "cloudbees:jenkins",
+    "product": "jenkins",
+    "extra_cves_any_version": 1,
+    "extra_scored_7_or_higher": 0,
+    "not_flaws_in_the_product": {},
+    "live": [
+     {
+      "version": "1.509",
+      "table_identifiers_returned": 267,
+      "returned": 1,
+      "added": 1,
+      "added_7_or_higher": 0
+     }
+    ],
+    "decision": "added"
+   },
+   {
+    "identifier": "magentocommerce:magento",
+    "product": "magento",
+    "extra_cves_any_version": 2,
+    "extra_scored_7_or_higher": 1,
+    "not_flaws_in_the_product": {},
+    "live": [
+     {
+      "version": "1.6.2",
+      "table_identifiers_returned": 208,
+      "returned": 2,
+      "added": 2,
+      "added_7_or_higher": 1
+     }
+    ],
+    "decision": "added"
+   },
+   {
+    "identifier": "joyent:node.js",
+    "product": "node.js",
+    "extra_cves_any_version": 2,
+    "extra_scored_7_or_higher": 2,
+    "not_flaws_in_the_product": {
+     "CVE-2014-6394": "the send npm package, its 0.8.3 and earlier filed as Node.js versions",
+     "CVE-2014-7192": "the syntax-error npm package, filed against Node.js 0.10.32 and earlier"
+    },
+    "live": [
+     {
+      "version": "0.10.32",
+      "table_identifiers_returned": 41,
+      "returned": 1,
+      "added": 1,
+      "added_7_or_higher": 1
+     },
+     {
+      "version": "0.8.3",
+      "table_identifiers_returned": 28,
+      "returned": 2,
+      "added": 2,
+      "added_7_or_higher": 2
+     }
+    ],
+    "decision": "left out: neither CVE it adds is a Node.js flaw, and Node.js 0.8.3 would be reported with a 7.5 and a 10.0"
+   },
+   {
+    "identifier": "samba:samba_server",
+    "product": "samba",
+    "extra_cves_any_version": 1,
+    "extra_scored_7_or_higher": 0,
+    "not_flaws_in_the_product": {
+     "CVE-2007-2407": "Apple's Samba on Mac OS X 10.3.9 and 10.4.10, filed against every version"
+    },
+    "live": [
+     {
+      "version": "4.20.0",
+      "table_identifiers_returned": 3,
+      "returned": 0,
+      "added": 0,
+      "added_7_or_higher": 0
+     },
+     {
+      "version": "3.0.25",
+      "table_identifiers_returned": 65,
+      "returned": 0,
+      "added": 0,
+      "added_7_or_higher": 0
+     }
+    ],
+    "decision": "left out: its one CVE is Apple's build, and it returned nothing for Samba 3.0.25 or 4.20.0"
+   },
+   {
+    "identifier": "atlassian:jira_software_data_center",
+    "product": "jira",
+    "extra_cves_any_version": 3,
+    "extra_scored_7_or_higher": 1,
+    "not_flaws_in_the_product": {},
+    "live": [
+     {
+      "version": "8.13.0",
+      "table_identifiers_returned": 65,
+      "returned": 7,
+      "added": 3,
+      "added_7_or_higher": 1
+     }
+    ],
+    "decision": "added"
+   }
+  ]
+ },
+ "missed_by_the_study_rules": [
+  {
+   "identifier": "jetty:jetty",
+   "product": "jetty",
+   "extra_cves_any_version": 3,
+   "extra_scored_7_or_higher": 0,
+   "not_flaws_in_the_product": {},
+   "live": [
+    {
+     "version": "6.0",
+     "table_identifiers_returned": 19,
+     "returned": 1,
+     "added": 1,
+     "added_7_or_higher": 0
+    }
+   ],
+   "in_the_product_dictionary": false,
+   "why_no_rule_found_it": "absent from the product dictionary, which the rules searched",
+   "decision": "added"
+  },
+  {
+   "identifier": "nuxtjs:nuxt.js",
+   "product": "nuxt",
+   "extra_cves_any_version": 1,
+   "extra_scored_7_or_higher": 0,
+   "not_flaws_in_the_product": {},
+   "live": [
+    {
+     "version": "2.6.1",
+     "table_identifiers_returned": 3,
+     "returned": 1,
+     "added": 1,
+     "added_7_or_higher": 0
+    }
+   ],
+   "in_the_product_dictionary": true,
+   "why_no_rule_found_it": "in the dictionary, but both vendor and product are spelled differently from the table's nuxt:nuxt, which none of the three rules allows",
+   "decision": "added"
+  },
+  {
+   "identifier": "beasts:vsftpd",
+   "product": "vsftpd",
+   "extra_cves_any_version": 2,
+   "extra_scored_7_or_higher": 0,
+   "not_flaws_in_the_product": {},
+   "live": [
+    {
+     "version": "1.2.1",
+     "table_identifiers_returned": 3,
+     "returned": 1,
+     "added": 1,
+     "added_7_or_higher": 0
+    }
+   ],
+   "in_the_product_dictionary": false,
+   "why_no_rule_found_it": "absent from the product dictionary, which the rules searched",
+   "decision": "added"
+  },
+  {
+   "identifier": "university_of_cambridge:exim",
+   "product": "exim",
+   "extra_cves_any_version": 10,
+   "extra_scored_7_or_higher": 8,
+   "not_flaws_in_the_product": {},
+   "live": [
+    {
+     "version": "4.20",
+     "table_identifiers_returned": 56,
+     "returned": 4,
+     "added": 4,
+     "added_7_or_higher": 3
+    }
+   ],
+   "in_the_product_dictionary": false,
+   "why_no_rule_found_it": "absent from the product dictionary, which the rules searched",
+   "decision": "added"
+  }
+ ],
+ "a_lookup_at_one_version_can_miss_more_than_the_all_version_count_shows": {
+  "example": "oracle:jre holds 24 CVEs that oracle:jdk lacks at any version, yet asked about Java 1.7.0 it returned 52 that oracle:jdk:1.7.0 did not.",
+  "why": "Of those 52, 21 are not filed under oracle:jdk at all. The other 31 are, but only for older releases: their oracle:jre entries name 1.7.0 and their oracle:jdk entries do not. A version-independent count sees them as covered.",
+  "snapshot": {
+   "jre_entries_cover_it": 613,
+   "jdk_entries_cover_it": 568,
+   "jre_covers_jdk_does_not": 52
+  },
+  "live_java_1_7_0": {
+   "oracle_jdk": 569,
+   "oracle_jre_beyond_it": 52
+  },
+  "examples_of_the_oracle_jdk_entries": {
+   "CVE-2013-2461": [
+    "1.6.0:update22",
+    "1.6.0:update23",
+    "1.6.0:update24",
+    "1.6.0:update25",
+    "1.6.0:update26",
+    "1.6.0:update27"
+   ],
+   "CVE-2013-5804": [
+    "*:update51",
+    "*:update60",
+    "1.5.0:update36",
+    "1.5.0:update38",
+    "1.5.0:update40",
+    "1.5.0:update41"
+   ],
+   "CVE-2013-5878": [
+    "1.6.0:update65"
+   ],
+   "CVE-2013-5884": [
+    "1.5.0:update55",
+    "1.6.0:update65"
+   ],
+   "CVE-2013-5887": [
+    "1.6.0:update65"
+   ],
+   "CVE-2013-5888": [
+    "1.6.0:update65"
+   ],
+   "CVE-2013-5889": [
+    "1.6.0:update65"
+   ],
+   "CVE-2013-5899": [
+    "1.6.0:update65"
+   ]
+  }
+ },
+ "scanner_table_after": {
+  "products": 74,
+  "products_with_second_identifiers": 25,
+  "second_identifiers": 36
+ }
+}

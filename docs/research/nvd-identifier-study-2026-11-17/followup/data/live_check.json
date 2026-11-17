@@ -1,0 +1,478 @@
+[
+ {
+  "tech": "java",
+  "version": "1.6.0",
+  "current": 459,
+  "current_by_identifier": {
+   "cpe:2.3:a:oracle:jdk:1.6.0": 459
+  },
+  "new": [
+   {
+    "identifier": "sun:jdk",
+    "returned": 352,
+    "not_in_current": 196,
+    "not_in_any_before": 196,
+    "of_which_7_or_higher": 123,
+    "added": [
+     [
+      "CVE-2007-2788",
+      6.8
+     ],
+     [
+      "CVE-2007-2789",
+      4.3
+     ],
+     [
+      "CVE-2007-3698",
+      7.8
+     ],
+     [
+      "CVE-2007-3716",
+      9.3
+     ],
+     [
+      "CVE-2007-3922",
+      6.8
+     ],
+     [
+      "CVE-2007-5232",
+      4.0
+     ],
+     [
+      "CVE-2007-5237",
+      7.1
+     ],
+     [
+      "CVE-2007-5238",
+      2.6
+     ],
+     [
+      "CVE-2007-5239",
+      4.0
+     ],
+     [
+      "CVE-2007-5240",
+      5.0
+     ],
+     [
+      "CVE-2007-5273",
+      2.6
+     ],
+     [
+      "CVE-2007-5274",
+      2.6
+     ]
+    ]
+   },
+   {
+    "identifier": "oracle:jre",
+    "returned": 469,
+    "not_in_current": 13,
+    "not_in_any_before": 13,
+    "of_which_7_or_higher": 9,
+    "added": [
+     [
+      "CVE-2010-0840",
+      9.8
+     ],
+     [
+      "CVE-2011-3563",
+      6.4
+     ],
+     [
+      "CVE-2012-0497",
+      10.0
+     ],
+     [
+      "CVE-2012-0498",
+      10.0
+     ],
+     [
+      "CVE-2012-0499",
+      10.0
+     ],
+     [
+      "CVE-2012-0500",
+      10.0
+     ],
+     [
+      "CVE-2012-0501",
+      5.0
+     ],
+     [
+      "CVE-2012-0502",
+      6.4
+     ],
+     [
+      "CVE-2012-0503",
+      7.5
+     ],
+     [
+      "CVE-2012-0505",
+      7.5
+     ],
+     [
+      "CVE-2012-0506",
+      4.3
+     ],
+     [
+      "CVE-2012-0507",
+      9.8
+     ]
+    ]
+   },
+   {
+    "identifier": "oracle:java_se",
+    "returned": 0,
+    "not_in_current": 0,
+    "not_in_any_before": 0,
+    "of_which_7_or_higher": 0,
+    "added": []
+   }
+  ],
+  "with_new": 668
+ },
+ {
+  "tech": "java",
+  "version": "1.7.0",
+  "current": 569,
+  "current_by_identifier": {
+   "cpe:2.3:a:oracle:jdk:1.7.0": 569
+  },
+  "new": [
+   {
+    "identifier": "sun:jdk",
+    "returned": 51,
+    "not_in_current": 51,
+    "not_in_any_before": 51,
+    "of_which_7_or_higher": 32,
+    "added": [
+     [
+      "CVE-2007-3716",
+      9.3
+     ],
+     [
+      "CVE-2008-0657",
+      10.0
+     ],
+     [
+      "CVE-2008-1187",
+      6.8
+     ],
+     [
+      "CVE-2008-1191",
+      6.8
+     ],
+     [
+      "CVE-2008-2086",
+      9.3
+     ],
+     [
+      "CVE-2008-3103",
+      9.3
+     ],
+     [
+      "CVE-2008-3104",
+      6.8
+     ],
+     [
+      "CVE-2008-3105",
+      8.3
+     ],
+     [
+      "CVE-2008-3106",
+      4.3
+     ],
+     [
+      "CVE-2008-3107",
+      10.0
+     ],
+     [
+      "CVE-2008-3109",
+      7.5
+     ],
+     [
+      "CVE-2008-3110",
+      4.3
+     ]
+    ]
+   },
+   {
+    "identifier": "oracle:jre",
+    "returned": 613,
+    "not_in_current": 52,
+    "not_in_any_before": 52,
+    "of_which_7_or_higher": 26,
+    "added": [
+     [
+      "CVE-2011-3563",
+      6.4
+     ],
+     [
+      "CVE-2012-0497",
+      10.0
+     ],
+     [
+      "CVE-2012-0498",
+      10.0
+     ],
+     [
+      "CVE-2012-0499",
+      10.0
+     ],
+     [
+      "CVE-2012-0500",
+      10.0
+     ],
+     [
+      "CVE-2012-0501",
+      5.0
+     ],
+     [
+      "CVE-2012-0502",
+      6.4
+     ],
+     [
+      "CVE-2012-0503",
+      7.5
+     ],
+     [
+      "CVE-2012-0505",
+      7.5
+     ],
+     [
+      "CVE-2012-0506",
+      4.3
+     ],
+     [
+      "CVE-2012-0507",
+      9.8
+     ],
+     [
+      "CVE-2012-5076",
+      9.8
+     ]
+    ]
+   },
+   {
+    "identifier": "oracle:java_se",
+    "returned": 0,
+    "not_in_current": 0,
+    "not_in_any_before": 0,
+    "of_which_7_or_higher": 0,
+    "added": []
+   }
+  ],
+  "with_new": 672
+ },
+ {
+  "tech": "java",
+  "version": "11.0.14",
+  "current": 4,
+  "current_by_identifier": {
+   "cpe:2.3:a:oracle:jdk:11.0.14": 4
+  },
+  "new": [
+   {
+    "identifier": "sun:jdk",
+    "returned": 0,
+    "not_in_current": 0,
+    "not_in_any_before": 0,
+    "of_which_7_or_higher": 0,
+    "added": []
+   },
+   {
+    "identifier": "oracle:jre",
+    "returned": 2,
+    "not_in_current": 0,
+    "not_in_any_before": 0,
+    "of_which_7_or_higher": 0,
+    "added": []
+   },
+   {
+    "identifier": "oracle:java_se",
+    "returned": 2,
+    "not_in_current": 2,
+    "not_in_any_before": 2,
+    "of_which_7_or_higher": 0,
+    "added": [
+     [
+      "CVE-2022-21443",
+      3.7
+     ],
+     [
+      "CVE-2022-21496",
+      5.3
+     ]
+    ]
+   }
+  ],
+  "with_new": 6
+ },
+ {
+  "tech": "django",
+  "version": "0.95",
+  "current": 33,
+  "current_by_identifier": {
+   "cpe:2.3:a:djangoproject:django:0.95": 33
+  },
+  "new": [
+   {
+    "identifier": "django_project:django",
+    "returned": 4,
+    "not_in_current": 4,
+    "not_in_any_before": 4,
+    "of_which_7_or_higher": 1,
+    "added": [
+     [
+      "CVE-2007-0404",
+      7.5
+     ],
+     [
+      "CVE-2007-0405",
+      6.5
+     ],
+     [
+      "CVE-2007-5712",
+      2.6
+     ],
+     [
+      "CVE-2008-2302",
+      4.3
+     ]
+    ]
+   }
+  ],
+  "with_new": 37
+ },
+ {
+  "tech": "jenkins",
+  "version": "1.509",
+  "current": 267,
+  "current_by_identifier": {
+   "cpe:2.3:a:jenkins:jenkins:1.509": 267
+  },
+  "new": [
+   {
+    "identifier": "cloudbees:jenkins",
+    "returned": 1,
+    "not_in_current": 1,
+    "not_in_any_before": 1,
+    "of_which_7_or_higher": 0,
+    "added": [
+     [
+      "CVE-2013-2034",
+      6.8
+     ]
+    ]
+   }
+  ],
+  "with_new": 268
+ },
+ {
+  "tech": "jira",
+  "version": "8.13.0",
+  "current": 65,
+  "current_by_identifier": {
+   "cpe:2.3:a:atlassian:jira:8.13.0": 20,
+   "cpe:2.3:a:atlassian:jira_server:8.13.0": 43,
+   "cpe:2.3:a:atlassian:jira_data_center:8.13.0": 37
+  },
+  "new": [
+   {
+    "identifier": "atlassian:jira_software_data_center",
+    "returned": 7,
+    "not_in_current": 3,
+    "not_in_any_before": 3,
+    "of_which_7_or_higher": 1,
+    "added": [
+     [
+      "CVE-2021-41309",
+      5.3
+     ],
+     [
+      "CVE-2021-41310",
+      6.1
+     ],
+     [
+      "CVE-2021-41311",
+      7.5
+     ]
+    ]
+   }
+  ],
+  "with_new": 68
+ },
+ {
+  "tech": "magento",
+  "version": "1.6.2",
+  "current": 208,
+  "current_by_identifier": {
+   "cpe:2.3:a:magento:magento:1.6.2": 101,
+   "cpe:2.3:a:adobe:magento:1.6.2": 107
+  },
+  "new": [
+   {
+    "identifier": "magentocommerce:magento",
+    "returned": 2,
+    "not_in_current": 2,
+    "not_in_any_before": 2,
+    "of_which_7_or_higher": 1,
+    "added": [
+     [
+      "CVE-2011-5240",
+      5.8
+     ],
+     [
+      "CVE-2012-6091",
+      7.5
+     ]
+    ]
+   }
+  ],
+  "with_new": 210
+ },
+ {
+  "tech": "node.js",
+  "version": "0.10.32",
+  "current": 41,
+  "current_by_identifier": {
+   "cpe:2.3:a:nodejs:node.js:0.10.32": 41
+  },
+  "new": [
+   {
+    "identifier": "joyent:node.js",
+    "returned": 1,
+    "not_in_current": 1,
+    "not_in_any_before": 1,
+    "of_which_7_or_higher": 1,
+    "added": [
+     [
+      "CVE-2014-7192",
+      10.0
+     ]
+    ]
+   }
+  ],
+  "with_new": 42
+ },
+ {
+  "tech": "samba",
+  "version": "4.20.0",
+  "current": 3,
+  "current_by_identifier": {
+   "cpe:2.3:a:samba:samba:4.20.0": 3
+  },
+  "new": [
+   {
+    "identifier": "samba:samba_server",
+    "returned": 0,
+    "not_in_current": 0,
+    "not_in_any_before": 0,
+    "of_which_7_or_higher": 0,
+    "added": []
+   }
+  ],
+  "with_new": 3
+ }
+]

@@ -57,10 +57,12 @@ class NvdClient:
     KEYED_REQUEST_INTERVAL = 0.7
 
     # NVD answers 503 when it is busy, often enough to see it several times in
-    # a session, and 429 when asked too fast. It also stalls until the read
-    # times out. All three pass; a product must not look clean because one
+    # a session, and 429 when asked too fast. The gateway in front of it
+    # answers 502 or 504 when NVD behind it fails or is slow: one of 27
+    # requests got a 502 on a live run. NVD also stalls until the read times
+    # out. All of these pass; a product must not look clean because one
     # request landed at a bad moment.
-    RETRY_STATUSES = (429, 503)
+    RETRY_STATUSES = (429, 502, 503, 504)
     RETRY_DELAYS = (5, 15)
 
     # NVD returns results oldest first, so a single short page holds the CVEs

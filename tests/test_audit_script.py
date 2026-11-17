@@ -49,6 +49,48 @@ class TestClassify:
             assert audit_script.classify(total) in audit_script.VERDICT_NOTE
 
 
+class _Response:
+    def __init__(self, payload):
+        import json
+
+        self._body = json.dumps(payload).encode()
+
+    def read(self):
+        return self._body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+class TestCountCves:
+    """The one function that talks to NVD: what it retries and what it reports."""
+
+    @pytest.mark.parametrize("code", [502, 504])
+    def test_a_gateway_error_is_retried(self, monkeypatch, no_waiting, code):
+        """
+        A gateway in front of NVD answers 502 or 504 when NVD behind it fails
+        or is slow, and the same request passes a moment later. Without a
+        retry the pair was left unchecked.
+        """
+        from urllib.error import HTTPError
+
+        calls = []
+
+        def gateway_once(request, timeout=None):
+            calls.append(request.full_url)
+            if len(calls) == 1:
+                raise HTTPError(request.full_url, code, "error", {}, None)
+            return _Response({"totalResults": 41})
+
+        monkeypatch.setattr(audit_script, "safe_urlopen", gateway_once)
+
+        assert audit_script.count_cves("f5", "nginx", None) == (41, "")
+        assert len(calls) == 2
+
+
 class TestRun:
     def test_a_dead_mapping_fails_the_run(self, monkeypatch, no_waiting, capsys):
         monkeypatch.setattr(audit_script, "count_cves",
@@ -119,6 +161,20 @@ class TestRun:
             lambda vendor, product, key, timeout=45: (
                 (0, "") if product == "nginx_open_source" else (41, "")))
         assert audit_script.main(["--tech", "nginx"]) == 1
+
+    def test_identifiers_sharing_a_product_name_are_each_judged(
+            self, monkeypatch, no_waiting):
+        """
+        Spring is filed under springsource:spring_framework and
+        pivotal_software:spring_framework. Verdicts were kept under a label
+        built from the product name alone, so the second overwrote the first,
+        and a dead identifier passed as long as its namesake answered.
+        """
+        monkeypatch.setattr(
+            audit_script, "count_cves",
+            lambda vendor, product, key, timeout=45: (
+                (0, "") if vendor == "springsource" else (41, "")))
+        assert audit_script.main(["--tech", "spring"]) == 1
 
     def test_candidate_pairs_need_not_be_in_the_table(self, monkeypatch, no_waiting):
         seen = []

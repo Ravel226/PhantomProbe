@@ -1,0 +1,49 @@
+{
+ "version": "1.7.0",
+ "years": [
+  2002,
+  2026
+ ],
+ "jre_entries_cover_it": 613,
+ "jdk_entries_cover_it": 568,
+ "jre_covers_jdk_does_not": 52,
+ "of_which_filed_under_jdk_for_other_versions": 31,
+ "of_which_not_filed_under_jdk_at_all": 21,
+ "examples_of_their_jdk_entries": {
+  "CVE-2013-2461": [
+   "1.6.0:update22",
+   "1.6.0:update23",
+   "1.6.0:update24",
+   "1.6.0:update25",
+   "1.6.0:update26",
+   "1.6.0:update27"
+  ],
+  "CVE-2013-5804": [
+   "*:update51",
+   "*:update60",
+   "1.5.0:update36",
+   "1.5.0:update38",
+   "1.5.0:update40",
+   "1.5.0:update41"
+  ],
+  "CVE-2013-5878": [
+   "1.6.0:update65"
+  ],
+  "CVE-2013-5884": [
+   "1.5.0:update55",
+   "1.6.0:update65"
+  ],
+  "CVE-2013-5887": [
+   "1.6.0:update65"
+  ],
+  "CVE-2013-5888": [
+   "1.6.0:update65"
+  ],
+  "CVE-2013-5889": [
+   "1.6.0:update65"
+  ],
+  "CVE-2013-5899": [
+   "1.6.0:update65"
+  ]
+ }
+}

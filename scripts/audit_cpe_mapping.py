@@ -75,8 +75,10 @@ def count_cves(vendor: str, product: str, api_key: Optional[str],
             return payload.get("totalResults"), ""
         except urllib.error.HTTPError as exc:
             # 403 and 503 are how NVD pushes back when it is busy or we are
-            # going too fast; both are worth another try after a pause.
-            if exc.code in (403, 503) and attempt < RETRIES - 1:
+            # going too fast, and 502 and 504 come from the gateway in front
+            # of it when NVD fails or is slow; all are worth another try after
+            # a pause.
+            if exc.code in (403, 502, 503, 504) and attempt < RETRIES - 1:
                 time.sleep(20)
                 continue
             return None, f"HTTP {exc.code}"
@@ -169,8 +171,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         for n in names:
             pairs.append((n, mapping[n]["vendor"], mapping[n]["product"]))
             # A sibling that stops existing fails as quietly as a primary does.
+            # The label names the vendor too: one product can be filed under
+            # two vendors with the same product name (Spring, Jetty, Magento),
+            # and verdicts are kept by label, so without it the second
+            # overwrote the first and a dead identifier could pass.
             for extra in CVEMatcher.CPE_SIBLINGS.get(n, []):
-                pairs.append((f"{n}+{extra['product']}",
+                pairs.append((f"{n}+{extra['vendor']}:{extra['product']}",
                               extra["vendor"], extra["product"]))
 
     seconds = len(pairs) * interval

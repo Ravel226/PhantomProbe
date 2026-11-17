@@ -615,6 +615,28 @@ class TestBusyNvd:
         assert pauses == [5, 15]
         assert "NVD HTTP 503" in capsys.readouterr().out
 
+    @pytest.mark.parametrize("code", [502, 504])
+    def test_a_gateway_error_is_retried(self, matcher, monkeypatch, code):
+        """
+        Seen on a live run: one of 27 requests came back 502 Bad Gateway, and
+        the identifier it asked about returned nothing. 504 is the same gateway
+        giving up on a slow NVD. Both pass a moment later.
+        """
+        calls, pauses = {"n": 0}, []
+
+        def gateway_once(req, timeout=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise self._error(req, code)
+            return _FakeResponse(_nvd_payload())
+
+        monkeypatch.setattr("phantomprobe.nvd.safe_urlopen", gateway_once)
+        monkeypatch.setattr(matcher, "_pause", pauses.append)
+        cves = matcher.query_nvd(NGINX_CPE, "nginx", "1.24.0")
+
+        assert [c.cve_id for c in cves] == ["CVE-2024-0001"]
+        assert pauses == [5]
+
     def test_a_rejected_request_is_not_retried(self, matcher, monkeypatch):
         """403 is NVD refusing the rate; waiting a few seconds does not fix it."""
         pauses = []
@@ -774,6 +796,47 @@ class TestSiblingIdentifiers:
             "cpe:2.3:a:oracle:mysql_server:8.0.30",
             "cpe:2.3:a:mysql:mysql:8.0.30",
         ]
+
+    def test_java_is_asked_for_under_its_earlier_owner_and_its_runtime(self):
+        """
+        Checked against NVD: Java 1.6.0 returned 459 CVEs under oracle:jdk, a
+        further 196 under sun:jdk, 123 of them scored 7.0 or higher, and 13
+        under oracle:jre.
+        """
+        assert CVEMatcher().build_cpes("java", "1.6.0") == [
+            "cpe:2.3:a:oracle:jdk:1.6.0",
+            "cpe:2.3:a:sun:jdk:1.6.0",
+            "cpe:2.3:a:oracle:jre:1.6.0",
+            "cpe:2.3:a:oracle:java_se:1.6.0",
+        ]
+
+    def test_exim_is_asked_for_under_an_identifier_only_cve_records_use(self):
+        """
+        university_of_cambridge:exim is missing from NVD's product dictionary,
+        so a search of the dictionary cannot find it, yet CVEs are filed under
+        it: Exim 4.20 returned 56 under exim:exim and 4 more here, three of
+        them scored 7.0 or higher.
+        """
+        assert CVEMatcher().build_cpes("exim", "4.20") == [
+            "cpe:2.3:a:exim:exim:4.20",
+            "cpe:2.3:a:university_of_cambridge:exim:4.20",
+        ]
+
+    @pytest.mark.parametrize("tech, identifier", [
+        ("node.js", ("joyent", "node.js")),
+        ("samba", ("samba", "samba_server")),
+    ])
+    def test_an_identifier_whose_cves_are_not_the_products_stays_out(
+            self, tech, identifier):
+        """
+        Both name the same software, and the study that found them lists them
+        as such, but what they add is not its flaws. joyent:node.js holds two
+        npm packages filed against Node.js versions, so Node.js 0.8.3 would be
+        reported with a 7.5 and a 10.0 it does not have; samba:samba_server
+        holds Apple's Samba on Mac OS X.
+        """
+        extras = CVEMatcher.CPE_SIBLINGS.get(tech, [])
+        assert identifier not in [(e["vendor"], e["product"]) for e in extras]
 
     def test_joomla_is_asked_for_in_the_spelling_nvd_uses(self, matcher, monkeypatch):
         """

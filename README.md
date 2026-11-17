@@ -5,7 +5,7 @@
 [![PyPI](https://img.shields.io/pypi/v/phantomprobe.svg)](https://pypi.org/project/phantomprobe/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-377%20passing-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-386%20passing-brightgreen.svg)](tests/)
 
 PhantomProbe maps a target's attack surface and reports what is actually wrong
 with it. The core runs on the Python standard library alone, so a default
@@ -134,11 +134,13 @@ version, so a match read from a banner that names one (Ubuntu, Debian, the Red
 Hat family and others) is reported with that caution attached.
 
 A pair that returns results can still be incomplete, because NVD files many
-products under more than one identifier. For 19 of the 74 products a second
+products under more than one identifier. For 25 of the 74 products a second
 identifier returned CVEs the first did not: MySQL 8.0.30 has 147 under one and
-155 more under another, and Joomla 3.9.0 has none under one and 125 under the
-other. Every identifier a product has is queried and the results merged. Keep
-the CPE table honest as vendors change hands:
+155 more under another, Java 1.6.0 has 459 under Oracle's and 196 more under
+Sun's, and Joomla 3.9.0 has none under one and 125 under the other. Every
+identifier a product has is queried and the results merged, except where what
+it adds is not a flaw in the product: NVD also files npm packages under
+Node.js versions. Keep the CPE table honest as vendors change hands:
 
 ```bash
 python scripts/audit_cpe_mapping.py            # re-check every mapping against NVD
@@ -293,7 +295,7 @@ src/phantomprobe/
 └── asgi.py           Standalone ASGI entry point   (extra: dashboard)
 
 scripts/audit_cpe_mapping.py   Re-check the CVE table against live NVD
-tests/                         377 tests, network stubbed
+tests/                         386 tests, network stubbed
 ```
 
 ## Development
