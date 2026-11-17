@@ -69,8 +69,12 @@ USER root
 # both users can reach, and make it world-readable.
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-# Shared libraries Playwright's bundled Chromium links against.
+# Shared libraries Playwright's bundled Chromium links against, plus
+# libatomic1 for the Node driver Playwright itself runs on. Without it
+# "playwright install" cannot start at all: Playwright 1.65 failed the build
+# with "libatomic.so.1: cannot open shared object file".
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    libatomic1 \
     libglib2.0-0 \
     libnss3 \
     libnspr4 \
