@@ -4,7 +4,7 @@ All notable changes to PhantomProbe are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.9.3] - 2026-11-17
 
 Each entry below was found by checking the scanner against a known answer, and
 confirmed afterwards against live NVD, CISA KEV and real DNS.
@@ -80,6 +80,13 @@ confirmed afterwards against live NVD, CISA KEV and real DNS.
   markup it may be found in and matches whole words, and each finding states
   the signal that identified it. Cookie values and request ids are kept out of
   the evidence.
+- **The full Docker image stopped building.** The `playwright` dependency has
+  no upper bound and resolved to 1.65, whose bundled Node driver needs
+  `libatomic`. The slim base image does not ship it, so `playwright install`
+  could not start. The full image now installs `libatomic1`.
+- **CI could not run Python 3.8 or 3.9.** `ubuntu-latest` moved to Ubuntu
+  26.04, which has no build of either version, so both jobs failed before any
+  test ran. The test job is pinned to `ubuntu-24.04`.
 
 ### Changed
 
@@ -190,7 +197,7 @@ against its live source before shipping.
 - All outbound fetches go through a helper enforcing an **http/https scheme
   allowlist**, so a hostile page cannot point the scanner at `file://`.
 
-[Unreleased]: https://github.com/Ravel226/PhantomProbe/compare/v0.9.2...HEAD
+[0.9.3]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.3
 [0.9.2]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.2
 [0.9.1]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.1
 [0.9.0]: https://github.com/Ravel226/PhantomProbe/releases/tag/v0.9.0
